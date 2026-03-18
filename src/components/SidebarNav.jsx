@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { FiLogOut } from 'react-icons/fi';
 import { useAuth } from '@/context/AuthContext';
 
-const BRAND_LOGO_CIRCLE = '/assets/nogatu_logo_circle.jpg';
+const BRAND_LOGO = '/assets/nogatu-logo.jpg';
 
 const SidebarNav = ({ theme = 'main', navItems = [] }) => {
   const { user, logout } = useAuth();
@@ -23,7 +23,7 @@ const SidebarNav = ({ theme = 'main', navItems = [] }) => {
     >
       <div className="p-4 flex items-center gap-3 border-b border-white/10">
         <img
-          src={BRAND_LOGO_CIRCLE}
+          src={BRAND_LOGO}
           alt="Nogatu"
           className="w-10 h-10 rounded-xl object-cover border-2 border-white/40"
         />

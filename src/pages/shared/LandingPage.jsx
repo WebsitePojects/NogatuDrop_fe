@@ -25,7 +25,7 @@ const NAV_LINKS = [
   { label: 'Contact', href: '#contact' },
 ];
 
-const BRAND_LOGO_CIRCLE = '/assets/nogatu_logo_circle.jpg';
+const BRAND_LOGO = '/assets/nogatu-logo.jpg';
 const HERO_BG = '/assets/Landing_Page.png';
 const ABOUT_IMAGE = '/assets/about_nogatu.jpg';
 
@@ -174,7 +174,7 @@ const LandingPage = () => {
               className="flex items-center gap-2 group"
             >
               <img
-                src={BRAND_LOGO_CIRCLE}
+                src={BRAND_LOGO}
                 alt="Nogatu logo"
                 className="h-9 w-9 rounded-full object-cover border border-[#D9B26A]"
               />
@@ -443,7 +443,7 @@ const LandingPage = () => {
           <div className="flex flex-col items-center text-center mb-8">
             <div className="flex items-center gap-2 mb-3">
               <img
-                src={BRAND_LOGO_CIRCLE}
+                src={BRAND_LOGO}
                 alt="Nogatu"
                 className="h-9 w-9 rounded-full object-cover border border-[#D9B26A]"
               />

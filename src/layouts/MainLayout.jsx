@@ -18,6 +18,8 @@ import NotificationDrawer from '@/components/NotificationDrawer';
 import { useNotifications } from '@/context/NotificationContext';
 import { useAuth } from '@/context/AuthContext';
 
+const BRAND_LOGO = '/assets/nogatu-logo.jpg';
+
 const navItems = [
   { path: '/main/dashboard', label: 'Dashboard', icon: FiGrid, end: true },
   { path: '/main/inventory', label: 'Inventory', icon: FiPackage },
@@ -42,7 +44,14 @@ const MainLayout = () => {
       <div className="flex-1 ml-64">
         <header className="sticky top-0 z-30 bg-gradient-to-r from-[#4A1C00] to-[#6B2D0E] shadow-md">
           <div className="flex items-center justify-between px-6 py-3">
-            <div />
+            <div className="flex items-center gap-3 text-white">
+              <img
+                src={BRAND_LOGO}
+                alt="Nogatu logo"
+                className="w-9 h-9 rounded-lg object-cover border border-white/30"
+              />
+              <span className="text-sm font-semibold tracking-wide hidden sm:inline">NOGATU</span>
+            </div>
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setDrawerOpen(true)}

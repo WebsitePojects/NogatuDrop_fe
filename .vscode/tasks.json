@@ -10,6 +10,16 @@
 				"dev"
 			],
 			"isBackground": true
+		},
+		{
+			"label": "build-frontend-prod",
+			"type": "shell",
+			"command": "npm",
+			"args": [
+				"run",
+				"build"
+			],
+			"isBackground": false
 		}
 	]
 }

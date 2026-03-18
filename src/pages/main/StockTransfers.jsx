@@ -241,7 +241,7 @@ const StockTransfers = () => {
               <div key={transfer.id} className="bg-gray-50 border border-gray-100 rounded-lg p-3">
                 <p className="text-sm font-semibold text-gray-800">{transfer.transfer_number}</p>
                 <p className="text-xs text-gray-500 mt-1">
-                  {transfer.from_warehouse_name || 'N/A'} -> {transfer.to_warehouse_name || 'N/A'}
+                  {transfer.from_warehouse_name || 'N/A'} {'->'} {transfer.to_warehouse_name || 'N/A'}
                 </p>
                 <p className="text-xs text-gray-500">Created {formatDate(transfer.created_at)}</p>
               </div>
