@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { FiLogOut } from 'react-icons/fi';
 import { useAuth } from '@/context/AuthContext';
 
-const BRAND_LOGO = '/assets/nogatu-logo.jpg';
+const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.jpg';
 
 const SidebarNav = ({ theme = 'main', navItems = [] }) => {
   const { user, logout } = useAuth();

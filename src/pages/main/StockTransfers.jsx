@@ -116,7 +116,7 @@ const StockTransfers = () => {
             onClick={openModal}
             className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm"
           >
-            <FiPlus /> + New Transfer
+            <FiPlus />New Transfer
           </button>
         </div>
       </div>

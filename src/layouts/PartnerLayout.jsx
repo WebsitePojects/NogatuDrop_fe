@@ -12,7 +12,7 @@ import SidebarNav from '@/components/SidebarNav';
 import { useAuth } from '@/context/AuthContext';
 import { ROLE_SLUGS } from '@/utils/constants';
 
-const BRAND_LOGO = '/assets/nogatu-logo.jpg';
+const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.jpg';
 
 const PartnerLayout = () => {
   const { user } = useAuth();

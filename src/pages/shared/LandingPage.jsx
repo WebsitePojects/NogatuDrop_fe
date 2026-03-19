@@ -1,491 +1,862 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
-  FaFacebook,
-  FaInstagram,
-  FaTwitter,
-  FaLinkedin,
-  FaBars,
-  FaTimes,
-  FaLeaf,
-  FaFlask,
-  FaBullseye,
-  FaEye,
-  FaEnvelope,
-  FaPhone,
-  FaMapMarkerAlt,
-} from 'react-icons/fa';
+  FiArrowRight,
+  FiCheck,
+  FiChevronRight,
+  FiClock,
+  FiCreditCard,
+  FiGlobe,
+  FiHeart,
+  FiLock,
+  FiMenu,
+  FiMinus,
+  FiPlus,
+  FiShoppingBag,
+  FiShield,
+  FiStar,
+  FiTruck,
+  FiUser,
+  FiX,
+} from 'react-icons/fi';
 
-/* ─── Static Data ─────────────────────────────────────────────────────────── */
+const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.jpg';
 
 const NAV_LINKS = [
-  { label: 'Home', href: '#home' },
-  { label: 'Products', href: '#products' },
-  { label: 'About Us', href: '#about' },
-  { label: 'Contact', href: '#contact' },
+  { id: 'home', label: 'Home' },
+  { id: 'shop', label: 'Shop' },
+  { id: 'story', label: 'Story' },
+  { id: 'reviews', label: 'Reviews' },
+  { id: 'contact', label: 'Contact' },
 ];
 
-const BRAND_LOGO = '/assets/nogatu-logo.jpg';
-const HERO_BG = '/assets/Landing_Page.png';
-const ABOUT_IMAGE = '/assets/about_nogatu.jpg';
+const PRODUCT_CATEGORIES = ['All', 'Coffee', 'Chocolate', 'Wellness'];
 
 const PRODUCTS = [
   {
-    id: 1,
-    name: 'Mangosteen Coffee',
-    description: 'Rich blend of mangosteen extract and premium Arabica coffee.',
-    tag: 'Best Seller',
+    id: 'nogatu-mangosteen',
+    name: 'Mangosteen Coffee Blend',
+    category: 'Coffee',
     image: '/assets/productsCatalog-NohgatuMangosteenCoffee.jpg',
+    shortDescription: 'Smooth roast with mangosteen and functional botanicals.',
+    price: 399,
+    rating: 4.9,
+    badge: 'Best Seller',
   },
   {
-    id: 2,
+    id: 'nogatu-classic',
     name: 'Classic Coffee Mix',
-    description: 'Delicious and smooth instant coffee mix for everyday enjoyment.',
-    tag: 'Popular',
+    category: 'Coffee',
     image: '/assets/productsCatalog-NogatuCoffeeMix.jpg',
+    shortDescription: 'Balanced body and aroma crafted for daily performance.',
+    price: 299,
+    rating: 4.8,
+    badge: 'Popular',
   },
   {
-    id: 3,
-    name: 'Barley Drink',
-    description: 'Naturally nutritious pure barley drink rich in essential nutrients.',
-    tag: 'Healthy',
+    id: 'nogatu-barley',
+    name: 'Pure Barley Drink',
+    category: 'Wellness',
     image: '/assets/productsCatalog-NogatuBarleyPureDrink.jpg',
+    shortDescription: 'Naturally nourishing barley drink with clean finish.',
+    price: 329,
+    rating: 4.7,
+    badge: 'Wellness',
   },
   {
-    id: 4,
-    name: 'Organic Drink Mix',
-    description: 'All-natural organic blend sourced from carefully selected ingredients.',
-    tag: 'Organic',
+    id: 'nogatu-choco',
+    name: 'Organic Chocolate Mix',
+    category: 'Chocolate',
     image: '/assets/productsCatalog-nogatuChocolateDrink.jpg',
+    shortDescription: 'Creamy cocoa with low bitterness and rich mouthfeel.',
+    price: 349,
+    rating: 4.8,
+    badge: 'Organic',
+  },
+  {
+    id: 'nogatu-barley-lite',
+    name: 'Barley Lite Refill',
+    category: 'Wellness',
+    image: '/assets/1-product-BarleyDrink.png',
+    shortDescription: 'Light-body barley refill for frequent wellness routines.',
+    price: 269,
+    rating: 4.6,
+    badge: 'Refill',
+  },
+  {
+    id: 'nogatu-coffee-premium',
+    name: 'Premium Organic Drink Mix',
+    category: 'Coffee',
+    image: '/assets/2-OrganicDrinkMix.png',
+    shortDescription: 'House blend for premium cafes and business bundles.',
+    price: 459,
+    rating: 4.9,
+    badge: 'Enterprise',
   },
 ];
 
-const TRUST_BADGES = [
+const METRICS = [
+  { value: '120k+', label: 'Monthly Orders' },
+  { value: '99.4%', label: 'Fulfillment SLA' },
+  { value: '48h', label: 'Metro Delivery' },
+  { value: '4.8/5', label: 'Partner Rating' },
+];
+
+const HIGHLIGHTS = [
   {
-    icon: <FaBullseye className="text-3xl text-[#FF8C00]" />,
-    title: 'MISSION',
-    desc: 'To provide high-quality, naturally sourced health drinks while maintaining accessible prices for every Filipino household.',
+    icon: <FiShield className="text-xl text-orange-300" />,
+    title: 'Enterprise Safety',
+    detail: 'Secure checkout, encrypted transactions, and fraud monitoring by default.',
   },
   {
-    icon: <FaEye className="text-3xl text-[#FF8C00]" />,
-    title: 'VISION',
-    desc: 'To become a trusted household name across the Philippines, promoting wellness through natural ingredients.',
+    icon: <FiTruck className="text-xl text-orange-300" />,
+    title: 'Fast Logistics',
+    detail: 'Reliable nationwide shipping with warehouse-aware stock availability.',
   },
   {
-    icon: <FaLeaf className="text-3xl text-[#FF8C00]" />,
-    title: 'QUALITY',
-    desc: 'Every product undergoes strict quality control to ensure you receive only the finest health drinks available.',
+    icon: <FiClock className="text-xl text-orange-300" />,
+    title: '24/7 Support',
+    detail: 'Dedicated service channels for retail customers and wholesale partners.',
   },
   {
-    icon: <FaFlask className="text-3xl text-[#FF8C00]" />,
-    title: 'INGREDIENTS',
-    desc: 'We use carefully selected natural ingredients, free from harmful additives, preserving authenticity and health benefits.',
+    icon: <FiGlobe className="text-xl text-orange-300" />,
+    title: 'Omnichannel Ready',
+    detail: 'Designed for marketplace, social commerce, and direct website checkout.',
   },
 ];
 
-const SOCIAL_LINKS = [
-  { icon: <FaFacebook className="text-2xl" />, href: '#', label: 'Facebook', color: 'hover:text-blue-400' },
-  { icon: <FaInstagram className="text-2xl" />, href: '#', label: 'Instagram', color: 'hover:text-pink-400' },
-  { icon: <FaTwitter className="text-2xl" />, href: '#', label: 'Twitter / X', color: 'hover:text-sky-400' },
-  { icon: <FaLinkedin className="text-2xl" />, href: '#', label: 'LinkedIn', color: 'hover:text-blue-500' },
+const TESTIMONIALS = [
+  {
+    name: 'Carmela T.',
+    role: 'Restaurant Owner',
+    quote:
+      'NogatuDrop made our beverage procurement consistent and fast. The quality and service are excellent.',
+  },
+  {
+    name: 'Jiro M.',
+    role: 'Corporate Buyer',
+    quote:
+      'The storefront is easy to use, checkout is smooth, and delivery updates are very reliable for our branches.',
+  },
+  {
+    name: 'Elaine R.',
+    role: 'Retail Partner',
+    quote:
+      'Our repeat orders improved after switching to Nogatu products. Customers love the taste and branding.',
+  },
 ];
 
-const FOOTER_LINKS = ['Home', 'About Us', 'Contact', 'Privacy Policy'];
-
-/* ─── Sub-components ──────────────────────────────────────────────────────── */
-
-const ProductCard = ({ product }) => (
-  <div className="bg-white rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 flex flex-col">
-    {/* Card image area */}
-    <div className="relative h-44 flex items-center justify-center overflow-hidden bg-[#F4F4F4]">
-      <img src={product.image} alt={product.name} className="w-full h-full object-cover" />
-      <span className="absolute top-3 right-3 bg-[#FF8C00] text-white text-xs font-bold px-2.5 py-1 rounded-full uppercase tracking-wide">
-        {product.tag}
-      </span>
-    </div>
-
-    {/* Card body */}
-    <div className="p-5 flex flex-col flex-1">
-      <h3 className="text-gray-900 font-bold text-lg mb-1.5">{product.name}</h3>
-      <p className="text-gray-500 text-sm leading-relaxed flex-1">{product.description}</p>
-      <button className="mt-4 w-full py-2 bg-[#FF8C00] hover:bg-[#E07B00] text-white text-sm font-semibold rounded-lg transition-colors">
-        Learn More
-      </button>
-    </div>
-  </div>
-);
-
-const TrustBadge = ({ badge }) => (
-  <div className="bg-white/10 backdrop-blur-sm border border-white/20 rounded-2xl p-6 text-center hover:bg-white/15 transition-colors">
-    <div className="flex justify-center mb-3">{badge.icon}</div>
-    <h4 className="text-white font-black text-sm tracking-widest mb-2">{badge.title}</h4>
-    <p className="text-white/75 text-xs leading-relaxed">{badge.desc}</p>
-  </div>
-);
-
-/* ─── Main Component ──────────────────────────────────────────────────────── */
+const formatPeso = (value) =>
+  new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 2 }).format(value);
 
 const LandingPage = () => {
   const navigate = useNavigate();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [navVisible, setNavVisible] = useState(true);
-  const lastScrollY = useRef(0);
+
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutOpen, setCheckoutOpen] = useState(false);
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [selectedProductId, setSelectedProductId] = useState(PRODUCTS[0].id);
+  const [cart, setCart] = useState([]);
+  const [orderPlaced, setOrderPlaced] = useState(false);
+  const [checkoutForm, setCheckoutForm] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    zip: '',
+    payment: 'card',
+  });
+
+  const revealRefs = useRef([]);
+
+  const selectedProduct = useMemo(
+    () => PRODUCTS.find((product) => product.id === selectedProductId) || PRODUCTS[0],
+    [selectedProductId]
+  );
+
+  const filteredProducts = useMemo(() => {
+    if (activeCategory === 'All') return PRODUCTS;
+    return PRODUCTS.filter((product) => product.category === activeCategory);
+  }, [activeCategory]);
+
+  const cartItems = useMemo(() => {
+    return cart
+      .map((item) => {
+        const product = PRODUCTS.find((entry) => entry.id === item.id);
+        if (!product) return null;
+        return {
+          ...product,
+          quantity: item.quantity,
+          lineTotal: product.price * item.quantity,
+        };
+      })
+      .filter(Boolean);
+  }, [cart]);
+
+  const subtotal = useMemo(() => cartItems.reduce((sum, item) => sum + item.lineTotal, 0), [cartItems]);
+  const shipping = subtotal > 0 ? (subtotal >= 2500 ? 0 : 149) : 0;
+  const tax = subtotal * 0.12;
+  const total = subtotal + shipping + tax;
 
   useEffect(() => {
-    const onScroll = () => {
-      const currentY = window.scrollY;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('revealed');
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -60px 0px' }
+    );
 
-      if (currentY <= 8) {
-        setNavVisible(true);
-      } else if (currentY > lastScrollY.current + 8) {
-        setNavVisible(false);
-      } else if (currentY < lastScrollY.current - 8) {
-        setNavVisible(true);
-      }
+    revealRefs.current.forEach((section) => {
+      if (section) observer.observe(section);
+    });
 
-      lastScrollY.current = currentY;
-    };
-
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    return () => observer.disconnect();
   }, []);
 
-  const scrollTo = (href) => {
-    setMobileMenuOpen(false);
-    const id = href.replace('#', '');
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: 'smooth' });
+  useEffect(() => {
+    document.body.style.overflow = cartOpen || checkoutOpen ? 'hidden' : 'auto';
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [cartOpen, checkoutOpen]);
+
+  const setRevealRef = (index) => (element) => {
+    revealRefs.current[index] = element;
+  };
+
+  const scrollTo = (id) => {
+    setMobileOpen(false);
+    const target = document.getElementById(id);
+    if (target) target.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  const addToCart = (product, quantity = 1) => {
+    setCart((previous) => {
+      const found = previous.find((item) => item.id === product.id);
+      if (found) {
+        return previous.map((item) =>
+          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
+        );
+      }
+      return [...previous, { id: product.id, quantity }];
+    });
+    setCartOpen(true);
+  };
+
+  const updateQuantity = (productId, delta) => {
+    setCart((previous) =>
+      previous
+        .map((item) =>
+          item.id === productId ? { ...item, quantity: Math.max(0, item.quantity + delta) } : item
+        )
+        .filter((item) => item.quantity > 0)
+    );
+  };
+
+  const removeFromCart = (productId) => {
+    setCart((previous) => previous.filter((item) => item.id !== productId));
+  };
+
+  const handleCheckoutField = (event) => {
+    const { name, value } = event.target;
+    setCheckoutForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const completeCheckout = (event) => {
+    event.preventDefault();
+    if (!cartItems.length) return;
+    setOrderPlaced(true);
+    setCart([]);
+    setTimeout(() => {
+      setCheckoutOpen(false);
+      setOrderPlaced(false);
+      setCheckoutForm({
+        fullName: '',
+        email: '',
+        phone: '',
+        address: '',
+        city: '',
+        zip: '',
+        payment: 'card',
+      });
+    }, 1700);
   };
 
   return (
-    <div className="min-h-screen font-sans" style={{ scrollBehavior: 'smooth' }}>
+    <div className="relative min-h-screen overflow-x-hidden bg-[#1f1208] text-[#f8efe4]">
+      <div className="page-noise pointer-events-none" />
+      <div className="absolute inset-0 pointer-events-none opacity-80 [background:radial-gradient(circle_at_10%_20%,rgba(245,153,55,0.25),transparent_40%),radial-gradient(circle_at_85%_8%,rgba(255,236,206,0.22),transparent_35%),radial-gradient(circle_at_90%_72%,rgba(150,78,24,0.23),transparent_38%)]" />
+      <div className="absolute inset-0 pointer-events-none [background-image:linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:42px_42px]" />
 
-      {/* ── Navbar ───────────────────────────────────────────────────────── */}
-      <nav
-        className={`fixed top-0 left-0 right-0 z-50 transform transition-all duration-300 ${
-          navVisible || mobileMenuOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'
-        }`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mt-3 mb-0 rounded-2xl border border-[#E7D3A5] bg-[#FFFDF8]/85 px-4 sm:px-5 flex items-center justify-between h-16">
-            {/* Logo */}
-            <button
-              onClick={() => scrollTo('#home')}
-              className="flex items-center gap-2 group"
-            >
+      <header className="fixed inset-x-0 top-0 z-50">
+        <div className="mx-auto mt-4 w-[min(1180px,calc(100%-1.5rem))]">
+          <div className="glass-nav relative flex h-16 items-center justify-between rounded-2xl border border-orange-100/25 px-4 sm:px-6">
+            <div className="flex items-center gap-3">
               <img
                 src={BRAND_LOGO}
-                alt="Nogatu logo"
-                className="h-9 w-9 rounded-full object-cover border border-[#D9B26A]"
+                alt="NogatuDrop"
+                className="h-10 w-10 rounded-full border border-orange-200/40 object-cover"
               />
-              <span className="text-[#7A5B2A] font-semibold text-sm sm:text-base tracking-wide">Nogatu Alliance</span>
-            </button>
+              <div>
+                <p className="text-xs uppercase tracking-[0.28em] text-orange-200/70">NogatuDrop</p>
+                <p className="text-sm font-semibold text-orange-50">Enterprise Storefront</p>
+              </div>
+            </div>
 
-            {/* Desktop nav links */}
-            <div className="hidden md:flex items-center gap-8">
+            <nav className="hidden items-center gap-6 md:flex">
               {NAV_LINKS.map((link) => (
                 <button
-                  key={link.label}
-                  onClick={() => scrollTo(link.href)}
-                  className="text-[#5E513F] hover:text-[#AD7A1A] text-sm font-medium transition-colors"
+                  key={link.id}
+                  onClick={() => scrollTo(link.id)}
+                  className="text-sm font-medium text-orange-50/80 transition hover:text-orange-200"
                 >
                   {link.label}
                 </button>
               ))}
-            </div>
+            </nav>
 
-            {/* Login button (desktop) */}
-            <div className="hidden md:block">
+            <div className="hidden items-center gap-3 md:flex">
               <button
                 onClick={() => navigate('/login')}
-                className="px-6 py-2 bg-gradient-to-b from-[#E7C679] to-[#B98A2E] hover:from-[#EBCF89] hover:to-[#C79636] text-white text-sm font-semibold rounded-full transition-colors border border-[#B98A2E] shadow-md shadow-amber-900/25"
+                className="rounded-xl border border-orange-200/30 bg-[#2f1c10]/70 px-4 py-2 text-sm text-orange-50 transition hover:bg-[#3a2414]"
               >
-                Login
+                Sign In
+              </button>
+              <button
+                onClick={() => setCartOpen(true)}
+                className="relative inline-flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-[#f7a340] to-[#d97622] px-4 text-sm font-semibold text-white transition hover:brightness-110"
+              >
+                <FiShoppingBag />
+                Cart
+                {cartItems.length > 0 && (
+                  <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#2d1709] px-1 text-xs text-orange-100">
+                    {cartItems.length}
+                  </span>
+                )}
               </button>
             </div>
 
-            {/* Mobile hamburger */}
             <button
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="md:hidden text-[#6B5A3E] text-xl p-1"
+              className="text-orange-50 md:hidden"
+              onClick={() => setMobileOpen((state) => !state)}
               aria-label="Toggle menu"
             >
-              {mobileMenuOpen ? <FaTimes /> : <FaBars />}
+              {mobileOpen ? <FiX size={22} /> : <FiMenu size={22} />}
             </button>
           </div>
-        </div>
 
-        {/* Mobile drawer */}
-        {mobileMenuOpen && (
-          <div className="md:hidden bg-[#FFFDF8]/95 border-t border-[#E7D3A5]">
-            <div className="px-4 py-4 space-y-1">
-              {NAV_LINKS.map((link) => (
-                <button
-                  key={link.label}
-                  onClick={() => scrollTo(link.href)}
-                  className="block w-full text-left px-4 py-2.5 text-[#5E513F] hover:text-[#AD7A1A] hover:bg-[#F8F0DE] rounded-lg text-sm font-medium transition-colors"
-                >
-                  {link.label}
-                </button>
-              ))}
-              <div className="pt-2 pb-1">
+          {mobileOpen && (
+            <div className="glass-nav mt-2 rounded-2xl border border-orange-100/20 p-4 md:hidden">
+              <div className="flex flex-col gap-1">
+                {NAV_LINKS.map((link) => (
+                  <button
+                    key={link.id}
+                    onClick={() => scrollTo(link.id)}
+                    className="rounded-lg px-3 py-2 text-left text-sm text-orange-100/85 transition hover:bg-white/10"
+                  >
+                    {link.label}
+                  </button>
+                ))}
                 <button
                   onClick={() => navigate('/login')}
-                  className="w-full py-2.5 bg-gradient-to-b from-[#E7C679] to-[#B98A2E] hover:from-[#EBCF89] hover:to-[#C79636] text-white text-sm font-semibold rounded-full transition-colors border border-[#B98A2E]"
+                  className="mt-2 rounded-lg border border-orange-200/35 bg-white/10 px-3 py-2 text-sm text-orange-100"
                 >
-                  Login
+                  Sign In
+                </button>
+                <button
+                  onClick={() => {
+                    setMobileOpen(false);
+                    setCartOpen(true);
+                  }}
+                  className="rounded-lg bg-gradient-to-r from-[#f7a340] to-[#d97622] px-3 py-2 text-sm font-semibold text-white"
+                >
+                  Open Cart
                 </button>
               </div>
             </div>
-          </div>
-        )}
-      </nav>
-
-      {/* ── Hero Section ─────────────────────────────────────────────────── */}
-      <section
-        id="home"
-        className="relative min-h-screen flex items-center overflow-hidden"
-        style={{
-          backgroundImage: `url(${HERO_BG})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-        }}
-      >
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pt-28 pb-16">
-          <div className="min-h-[68vh] flex items-end">
-            <div className="pb-6 sm:pb-10">
-              <p className="mb-4 text-[#8C734A] text-base sm:text-lg font-medium">
-                Wellness You Can Taste, Quality You Can Trust.
-              </p>
-              <button
-                onClick={() => navigate('/login')}
-                className="px-7 sm:px-10 py-2.5 sm:py-3 bg-gradient-to-b from-[#E7C679] to-[#B98A2E] hover:from-[#EBCF89] hover:to-[#C79636] text-white text-[clamp(1.4rem,2.1vw,2.2rem)] font-semibold rounded-full transition-colors border border-[#B98A2E] shadow-lg shadow-amber-900/25 leading-none"
-              >
-                Register Now
-              </button>
-              <div className="mt-5 flex items-center gap-2 text-[#7C6642]">
-                <span className="text-[clamp(1.25rem,1.9vw,2rem)] font-medium leading-none">FDA Approved Products</span>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
-      </section>
+      </header>
 
-      {/* ── Products Section ─────────────────────────────────────────────── */}
-      <section id="products" className="bg-gray-50 py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          {/* Section heading */}
-          <div className="text-center mb-14">
-            <span className="inline-block bg-orange-100 text-[#FF8C00] text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
-              Our Range
-            </span>
-            <h2 className="text-4xl sm:text-5xl font-black text-gray-900 mb-4">
-              Our <span className="text-[#FF8C00]">Products</span>
-            </h2>
-            <p className="text-gray-500 max-w-xl mx-auto text-lg">
-              Discover our lineup of premium health drinks crafted from the finest natural ingredients.
-            </p>
-            <div className="mt-4 w-16 h-1 bg-[#FF8C00] rounded-full mx-auto" />
-          </div>
+      <main className="relative z-10">
+        <section id="home" className="relative overflow-hidden px-4 pt-32 sm:px-6 lg:px-8">
+          <div className="mx-auto grid w-[min(1180px,100%)] items-center gap-10 py-16 lg:grid-cols-[1.1fr_0.9fr]">
+            <div ref={setRevealRef(0)} className="reveal-block space-y-8">
+              <span className="inline-flex items-center gap-2 rounded-full border border-orange-200/30 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.24em] text-orange-200/80">
+                <FiShield />
+                Scalable Commerce Suite
+              </span>
+              <h1 className="text-balance text-4xl font-black leading-tight text-white sm:text-5xl xl:text-6xl">
+                Premium Wellness Commerce in a
+                <span className="bg-gradient-to-r from-[#ffd79e] via-[#ffaf57] to-[#ff8d32] bg-clip-text text-transparent"> Modern Brown Glass Theme</span>
+              </h1>
+              <p className="max-w-xl text-base leading-relaxed text-orange-50/78 sm:text-lg">
+                NogatuDrop is redesigned for enterprise-ready e-commerce: animated storefront, production-grade
+                merchandising layout, conversion-focused checkout, and seamless add-to-cart flow.
+              </p>
 
-          {/* Product grid */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {PRODUCTS.map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-          </div>
-
-          {/* CTA */}
-          <div className="text-center mt-12">
-            <p className="text-gray-500 mb-4 text-sm">Want to carry our products? Join as a partner.</p>
-            <button
-              onClick={() => navigate('/login')}
-              className="px-8 py-3 border-2 border-[#FF8C00] text-[#FF8C00] hover:bg-[#FF8C00] hover:text-white font-bold rounded-xl transition-all"
-            >
-              Become a Partner
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/* ── About Section ────────────────────────────────────────────────── */}
-      <section
-        id="about"
-        className="py-20 px-4 sm:px-6 lg:px-8"
-        style={{
-          background: 'linear-gradient(135deg, #4A1C00 0%, #6B2D0E 50%, #3A1000 100%)',
-        }}
-      >
-        <div className="max-w-7xl mx-auto">
-          {/* Section heading */}
-          <div className="text-center mb-14">
-            <span className="inline-block bg-[#FF8C00]/20 border border-[#FF8C00]/40 text-[#FF8C00] text-xs font-bold uppercase tracking-widest px-4 py-1.5 rounded-full mb-4">
-              Who We Are
-            </span>
-            <h2 className="text-4xl sm:text-5xl font-black text-white mb-4">
-              About <span className="text-[#FF8C00]">Nogatu</span>
-            </h2>
-            <div className="mt-2 w-16 h-1 bg-[#FF8C00] rounded-full mx-auto" />
-          </div>
-
-          <div className="grid lg:grid-cols-2 gap-14 items-center mb-16">
-            {/* Left — branded about image */}
-            <div className="relative">
-              <div className="rounded-3xl overflow-hidden h-80 shadow-2xl border border-white/10">
-                <img src={ABOUT_IMAGE} alt="About Nogatu" className="w-full h-full object-cover" />
+              <div className="flex flex-wrap gap-3">
+                <button
+                  onClick={() => scrollTo('shop')}
+                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#f7a340] to-[#dd7b27] px-6 py-3 text-sm font-semibold text-white transition hover:translate-y-[-1px] hover:brightness-110"
+                >
+                  Shop Products
+                  <FiArrowRight />
+                </button>
+                <button
+                  onClick={() => setCartOpen(true)}
+                  className="inline-flex items-center gap-2 rounded-xl border border-orange-200/35 bg-white/8 px-6 py-3 text-sm font-semibold text-orange-100 transition hover:bg-white/15"
+                >
+                  View Cart
+                  <FiShoppingBag />
+                </button>
               </div>
-              {/* Accent badge */}
-              <div className="absolute -bottom-5 -right-5 bg-[#FF8C00] rounded-2xl px-6 py-3 shadow-xl">
-                <div className="text-white font-black text-2xl">10+</div>
-                <div className="text-white/80 text-xs font-semibold uppercase tracking-wide">Products</div>
-              </div>
-            </div>
 
-            {/* Right — description */}
-            <div>
-              <p className="text-white/80 text-lg leading-relaxed mb-6">
-                Nogatu is a health-focused brand dedicated to developing and distributing premium quality coffees and organic drink mixes. Our products are carefully formulated to be enjoyable both taste-wise and health-wise, helping customers enjoy natural essential ingredients.
-              </p>
-              <p className="text-white/60 text-base leading-relaxed">
-                Founded with the belief that healthy living should be accessible to everyone, Nogatu has grown into a trusted brand across the Philippines, bringing the best of nature directly to your cup.
-              </p>
-              <button
-                onClick={() => scrollTo('#contact')}
-                className="mt-8 inline-flex items-center gap-2 px-8 py-3.5 bg-[#FF8C00] hover:bg-[#E07B00] text-white font-bold rounded-xl transition-all shadow-lg shadow-orange-900/40 hover:scale-105 active:scale-95"
-              >
-                Get in Touch
-              </button>
-            </div>
-          </div>
-
-          {/* Trust badges grid */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
-            {TRUST_BADGES.map((badge) => (
-              <TrustBadge key={badge.title} badge={badge} />
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Contact / Connect Section ─────────────────────────────────────── */}
-      <section id="contact" className="bg-gray-50 py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid md:grid-cols-2 gap-12">
-            {/* Connect With Us */}
-            <div>
-              <h3 className="text-3xl font-black text-gray-900 mb-3">
-                Connect <span className="text-[#FF8C00]">With Us</span>
-              </h3>
-              <div className="w-12 h-1 bg-[#FF8C00] rounded-full mb-6" />
-              <p className="text-gray-500 leading-relaxed mb-8">
-                We're always looking to connect with those who share our love of
-                healthy living and quality products. Follow us on our social
-                media channels and stay updated.
-              </p>
-              <div className="flex gap-4">
-                {SOCIAL_LINKS.map((social) => (
-                  <a
-                    key={social.label}
-                    href={social.href}
-                    aria-label={social.label}
-                    className={`w-12 h-12 rounded-xl bg-white border border-gray-200 flex items-center justify-center text-gray-500 ${social.color} transition-all hover:shadow-md hover:-translate-y-0.5 shadow-sm`}
-                  >
-                    {social.icon}
-                  </a>
-                ))}
-              </div>
-            </div>
-
-            {/* Contact Us */}
-            <div>
-              <h3 className="text-3xl font-black text-gray-900 mb-3">
-                Contact <span className="text-[#FF8C00]">Us</span>
-              </h3>
-              <div className="w-12 h-1 bg-[#FF8C00] rounded-full mb-6" />
-              <p className="text-gray-500 leading-relaxed mb-8">
-                We at Nogatu highly value your suggestions and feedback. If you
-                want to know more about our products or how you can be a partner,
-                reach out to us.
-              </p>
-
-              <div className="space-y-4">
-                {[
-                  { icon: <FaEnvelope className="text-[#FF8C00]" />, text: 'hello@nogatu.com.ph' },
-                  { icon: <FaPhone className="text-[#FF8C00]" />, text: '+63 912 345 6789' },
-                  { icon: <FaMapMarkerAlt className="text-[#FF8C00]" />, text: 'Metro Manila, Philippines' },
-                ].map((item, i) => (
-                  <div key={i} className="flex items-center gap-3 text-gray-600">
-                    <div className="w-9 h-9 rounded-lg bg-orange-50 border border-orange-100 flex items-center justify-center text-sm shrink-0">
-                      {item.icon}
-                    </div>
-                    <span className="text-sm">{item.text}</span>
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {METRICS.map((metric) => (
+                  <div key={metric.label} className="rounded-xl border border-orange-100/20 bg-white/5 p-3 backdrop-blur">
+                    <p className="text-xl font-bold text-orange-100">{metric.value}</p>
+                    <p className="text-xs uppercase tracking-wide text-orange-200/75">{metric.label}</p>
                   </div>
                 ))}
               </div>
-
-              <button className="mt-8 px-8 py-3 bg-[#FF8C00] hover:bg-[#E07B00] text-white font-bold rounded-xl transition-all shadow-md shadow-orange-200">
-                Send a Message
-              </button>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* ── Footer ───────────────────────────────────────────────────────── */}
-      <footer
-        className="py-10 px-4 sm:px-6 lg:px-8"
-        style={{
-          background: 'linear-gradient(135deg, #3A1000 0%, #6B2D0E 100%)',
-        }}
-      >
-        <div className="max-w-7xl mx-auto">
-          {/* Logo + tagline */}
-          <div className="flex flex-col items-center text-center mb-8">
-            <div className="flex items-center gap-2 mb-3">
-              <img
-                src={BRAND_LOGO}
-                alt="Nogatu"
-                className="h-9 w-9 rounded-full object-cover border border-[#D9B26A]"
-              />
-            </div>
-            <p className="text-white/50 text-sm max-w-xs">
-              Premium natural health drinks crafted for a healthier Philippines.
-            </p>
-          </div>
-
-          {/* Divider */}
-          <div className="border-t border-white/10 pt-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              {/* Footer nav links */}
-              <div className="flex flex-wrap justify-center gap-6">
-                {FOOTER_LINKS.map((link) => (
+            <div ref={setRevealRef(1)} className="reveal-block lg:justify-self-end">
+              <div className="hero-shape relative overflow-hidden rounded-[2rem] border border-orange-100/20 bg-gradient-to-br from-[#fff3df]/95 via-[#f4dcc2]/90 to-[#f2c085]/88 p-6 text-[#3d1f0d] shadow-[0_30px_90px_-35px_rgba(0,0,0,0.6)]">
+                <div className="pointer-events-none absolute -left-8 top-8 h-32 w-32 rounded-full border-2 border-[#d9771f]/30" />
+                <div className="pointer-events-none absolute bottom-6 right-6 h-24 w-24 rotate-12 rounded-[28%] border border-[#a45317]/30" />
+                <div className="grid gap-4">
+                  <div className="rounded-2xl bg-white/65 p-4 backdrop-blur">
+                    <p className="text-xs uppercase tracking-[0.22em] text-[#8c5f3f]">Featured Product</p>
+                    <h3 className="mt-2 text-2xl font-bold">{selectedProduct.name}</h3>
+                    <p className="mt-2 text-sm text-[#6f4f36]">{selectedProduct.shortDescription}</p>
+                    <div className="mt-3 flex items-center justify-between">
+                      <p className="text-xl font-black">{formatPeso(selectedProduct.price)}</p>
+                      <div className="inline-flex items-center gap-1 text-sm text-[#bd6f21]">
+                        <FiStar className="fill-current" />
+                        {selectedProduct.rating}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-3">
+                    {PRODUCTS.slice(0, 3).map((product) => (
+                      <button
+                        key={product.id}
+                        onClick={() => setSelectedProductId(product.id)}
+                        className={`overflow-hidden rounded-xl border p-1 transition ${
+                          selectedProduct.id === product.id
+                            ? 'border-[#c96f1f] bg-[#ffe9cb]'
+                            : 'border-[#d8b085]/70 bg-white/60 hover:bg-white/80'
+                        }`}
+                      >
+                        <img src={product.image} alt={product.name} className="h-20 w-full rounded-lg object-cover" />
+                      </button>
+                    ))}
+                  </div>
                   <button
-                    key={link}
-                    onClick={() => {
-                      const map = {
-                        Home: '#home',
-                        'About Us': '#about',
-                        Contact: '#contact',
-                        'Privacy Policy': '#home',
-                      };
-                      scrollTo(map[link] || '#home');
-                    }}
-                    className="text-white/60 hover:text-[#FF8C00] text-sm transition-colors"
+                    onClick={() => addToCart(selectedProduct)}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#2f1b0d] px-4 py-3 text-sm font-semibold text-[#ffe5bf] transition hover:bg-[#3a2413]"
                   >
-                    {link}
+                    Add Selected to Cart
+                    <FiChevronRight />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="shop" className="relative px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mx-auto w-[min(1180px,100%)]">
+            <div ref={setRevealRef(2)} className="reveal-block mb-8 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-orange-200/80">Catalog</p>
+                <h2 className="mt-2 text-3xl font-black text-white sm:text-4xl">Professional Product Selection</h2>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {PRODUCT_CATEGORIES.map((category) => (
+                  <button
+                    key={category}
+                    onClick={() => setActiveCategory(category)}
+                    className={`rounded-full border px-4 py-2 text-sm transition ${
+                      activeCategory === category
+                        ? 'border-orange-200/80 bg-orange-300/20 text-orange-50'
+                        : 'border-orange-100/25 bg-white/5 text-orange-100/80 hover:bg-white/10'
+                    }`}
+                  >
+                    {category}
                   </button>
                 ))}
               </div>
+            </div>
 
-              {/* Copyright */}
-              <p className="text-white/40 text-xs text-center sm:text-right">
-                Nogatu &copy; {new Date().getFullYear()}<br className="sm:hidden" />
-                <span className="hidden sm:inline"> — </span>All Rights Reserved
-              </p>
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredProducts.map((product, index) => (
+                <article
+                  key={product.id}
+                  ref={setRevealRef(3 + index)}
+                  className="reveal-block card-float overflow-hidden rounded-2xl border border-orange-100/18 bg-white/6 p-4 backdrop-blur-sm"
+                >
+                  <div className="relative overflow-hidden rounded-xl">
+                    <img src={product.image} alt={product.name} className="h-52 w-full object-cover transition duration-500 hover:scale-105" />
+                    <span className="absolute right-3 top-3 rounded-full bg-[#2e1a0c]/85 px-3 py-1 text-xs font-semibold text-orange-100">
+                      {product.badge}
+                    </span>
+                  </div>
+                  <div className="mt-4">
+                    <div className="mb-2 flex items-center justify-between">
+                      <h3 className="text-lg font-bold text-white">{product.name}</h3>
+                      <span className="inline-flex items-center gap-1 text-sm text-orange-300">
+                        <FiStar className="fill-current" />
+                        {product.rating}
+                      </span>
+                    </div>
+                    <p className="text-sm text-orange-50/75">{product.shortDescription}</p>
+                    <div className="mt-4 flex items-center justify-between">
+                      <p className="text-xl font-black text-orange-100">{formatPeso(product.price)}</p>
+                      <button
+                        onClick={() => addToCart(product)}
+                        className="rounded-lg bg-gradient-to-r from-[#f7a340] to-[#de7a26] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
+                      >
+                        Add to Cart
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              ))}
             </div>
           </div>
-        </div>
+        </section>
+
+        <section id="story" className="relative px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mx-auto grid w-[min(1180px,100%)] gap-6 lg:grid-cols-2">
+            <div ref={setRevealRef(20)} className="reveal-block rounded-3xl border border-orange-100/18 bg-gradient-to-br from-[#f7ead7]/95 to-[#efcc9d]/90 p-8 text-[#3d200d]">
+              <p className="text-xs uppercase tracking-[0.2em] text-[#8e5f3c]">Brand Story</p>
+              <h3 className="mt-2 text-3xl font-black">From Functional Drinks to Enterprise Commerce</h3>
+              <p className="mt-4 text-sm leading-relaxed text-[#6c4a31]">
+                NogatuDrop evolved from a product-first distributor into a full digital commerce platform. This landing
+                experience mirrors that growth through strategic merchandising, trust-building signals, and frictionless
+                checkout design.
+              </p>
+              <div className="mt-6 space-y-3">
+                {[
+                  'Warehouse synchronized stock data',
+                  'Order and tracking pipeline integration',
+                  'B2B and retail customer journey support',
+                ].map((point) => (
+                  <div key={point} className="flex items-start gap-2 text-sm text-[#4f341f]">
+                    <FiCheck className="mt-0.5 shrink-0 text-[#b9651e]" />
+                    {point}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div ref={setRevealRef(21)} className="reveal-block grid gap-4">
+              {HIGHLIGHTS.map((item) => (
+                <article
+                  key={item.title}
+                  className="rounded-2xl border border-orange-100/16 bg-[#2c190d]/70 p-5 backdrop-blur"
+                >
+                  <div className="mb-2 flex items-center gap-2">
+                    {item.icon}
+                    <h4 className="text-lg font-semibold text-orange-50">{item.title}</h4>
+                  </div>
+                  <p className="text-sm leading-relaxed text-orange-100/75">{item.detail}</p>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="reviews" className="relative px-4 py-16 sm:px-6 lg:px-8">
+          <div className="mx-auto w-[min(1180px,100%)]">
+            <div ref={setRevealRef(22)} className="reveal-block mb-8 text-center">
+              <p className="text-xs uppercase tracking-[0.22em] text-orange-200/80">Testimonials</p>
+              <h3 className="mt-2 text-3xl font-black text-white sm:text-4xl">Trusted by Partner Brands and Retail Buyers</h3>
+            </div>
+            <div className="grid gap-5 md:grid-cols-3">
+              {TESTIMONIALS.map((testimonial, index) => (
+                <article
+                  key={testimonial.name}
+                  ref={setRevealRef(23 + index)}
+                  className="reveal-block rounded-2xl border border-orange-100/18 bg-white/6 p-6"
+                >
+                  <p className="text-sm leading-relaxed text-orange-50/80">"{testimonial.quote}"</p>
+                  <div className="mt-5 border-t border-orange-100/15 pt-4">
+                    <p className="font-semibold text-orange-100">{testimonial.name}</p>
+                    <p className="text-xs uppercase tracking-wide text-orange-200/70">{testimonial.role}</p>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section id="contact" className="relative px-4 pb-20 pt-12 sm:px-6 lg:px-8">
+          <div ref={setRevealRef(30)} className="reveal-block mx-auto w-[min(1180px,100%)] rounded-3xl border border-orange-100/18 bg-gradient-to-r from-[#311c0f]/85 via-[#4a2812]/80 to-[#2c180d]/88 p-8 sm:p-10">
+            <div className="grid items-center gap-8 md:grid-cols-[1.1fr_0.9fr]">
+              <div>
+                <p className="text-xs uppercase tracking-[0.22em] text-orange-200/75">Ready to Scale</p>
+                <h3 className="mt-2 text-3xl font-black text-orange-50 sm:text-4xl">Launch Your Next High-Converting Product Campaign</h3>
+                <p className="mt-3 max-w-xl text-sm leading-relaxed text-orange-100/75">
+                  Start with our complete catalog, optimize procurement, and check out in minutes using a polished
+                  commerce experience tailored for modern businesses.
+                </p>
+              </div>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => scrollTo('shop')}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#f7a340] to-[#de7a26] px-5 py-3 text-sm font-semibold text-white transition hover:brightness-110"
+                >
+                  Browse Catalog
+                  <FiArrowRight />
+                </button>
+                <button
+                  onClick={() => navigate('/login')}
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-orange-200/35 bg-white/10 px-5 py-3 text-sm font-semibold text-orange-50 transition hover:bg-white/15"
+                >
+                  Become a Partner
+                  <FiUser />
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="relative border-t border-orange-100/12 bg-[#1b0f07] px-4 py-8 text-center text-xs text-orange-200/65 sm:px-6 lg:px-8">
+        <p>NogatuDrop Enterprise Commerce © {new Date().getFullYear()} All rights reserved.</p>
       </footer>
+
+      {cartOpen && (
+        <div className="fixed inset-0 z-[70]">
+          <button className="absolute inset-0 bg-black/60" aria-label="Close cart" onClick={() => setCartOpen(false)} />
+          <aside className="absolute right-0 top-0 h-full w-[min(460px,100%)] border-l border-orange-100/18 bg-[#23150b] p-5 text-orange-50 shadow-2xl">
+            <div className="mb-4 flex items-center justify-between">
+              <h4 className="text-lg font-bold">Your Cart</h4>
+              <button onClick={() => setCartOpen(false)} className="rounded-lg p-2 transition hover:bg-white/10" aria-label="Close cart">
+                <FiX />
+              </button>
+            </div>
+
+            <div className="max-h-[58vh] space-y-3 overflow-auto pr-1 scrollbar-thin">
+              {!cartItems.length && (
+                <div className="rounded-xl border border-orange-100/15 bg-white/5 p-6 text-center text-sm text-orange-100/70">
+                  Your cart is empty. Add products from the catalog.
+                </div>
+              )}
+
+              {cartItems.map((item) => (
+                <article key={item.id} className="rounded-xl border border-orange-100/15 bg-white/5 p-3">
+                  <div className="flex gap-3">
+                    <img src={item.image} alt={item.name} className="h-20 w-20 rounded-lg object-cover" />
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between gap-2">
+                        <h5 className="text-sm font-semibold text-orange-50">{item.name}</h5>
+                        <button
+                          onClick={() => removeFromCart(item.id)}
+                          className="text-xs text-orange-200/70 transition hover:text-orange-100"
+                        >
+                          Remove
+                        </button>
+                      </div>
+                      <p className="mt-1 text-sm text-orange-200">{formatPeso(item.price)}</p>
+                      <div className="mt-2 flex items-center justify-between">
+                        <div className="inline-flex items-center rounded-lg border border-orange-100/20 bg-[#2a190e]">
+                          <button
+                            onClick={() => updateQuantity(item.id, -1)}
+                            className="px-2 py-1 text-orange-100/80 transition hover:text-orange-100"
+                            aria-label="Decrease quantity"
+                          >
+                            <FiMinus size={14} />
+                          </button>
+                          <span className="min-w-8 text-center text-sm">{item.quantity}</span>
+                          <button
+                            onClick={() => updateQuantity(item.id, 1)}
+                            className="px-2 py-1 text-orange-100/80 transition hover:text-orange-100"
+                            aria-label="Increase quantity"
+                          >
+                            <FiPlus size={14} />
+                          </button>
+                        </div>
+                        <p className="text-sm font-semibold">{formatPeso(item.lineTotal)}</p>
+                      </div>
+                    </div>
+                  </div>
+                </article>
+              ))}
+            </div>
+
+            <div className="mt-5 space-y-2 rounded-xl border border-orange-100/18 bg-white/5 p-4 text-sm">
+              <div className="flex items-center justify-between text-orange-100/80">
+                <span>Subtotal</span>
+                <span>{formatPeso(subtotal)}</span>
+              </div>
+              <div className="flex items-center justify-between text-orange-100/80">
+                <span>Shipping</span>
+                <span>{shipping === 0 ? 'Free' : formatPeso(shipping)}</span>
+              </div>
+              <div className="flex items-center justify-between text-orange-100/80">
+                <span>VAT (12%)</span>
+                <span>{formatPeso(tax)}</span>
+              </div>
+              <div className="mt-2 flex items-center justify-between border-t border-orange-100/18 pt-2 text-base font-bold text-orange-50">
+                <span>Total</span>
+                <span>{formatPeso(total)}</span>
+              </div>
+            </div>
+
+            <button
+              disabled={!cartItems.length}
+              onClick={() => {
+                setCartOpen(false);
+                setCheckoutOpen(true);
+              }}
+              className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#f7a340] to-[#de7a26] px-4 py-3 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
+            >
+              Checkout Now
+              <FiCreditCard />
+            </button>
+            <p className="mt-2 flex items-center justify-center gap-1 text-xs text-orange-200/70">
+              <FiLock size={12} />
+              Secure encrypted checkout session
+            </p>
+          </aside>
+        </div>
+      )}
+
+      {checkoutOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4">
+          <div className="max-h-[92vh] w-full max-w-2xl overflow-auto rounded-2xl border border-orange-100/20 bg-[#24160c] p-6 text-orange-50">
+            <div className="mb-4 flex items-center justify-between">
+              <h4 className="text-xl font-bold">Checkout</h4>
+              <button onClick={() => setCheckoutOpen(false)} className="rounded-lg p-2 transition hover:bg-white/10" aria-label="Close checkout">
+                <FiX />
+              </button>
+            </div>
+
+            {orderPlaced ? (
+              <div className="rounded-xl border border-emerald-300/30 bg-emerald-500/15 p-8 text-center">
+                <div className="mx-auto mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-emerald-400/20 text-emerald-200">
+                  <FiCheck size={28} />
+                </div>
+                <p className="text-lg font-bold text-emerald-100">Order placed successfully</p>
+                <p className="mt-2 text-sm text-emerald-100/80">Your request is now queued for processing and fulfillment.</p>
+              </div>
+            ) : (
+              <form onSubmit={completeCheckout} className="grid gap-5 md:grid-cols-2">
+                <label className="text-sm">
+                  Full Name
+                  <input
+                    name="fullName"
+                    value={checkoutForm.fullName}
+                    onChange={handleCheckoutField}
+                    required
+                    className="mt-1 w-full rounded-lg border border-orange-100/25 bg-[#2f1a0d] px-3 py-2 text-sm text-orange-50 outline-none transition focus:border-orange-300/60"
+                  />
+                </label>
+                <label className="text-sm">
+                  Email
+                  <input
+                    type="email"
+                    name="email"
+                    value={checkoutForm.email}
+                    onChange={handleCheckoutField}
+                    required
+                    className="mt-1 w-full rounded-lg border border-orange-100/25 bg-[#2f1a0d] px-3 py-2 text-sm text-orange-50 outline-none transition focus:border-orange-300/60"
+                  />
+                </label>
+                <label className="text-sm">
+                  Phone
+                  <input
+                    name="phone"
+                    value={checkoutForm.phone}
+                    onChange={handleCheckoutField}
+                    required
+                    className="mt-1 w-full rounded-lg border border-orange-100/25 bg-[#2f1a0d] px-3 py-2 text-sm text-orange-50 outline-none transition focus:border-orange-300/60"
+                  />
+                </label>
+                <label className="text-sm">
+                  City
+                  <input
+                    name="city"
+                    value={checkoutForm.city}
+                    onChange={handleCheckoutField}
+                    required
+                    className="mt-1 w-full rounded-lg border border-orange-100/25 bg-[#2f1a0d] px-3 py-2 text-sm text-orange-50 outline-none transition focus:border-orange-300/60"
+                  />
+                </label>
+                <label className="text-sm md:col-span-2">
+                  Street Address
+                  <input
+                    name="address"
+                    value={checkoutForm.address}
+                    onChange={handleCheckoutField}
+                    required
+                    className="mt-1 w-full rounded-lg border border-orange-100/25 bg-[#2f1a0d] px-3 py-2 text-sm text-orange-50 outline-none transition focus:border-orange-300/60"
+                  />
+                </label>
+                <label className="text-sm">
+                  ZIP Code
+                  <input
+                    name="zip"
+                    value={checkoutForm.zip}
+                    onChange={handleCheckoutField}
+                    required
+                    className="mt-1 w-full rounded-lg border border-orange-100/25 bg-[#2f1a0d] px-3 py-2 text-sm text-orange-50 outline-none transition focus:border-orange-300/60"
+                  />
+                </label>
+                <label className="text-sm">
+                  Payment Method
+                  <select
+                    name="payment"
+                    value={checkoutForm.payment}
+                    onChange={handleCheckoutField}
+                    className="mt-1 w-full rounded-lg border border-orange-100/25 bg-[#2f1a0d] px-3 py-2 text-sm text-orange-50 outline-none transition focus:border-orange-300/60"
+                  >
+                    <option value="card">Credit / Debit Card</option>
+                    <option value="gcash">GCash</option>
+                    <option value="bank">Bank Transfer</option>
+                    <option value="cod">Cash on Delivery</option>
+                  </select>
+                </label>
+
+                <div className="rounded-lg border border-orange-100/20 bg-white/5 p-4 text-sm md:col-span-2">
+                  <div className="mb-1 flex justify-between text-orange-100/80">
+                    <span>Subtotal</span>
+                    <span>{formatPeso(subtotal)}</span>
+                  </div>
+                  <div className="mb-1 flex justify-between text-orange-100/80">
+                    <span>Shipping</span>
+                    <span>{shipping === 0 ? 'Free' : formatPeso(shipping)}</span>
+                  </div>
+                  <div className="flex justify-between border-t border-orange-100/20 pt-2 font-bold text-orange-50">
+                    <span>Total Amount</span>
+                    <span>{formatPeso(total)}</span>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  className="md:col-span-2 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#f7a340] to-[#de7a26] px-4 py-3 text-sm font-semibold text-white transition hover:brightness-110"
+                >
+                  Confirm Checkout
+                  <FiCreditCard />
+                </button>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 
-const BRAND_LOGO = '/assets/nogatu-logo.jpg';
+const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.jpg';
 
 const PageHeader = ({ title, subtitle, actions, className = '' }) => {
   return (

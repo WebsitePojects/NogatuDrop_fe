@@ -18,7 +18,7 @@ import NotificationDrawer from '@/components/NotificationDrawer';
 import { useNotifications } from '@/context/NotificationContext';
 import { useAuth } from '@/context/AuthContext';
 
-const BRAND_LOGO = '/assets/nogatu-logo.jpg';
+const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.jpg';
 
 const navItems = [
   { path: '/main/dashboard', label: 'Dashboard', icon: FiGrid, end: true },

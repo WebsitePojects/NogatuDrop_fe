@@ -160,7 +160,7 @@ const Users = () => {
           <p className="text-sm text-gray-500 mt-1">Manage system users</p>
         </div>
         <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm">
-          <FiDownload /> + Export
+          <FiDownload />Export
         </button>
       </div>
 
@@ -208,7 +208,7 @@ const Users = () => {
           className="flex items-center gap-2 px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
           style={{ backgroundColor: '#FF8C00' }}
         >
-          <FiPlus /> + Add User
+          <FiPlus />Add User
         </button>
       </div>
 
