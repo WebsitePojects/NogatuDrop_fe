@@ -20,7 +20,7 @@ import {
   FiX,
 } from 'react-icons/fi';
 
-const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.jpg';
+const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
 const NAV_LINKS = [
   { id: 'home', label: 'Home' },
@@ -391,15 +391,15 @@ const LandingPage = () => {
             <div ref={setRevealRef(0)} className="reveal-block space-y-8">
               <span className="inline-flex items-center gap-2 rounded-full border border-orange-200/30 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.24em] text-orange-200/80">
                 <FiShield />
-                Scalable Commerce Suite
+                Philippine Wellness Beverages
               </span>
               <h1 className="text-balance text-4xl font-black leading-tight text-white sm:text-5xl xl:text-6xl">
-                Premium Wellness Commerce in a
-                <span className="bg-gradient-to-r from-[#ffd79e] via-[#ffaf57] to-[#ff8d32] bg-clip-text text-transparent"> Modern Brown Glass Theme</span>
+                Fuel Your Day with
+                <span className="bg-gradient-to-r from-[#ffd79e] via-[#ffaf57] to-[#ff8d32] bg-clip-text text-transparent"> Nogatu Wellness Drinks</span>
               </h1>
               <p className="max-w-xl text-base leading-relaxed text-orange-50/78 sm:text-lg">
-                NogatuDrop is redesigned for enterprise-ready e-commerce: animated storefront, production-grade
-                merchandising layout, conversion-focused checkout, and seamless add-to-cart flow.
+                From energizing coffee blends and rich chocolate mixes to nourishing barley drinks — Nogatu brings you
+                health-focused beverages crafted for everyday wellness, delivered nationwide across the Philippines.
               </p>
 
               <div className="flex flex-wrap gap-3">
