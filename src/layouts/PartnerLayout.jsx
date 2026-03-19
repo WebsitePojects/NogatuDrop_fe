@@ -12,7 +12,7 @@ import SidebarNav from '@/components/SidebarNav';
 import { useAuth } from '@/context/AuthContext';
 import { ROLE_SLUGS } from '@/utils/constants';
 
-const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.jpg';
+const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
 const PartnerLayout = () => {
   const { user } = useAuth();
@@ -39,9 +39,9 @@ const PartnerLayout = () => {
               <img
                 src={BRAND_LOGO}
                 alt="Nogatu logo"
-                className="w-9 h-9 rounded-lg object-cover border border-white/30"
+                className="w-12 h-12 rounded-xl object-cover border-2 border-white/60 shadow-[0_0_0_3px_rgba(255,255,255,0.22)]"
               />
-              <span className="text-sm font-semibold tracking-wide hidden sm:inline">NOGATU</span>
+              <span className="text-sm font-semibold tracking-wide hidden sm:inline">NCDMS</span>
             </div>
             <div className="flex items-center gap-2 text-white">
               <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-sm font-bold">

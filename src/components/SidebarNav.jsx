@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import { FiLogOut } from 'react-icons/fi';
 import { useAuth } from '@/context/AuthContext';
 
-const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.jpg';
+const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
 const SidebarNav = ({ theme = 'main', navItems = [] }) => {
   const { user, logout } = useAuth();
@@ -25,10 +25,10 @@ const SidebarNav = ({ theme = 'main', navItems = [] }) => {
         <img
           src={BRAND_LOGO}
           alt="Nogatu"
-          className="w-10 h-10 rounded-xl object-cover border-2 border-white/40"
+          className="w-12 h-12 rounded-xl object-cover border-2 border-white/60 shadow-[0_0_0_3px_rgba(255,255,255,0.2)]"
         />
         <div>
-          <h1 className="font-bold text-base leading-tight">NOGATU</h1>
+          <h1 className="font-bold text-base leading-tight">NCDMS</h1>
           <p className="text-[10px] text-white/60 tracking-wider">
             {isMain ? 'MAIN SYSTEM' : 'PARTNER PORTAL'}
           </p>

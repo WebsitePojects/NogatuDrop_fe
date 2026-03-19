@@ -1,6 +1,6 @@
 import React from 'react';
 
-const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.jpg';
+const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
 const PageHeader = ({ title, subtitle, actions, className = '' }) => {
   return (
@@ -9,7 +9,7 @@ const PageHeader = ({ title, subtitle, actions, className = '' }) => {
         <img
           src={BRAND_LOGO}
           alt="Nogatu logo"
-          className="w-10 h-10 rounded-lg object-cover border border-gray-200 shadow-sm"
+          className="w-12 h-12 rounded-xl object-cover border-2 border-amber-200 shadow-[0_0_0_3px_rgba(255,140,0,0.14)]"
         />
         <div>
         <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
