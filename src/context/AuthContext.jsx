@@ -32,8 +32,8 @@ export const AuthProvider = ({ children }) => {
     restoreSession();
   }, [restoreSession]);
 
-  const login = async (email, password, portalType) => {
-    const { data } = await api.post(AUTH.LOGIN, { email, password, portal: portalType });
+  const login = async (email, password) => {
+    const { data } = await api.post(AUTH.LOGIN, { email, password });
     const accessToken = data.data.access_token;
     const userData = data.data.user;
     localStorage.setItem('access_token', accessToken);

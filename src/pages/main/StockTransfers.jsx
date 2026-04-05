@@ -1,256 +1,383 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { FiPlus, FiArrowRight } from 'react-icons/fi';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell,
+  Modal, ModalHeader, ModalBody, ModalFooter,
+  Card, TextInput, Select, Label, Tabs, TabItem, Pagination, Badge,
+} from 'flowbite-react';
+import { HiOutlinePlus, HiOutlineArrowRight, HiOutlineSearch, HiOutlineTrash } from 'react-icons/hi';
 import api from '@/services/api';
 import { STOCK_TRANSFERS, WAREHOUSES, PRODUCTS } from '@/services/endpoints';
-import Modal from '@/components/Modal';
-import { STATUS_BADGE } from '@/utils/constants';
 import { formatDate } from '@/utils/formatDate';
+import PageHeader from '@/components/PageHeader';
+import StatusBadge from '@/components/StatusBadge';
+import EmptyState from '@/components/EmptyState';
+import ConfirmModal from '@/components/ConfirmModal';
+import { ToastContainer, useToast } from '@/components/Toast';
 
-const inputCls = 'w-full px-4 py-3 bg-gray-100 border-0 rounded-xl text-sm placeholder-gray-400 focus:ring-2 focus:ring-orange-400 outline-none';
-const labelCls = 'block text-sm font-semibold text-gray-800 mb-1';
+const STATUSES = ['all', 'pending', 'in_transit', 'completed', 'cancelled'];
 
-const StockTransfers = () => {
+const EMPTY_FORM = { from_warehouse_id: '', to_warehouse_id: '', notes: '' };
+
+export default function StockTransfers() {
+  const { toasts, showToast, dismiss } = useToast();
   const [transfers, setTransfers] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [completing, setCompleting] = useState(null);
-  const [showMonitor, setShowMonitor] = useState(false);
+  const [activeTab, setActiveTab] = useState(0);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+
   const [warehouses, setWarehouses] = useState([]);
   const [products, setProducts] = useState([]);
-  const [form, setForm] = useState({
-    from_warehouse_id: '',
-    to_warehouse_id: '',
-    product_id: '',
-    quantity: '',
-  });
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [confirmTarget, setConfirmTarget] = useState(null); // { action, transfer }
+  const [selected, setSelected] = useState(null);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [items, setItems] = useState([{ product_id: '', quantity: '' }]);
+  const [submitting, setSubmitting] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
+
+  const statusFilter = STATUSES[activeTab] === 'all' ? '' : STATUSES[activeTab];
 
   const fetchTransfers = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get(STOCK_TRANSFERS.LIST, { params: { limit: 50 } });
+      const { data } = await api.get(STOCK_TRANSFERS.LIST, {
+        params: { page, status: statusFilter || undefined, limit: 15 },
+      });
       setTransfers(data.data || []);
+      setTotalPages(data.pagination?.pages || 1);
     } catch {
       setTransfers([]);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, statusFilter]);
+
+  useEffect(() => { fetchTransfers(); }, [fetchTransfers]);
 
   useEffect(() => {
-    fetchTransfers();
-  }, [fetchTransfers]);
+    Promise.allSettled([
+      api.get(WAREHOUSES.LIST, { params: { limit: 100 } }),
+      api.get(PRODUCTS.LIST, { params: { limit: 200 } }),
+    ]).then(([wRes, pRes]) => {
+      if (wRes.status === 'fulfilled') setWarehouses(wRes.value.data.data || []);
+      if (pRes.status === 'fulfilled') setProducts(pRes.value.data.data || []);
+    });
+  }, []);
 
-  const fetchFormData = async () => {
+  const openDetail = async (t) => {
     try {
-      const [wRes, pRes] = await Promise.all([
-        api.get(WAREHOUSES.LIST, { params: { limit: 100 } }),
-        api.get(PRODUCTS.LIST, { params: { limit: 100 } }),
-      ]);
-      setWarehouses(wRes.data.data || []);
-      setProducts(pRes.data.data || []);
+      const { data } = await api.get(STOCK_TRANSFERS.BY_ID(t.id));
+      setSelected(data.data);
     } catch {
-      // silently fail
+      setSelected(t);
     }
+    setShowDetailModal(true);
   };
 
-  const openModal = () => {
-    fetchFormData();
-    setForm({ from_warehouse_id: '', to_warehouse_id: '', product_id: '', quantity: '' });
-    setShowModal(true);
+  const openAdd = () => {
+    setForm(EMPTY_FORM);
+    setItems([{ product_id: '', quantity: '' }]);
+    setShowAddModal(true);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const addItem = () => setItems((prev) => [...prev, { product_id: '', quantity: '' }]);
+  const removeItem = (i) => setItems((prev) => prev.filter((_, idx) => idx !== i));
+  const updateItem = (i, key, val) => setItems((prev) => prev.map((it, idx) => idx === i ? { ...it, [key]: val } : it));
+
+  const handleAdd = async () => {
     setSubmitting(true);
     try {
       await api.post(STOCK_TRANSFERS.CREATE, {
         ...form,
-        quantity: Number(form.quantity),
+        items: items.filter((it) => it.product_id && it.quantity),
       });
-      setShowModal(false);
+      showToast('Stock transfer created', 'success');
+      setShowAddModal(false);
       fetchTransfers();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to create transfer');
+      showToast(err.response?.data?.message || 'Failed to create transfer', 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleComplete = async (transferId) => {
-    setCompleting(transferId);
+  const executeAction = async () => {
+    if (!confirmTarget) return;
+    setActionLoading(true);
     try {
-      await api.patch(STOCK_TRANSFERS.COMPLETE(transferId));
+      const { action, transfer } = confirmTarget;
+      if (action === 'complete') {
+        await api.patch(STOCK_TRANSFERS.COMPLETE(transfer.id));
+        showToast('Transfer marked as completed', 'success');
+      } else if (action === 'in_transit') {
+        await api.patch(`/stock-transfers/${transfer.id}/transit`);
+        showToast('Transfer marked as in transit', 'success');
+      } else if (action === 'cancel') {
+        await api.patch(`/stock-transfers/${transfer.id}/cancel`);
+        showToast('Transfer cancelled', 'info');
+      }
+      setConfirmTarget(null);
+      setShowDetailModal(false);
       fetchTransfers();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to complete transfer');
+      showToast(err.response?.data?.message || 'Action failed', 'error');
     } finally {
-      setCompleting(null);
+      setActionLoading(false);
     }
   };
 
-  const getStatusStyle = (status) => {
-    if (status === 'completed') return { bg: 'bg-green-100', text: 'text-green-800', label: 'Completed' };
-    if (status === 'in_transit') return { bg: 'bg-orange-100', text: 'text-orange-800', label: 'In Transit' };
-    return STATUS_BADGE[status] || { bg: 'bg-gray-100', text: 'text-gray-800', label: status };
-  };
-
-  const activeTransfers = transfers.filter((t) => t.status === 'in_transit');
+  const fld = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   return (
-    <div style={{ backgroundColor: '#FFF3E0', minHeight: '100vh' }}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-wide uppercase">STOCK TRANSFERS</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage stock movement between warehouses</p>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => setShowMonitor(true)}
-            className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm"
-          >
-            Monitor
-          </button>
-          <button
-            onClick={openModal}
-            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm"
-          >
-            <FiPlus />New Transfer
-          </button>
-        </div>
-      </div>
+    <div className="page-enter">
+      <PageHeader
+        title="Stock Transfers"
+        subtitle="Transfer inventory between warehouses"
+        actions={[{ label: 'New Transfer', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: openAdd }]}
+      />
 
-      {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-        </div>
-      ) : transfers.length === 0 ? (
-        <div className="text-center py-20 text-gray-400">No stock transfers found</div>
-      ) : (
-        <div className="space-y-4">
-          {transfers.map((transfer) => {
-            const st = getStatusStyle(transfer.status);
-            const isInTransit = transfer.status === 'in_transit';
-            return (
-              <div key={transfer.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-                {/* Transfer Header */}
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <p className="text-sm font-bold text-gray-900">{transfer.transfer_number}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">Created {formatDate(transfer.created_at)}</p>
-                    {transfer.completed_at && (
-                      <p className="text-xs text-gray-400">Completed {formatDate(transfer.completed_at)}</p>
+      <Card>
+        <Tabs onActiveTabChange={(i) => { setActiveTab(i); setPage(1); }}>
+          {STATUSES.map((s) => (
+            <TabItem key={s} title={s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}>
+              <div className="overflow-x-auto">
+                <Table striped>
+                  <TableHead>
+                    <TableHeadCell>Transfer #</TableHeadCell>
+                    <TableHeadCell>From</TableHeadCell>
+                    <TableHeadCell>To</TableHeadCell>
+                    <TableHeadCell>Status</TableHeadCell>
+                    <TableHeadCell>Items</TableHeadCell>
+                    <TableHeadCell>Date</TableHeadCell>
+                    <TableHeadCell>Actions</TableHeadCell>
+                  </TableHead>
+                  <TableBody className="divide-y">
+                    {loading ? (
+                      Array.from({ length: 6 }).map((_, i) => (
+                        <TableRow key={i}>
+                          {Array.from({ length: 7 }).map((__, j) => (
+                            <TableCell key={j}><div className="skeleton h-4 w-full rounded" /></TableCell>
+                          ))}
+                        </TableRow>
+                      ))
+                    ) : transfers.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="text-center text-gray-400 py-10">No transfers found</TableCell>
+                      </TableRow>
+                    ) : (
+                      transfers.map((t) => (
+                        <TableRow key={t.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(t)}>
+                          <TableCell className="font-mono font-medium text-xs text-gray-900">{t.transfer_number || `TRF-${t.id}`}</TableCell>
+                          <TableCell className="text-xs">{t.from_warehouse_name}</TableCell>
+                          <TableCell className="text-xs">
+                            <span className="flex items-center gap-1">
+                              <HiOutlineArrowRight className="w-3 h-3 text-gray-400" />
+                              {t.to_warehouse_name}
+                            </span>
+                          </TableCell>
+                          <TableCell><StatusBadge status={t.status} /></TableCell>
+                          <TableCell>{t.items_count ?? '—'}</TableCell>
+                          <TableCell className="text-xs text-gray-500">{formatDate(t.created_at)}</TableCell>
+                          <TableCell onClick={(e) => e.stopPropagation()}>
+                            <Button size="xs" color="light" onClick={() => openDetail(t)}>View</Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+              {totalPages > 1 && (
+                <div className="flex justify-center mt-4">
+                  <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} showIcons />
+                </div>
+              )}
+            </TabItem>
+          ))}
+        </Tabs>
+      </Card>
+
+      {/* Add Modal */}
+      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg">
+        <ModalHeader>New Stock Transfer</ModalHeader>
+        <ModalBody>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label value="From Warehouse" className="mb-1" />
+                <Select value={form.from_warehouse_id} onChange={fld('from_warehouse_id')} required>
+                  <option value="">Select...</option>
+                  {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+                </Select>
+              </div>
+              <div>
+                <Label value="To Warehouse" className="mb-1" />
+                <Select value={form.to_warehouse_id} onChange={fld('to_warehouse_id')} required>
+                  <option value="">Select...</option>
+                  {warehouses.filter((w) => w.id !== Number(form.from_warehouse_id)).map((w) => (
+                    <option key={w.id} value={w.id}>{w.name}</option>
+                  ))}
+                </Select>
+              </div>
+            </div>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label value="Items" />
+                <Button size="xs" color="light" onClick={addItem}>
+                  <HiOutlinePlus className="w-3 h-3 mr-1" /> Add Item
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {items.map((item, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <Select
+                      className="flex-1"
+                      value={item.product_id}
+                      onChange={(e) => updateItem(i, 'product_id', e.target.value)}
+                    >
+                      <option value="">Select product...</option>
+                      {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                    </Select>
+                    <TextInput
+                      type="number"
+                      min="1"
+                      placeholder="Qty"
+                      value={item.quantity}
+                      onChange={(e) => updateItem(i, 'quantity', e.target.value)}
+                      className="w-24"
+                    />
+                    {items.length > 1 && (
+                      <Button size="xs" color="failure" outline onClick={() => removeItem(i)}>
+                        <HiOutlineTrash className="w-3.5 h-3.5" />
+                      </Button>
                     )}
                   </div>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${st.bg} ${st.text}`}>
-                    {st.label}
-                  </span>
-                </div>
-
-                {/* Warehouse Route */}
-                <div className="flex items-center gap-3 mb-3 p-3 bg-gray-50 rounded-lg">
-                  <div className="text-xs">
-                    <p className="text-gray-400">From</p>
-                    <p className="font-semibold text-gray-800">{transfer.from_warehouse_name || transfer.from_warehouse?.name || 'N/A'}</p>
-                  </div>
-                  <FiArrowRight className="text-orange-500 flex-shrink-0" />
-                  <div className="text-xs">
-                    <p className="text-gray-400">To</p>
-                    <p className="font-semibold text-gray-800">{transfer.to_warehouse_name || transfer.to_warehouse?.name || 'N/A'}</p>
-                  </div>
-                </div>
-
-                {/* Product & Quantity */}
-                {(transfer.items || [{ product_name: transfer.product_name, quantity: transfer.quantity }]).map((item, i) => (
-                  <div key={i} className="mb-1">
-                    <p className="text-xs text-gray-400">Product</p>
-                    <p className="text-sm font-bold text-gray-900 uppercase">{item.product_name || transfer.product_name}</p>
-                    <p className="text-xs text-gray-500 mt-0.5">{(item.quantity || transfer.quantity || 0).toLocaleString()} units</p>
-                  </div>
                 ))}
+              </div>
+            </div>
+            <div>
+              <Label value="Notes (optional)" className="mb-1" />
+              <TextInput value={form.notes} onChange={fld('notes')} placeholder="Any notes..." />
+            </div>
+          </div>
+        </ModalBody>
+        <ModalFooter>
+          <Button color="warning" onClick={handleAdd} disabled={submitting} isProcessing={submitting}>Create Transfer</Button>
+          <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
+        </ModalFooter>
+      </Modal>
 
-                {/* Mark as Complete */}
-                {isInTransit && (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <button
-                      onClick={() => handleComplete(transfer.id)}
-                      disabled={completing === transfer.id}
-                      className="px-4 py-2 text-white text-xs font-bold rounded-lg transition-colors disabled:opacity-50"
-                      style={{ backgroundColor: '#16a34a' }}
-                    >
-                      {completing === transfer.id ? 'Completing...' : 'Mark as Complete'}
-                    </button>
+      {/* Detail Modal */}
+      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="lg">
+        <ModalHeader>Transfer Detail — {selected?.transfer_number || `TRF-${selected?.id}`}</ModalHeader>
+        <ModalBody>
+          {selected && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-gray-500 text-xs">From</p>
+                  <p className="font-semibold">{selected.from_warehouse_name}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 text-xs">To</p>
+                  <p className="font-semibold">{selected.to_warehouse_name}</p>
+                </div>
+                <div>
+                  <p className="text-gray-500 text-xs">Status</p>
+                  <StatusBadge status={selected.status} />
+                </div>
+                <div>
+                  <p className="text-gray-500 text-xs">Date</p>
+                  <p>{formatDate(selected.created_at)}</p>
+                </div>
+              </div>
+              {/* Status Timeline */}
+              <div className="flex items-center gap-2 py-2">
+                {['pending', 'in_transit', 'completed'].map((s, i) => {
+                  const steps = { pending: 0, in_transit: 1, completed: 2 };
+                  const cur = steps[selected.status] ?? 0;
+                  const stepIdx = i;
+                  const done = cur >= stepIdx;
+                  return (
+                    <div key={s} className="flex items-center gap-2 flex-1">
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${done ? 'bg-amber-500 text-white' : 'bg-gray-200 text-gray-400'}`}>
+                        {stepIdx + 1}
+                      </div>
+                      <span className={`text-xs capitalize ${done ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
+                        {s.replace(/_/g, ' ')}
+                      </span>
+                      {i < 2 && <div className={`flex-1 h-0.5 ${cur > stepIdx ? 'bg-amber-400' : 'bg-gray-200'}`} />}
+                    </div>
+                  );
+                })}
+              </div>
+              {/* Items */}
+              {(selected.items || []).length > 0 && (
+                <div>
+                  <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Items</p>
+                  <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                    <Table>
+                      <TableHead>
+                        <TableHeadCell>Product</TableHeadCell>
+                        <TableHeadCell>Quantity</TableHeadCell>
+                      </TableHead>
+                      <TableBody className="divide-y">
+                        {selected.items.map((it, i) => (
+                          <TableRow key={i}>
+                            <TableCell>{it.product_name}</TableCell>
+                            <TableCell>{it.quantity}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
                   </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-      )}
-
-      {/* Create Stock Transfer Modal */}
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-extrabold text-gray-900 uppercase">CREATE STOCK TRANSFER</h2>
-          <p className="text-sm text-gray-500 mt-1">Transfer stock between warehouses</p>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className={labelCls}>From Warehouse</label>
-            <select required value={form.from_warehouse_id} onChange={(e) => setForm({ ...form, from_warehouse_id: e.target.value })} className={inputCls}>
-              <option value="">Choose...</option>
-              {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
-            </select>
+                </div>
+              )}
+            </div>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <div className="flex gap-2 flex-wrap">
+            {selected?.status === 'pending' && (
+              <>
+                <Button color="warning" size="sm" onClick={() => setConfirmTarget({ action: 'in_transit', transfer: selected })}>
+                  Mark In Transit
+                </Button>
+                <Button color="failure" size="sm" outline onClick={() => setConfirmTarget({ action: 'cancel', transfer: selected })}>
+                  Cancel
+                </Button>
+              </>
+            )}
+            {selected?.status === 'in_transit' && (
+              <Button color="success" size="sm" onClick={() => setConfirmTarget({ action: 'complete', transfer: selected })}>
+                Mark Complete
+              </Button>
+            )}
+            <Button color="gray" size="sm" onClick={() => setShowDetailModal(false)}>Close</Button>
           </div>
-          <div>
-            <label className={labelCls}>To Warehouse</label>
-            <select required value={form.to_warehouse_id} onChange={(e) => setForm({ ...form, to_warehouse_id: e.target.value })} className={inputCls}>
-              <option value="">Choose...</option>
-              {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Product</label>
-            <select required value={form.product_id} onChange={(e) => setForm({ ...form, product_id: e.target.value })} className={inputCls}>
-              <option value="">Product</option>
-              {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Quantity</label>
-            <input type="number" required min="1" placeholder="Quantity" value={form.quantity} onChange={(e) => setForm({ ...form, quantity: e.target.value })} className={inputCls} />
-          </div>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-3.5 text-white font-bold uppercase rounded-xl tracking-widest transition-colors disabled:opacity-50"
-            style={{ backgroundColor: '#6B2D0E' }}
-          >
-            {submitting ? 'Creating...' : 'ADD STOCK'}
-          </button>
-        </form>
+        </ModalFooter>
       </Modal>
 
-      <Modal isOpen={showMonitor} onClose={() => setShowMonitor(false)} title="Active Transfer Monitor" maxWidth="max-w-2xl">
-        {activeTransfers.length === 0 ? (
-          <div className="text-sm text-gray-500">No in-transit transfers right now.</div>
-        ) : (
-          <div className="space-y-3">
-            {activeTransfers.map((transfer) => (
-              <div key={transfer.id} className="bg-gray-50 border border-gray-100 rounded-lg p-3">
-                <p className="text-sm font-semibold text-gray-800">{transfer.transfer_number}</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {transfer.from_warehouse_name || 'N/A'} {'->'} {transfer.to_warehouse_name || 'N/A'}
-                </p>
-                <p className="text-xs text-gray-500">Created {formatDate(transfer.created_at)}</p>
-              </div>
-            ))}
-          </div>
-        )}
-      </Modal>
+      {/* Confirm Modal */}
+      <ConfirmModal
+        show={!!confirmTarget}
+        title={
+          confirmTarget?.action === 'complete' ? 'Complete Transfer'
+          : confirmTarget?.action === 'in_transit' ? 'Mark In Transit'
+          : 'Cancel Transfer'
+        }
+        message={`Confirm this action for transfer ${confirmTarget?.transfer?.transfer_number || `TRF-${confirmTarget?.transfer?.id}`}?`}
+        confirmLabel="Confirm"
+        confirmColor={confirmTarget?.action === 'cancel' ? 'failure' : 'success'}
+        onConfirm={executeAction}
+        onClose={() => setConfirmTarget(null)}
+        loading={actionLoading}
+      />
+
+      <ToastContainer toasts={toasts} dismiss={dismiss} />
     </div>
   );
-};
-
-export default StockTransfers;
+}

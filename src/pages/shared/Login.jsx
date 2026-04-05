@@ -1,182 +1,161 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiEye, FiEyeOff } from 'react-icons/fi';
-import { FaFacebook, FaPhone, FaGlobe } from 'react-icons/fa';
+import { useState } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { Card, Button, Label, TextInput, Spinner, Alert } from 'flowbite-react';
+import { HiOutlineEye, HiOutlineEyeOff, HiOutlineExclamationCircle } from 'react-icons/hi';
 import { useAuth } from '@/context/AuthContext';
-import { ROLE_SLUGS } from '@/utils/constants';
-import WelcomePopup from './WelcomePopup';
 
-const LOGIN_POSTER = '/assets/nogatuPoster_login.png';
+const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
-const Login = () => {
+export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [portalType, setPortalType] = useState('main');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showWelcome, setShowWelcome] = useState(false);
-  const [loggedInUser, setLoggedInUser] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
     try {
-      const userData = await login(email, password, portalType);
-      setLoggedInUser(userData);
-      setShowWelcome(true);
+      const userData = await login(email, password);
+      const role = userData?.role_slug;
+      if (role === 'super_admin') {
+        navigate('/main/dashboard');
+      } else if (role === 'mobile_stockist') {
+        navigate('/mobile/dashboard');
+      } else {
+        navigate('/stockist/dashboard');
+      }
     } catch (err) {
-      console.error('Login failed:', err);
       setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleProceed = () => {
-    setShowWelcome(false);
-    if (loggedInUser?.role_slug === ROLE_SLUGS.SUPER_ADMIN) {
-      navigate('/main/dashboard');
-    } else {
-      navigate('/partner/dashboard');
-    }
-  };
-
   return (
-    <>
-      <div className="flex min-h-screen">
-        {/* Left panel - poster only (no cards/overlay) */}
-        <img
-          src={LOGIN_POSTER}
-          alt="Nogatu poster"
-          className="hidden lg:block h-screen w-auto shrink-0"
-        />
-
-        {/* Right panel - login form */}
-        <div
-          className="flex-1 min-w-0 flex items-center justify-center p-8"
-          style={{ background: 'linear-gradient(to bottom, #FFF8E8, #FFFBF0)' }}
-        >
-          <div className="w-full max-w-sm">
-            {/* Title */}
-            <div className="mb-6">
-              <h2 className="text-3xl font-bold" style={{ color: '#FF8C00' }}>Welcome!</h2>
-              <p className="text-sm text-gray-500 mt-1">Inventory Management System</p>
-            </div>
-
-            {/* Portal toggle */}
-            <div className="flex gap-2 mb-5">
-              <button
-                type="button"
-                onClick={() => setPortalType('main')}
-                className="flex-1 py-2 rounded-lg text-sm font-semibold border-2 transition-all"
-                style={
-                  portalType === 'main'
-                    ? { borderColor: '#FF8C00', background: '#FF8C00', color: '#fff' }
-                    : { borderColor: '#FF8C00', background: 'transparent', color: '#FF8C00' }
-                }
-              >
-                Main System
-              </button>
-              <button
-                type="button"
-                onClick={() => setPortalType('partner')}
-                className="flex-1 py-2 rounded-lg text-sm font-semibold border-2 transition-all"
-                style={
-                  portalType === 'partner'
-                    ? { borderColor: '#FF8C00', background: '#FF8C00', color: '#fff' }
-                    : { borderColor: '#FF8C00', background: 'transparent', color: '#FF8C00' }
-                }
-              >
-                Partner Portal
-              </button>
-            </div>
-
-            {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
-                {error}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email:
-                </label>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none text-sm bg-white text-black placeholder:text-gray-500 caret-black"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password:
-                </label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 pr-11 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-400 focus:border-orange-400 outline-none text-sm bg-white text-black placeholder:text-gray-500 caret-black"
-                    required
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    {showPassword ? <FiEyeOff className="text-lg" /> : <FiEye className="text-lg" />}
-                  </button>
-                </div>
-              </div>
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full py-3 text-white font-bold rounded-lg uppercase tracking-widest transition-all disabled:opacity-50 text-sm"
-                style={{ background: '#FF8C00' }}
-              >
-                {loading ? (
-                  <span className="flex items-center justify-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    Logging in...
-                  </span>
-                ) : (
-                  'LOGIN'
-                )}
-              </button>
-            </form>
-
-            {/* Social Icons */}
-            <div className="mt-8 flex justify-center gap-8">
-              <a href="#" className="text-gray-500 hover:text-blue-600 transition-colors">
-                <FaFacebook className="text-2xl" />
-              </a>
-              <a href="#" className="text-gray-500 hover:text-green-600 transition-colors">
-                <FaPhone className="text-2xl" />
-              </a>
-              <a href="#" className="text-gray-500 hover:text-orange-600 transition-colors">
-                <FaGlobe className="text-2xl" />
-              </a>
-            </div>
-          </div>
+    <div className="flex min-h-screen">
+      {/* Left panel */}
+      <div
+        className="hidden lg:flex lg:w-1/2 xl:w-2/5 flex-col items-center justify-center p-12 text-white"
+        style={{ background: 'linear-gradient(160deg, #1C0A00 0%, #4A1E00 100%)' }}
+      >
+        <img src={BRAND_LOGO} alt="Nogatu Logo" className="w-20 h-20 rounded-2xl mb-6 shadow-xl" />
+        <h1 className="text-4xl font-bold mb-2 text-center leading-tight">NCDMS</h1>
+        <p className="text-amber-300 text-lg font-medium mb-3 text-center">
+          Nogatu Centralized Distribution
+        </p>
+        <p className="text-white/50 text-sm text-center max-w-xs leading-relaxed">
+          Manage inventory, orders, and deliveries across all distribution levels — from province to doorstep.
+        </p>
+        <div className="mt-12 flex gap-6 text-white/30 text-xs">
+          <span>Nogatu Alliance</span>
+          <span>·</span>
+          <span>Prince IT Solutions</span>
+          <span>·</span>
+          <span>2026</span>
         </div>
       </div>
 
-      <WelcomePopup
-        isOpen={showWelcome}
-        user={loggedInUser}
-        onProceed={handleProceed}
-      />
-    </>
-  );
-};
+      {/* Right panel */}
+      <div
+        className="flex-1 flex items-center justify-center p-6"
+        style={{ background: '#FFF8F0' }}
+      >
+        <div className="w-full max-w-sm">
+          {/* Mobile logo */}
+          <div className="flex items-center gap-3 mb-8 lg:hidden">
+            <img src={BRAND_LOGO} alt="Nogatu" className="w-10 h-10 rounded-xl" />
+            <div>
+              <p className="font-bold text-gray-900">NCDMS</p>
+              <p className="text-xs text-gray-500">Distribution System</p>
+            </div>
+          </div>
 
-export default Login;
+          <h2 className="text-2xl font-bold text-gray-900 mb-1">Welcome back</h2>
+          <p className="text-sm text-gray-500 mb-6">Sign in to your account to continue</p>
+
+          {error && (
+            <Alert color="failure" icon={HiOutlineExclamationCircle} className="mb-4">
+              {error}
+            </Alert>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="email" value="Email address" className="mb-1.5" />
+              <TextInput
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+                autoComplete="email"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="password" value="Password" className="mb-1.5" />
+              <div className="relative">
+                <TextInput
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  autoComplete="current-password"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                  tabIndex={-1}
+                >
+                  {showPassword ? (
+                    <HiOutlineEyeOff className="w-5 h-5" />
+                  ) : (
+                    <HiOutlineEye className="w-5 h-5" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            <div className="flex justify-end">
+              <Link to="/forgot-password" className="text-xs text-amber-600 hover:text-amber-700 font-medium">
+                Forgot password?
+              </Link>
+            </div>
+
+            <Button
+              type="submit"
+              color="warning"
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? (
+                <span className="flex items-center gap-2">
+                  <Spinner size="sm" />
+                  Signing in...
+                </span>
+              ) : (
+                'Sign In'
+              )}
+            </Button>
+          </form>
+
+          <p className="text-center text-sm text-gray-500 mt-6">
+            New Stockist?{' '}
+            <Link to="/apply" className="text-amber-600 hover:text-amber-700 font-semibold">
+              Apply here
+            </Link>
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

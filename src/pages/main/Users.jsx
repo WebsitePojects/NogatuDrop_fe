@@ -1,50 +1,70 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { FiSearch, FiFilter, FiPlus, FiDownload, FiEdit2 } from 'react-icons/fi';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell,
+  Modal, ModalHeader, ModalBody, ModalFooter,
+  Card, TextInput, Select, Label, Pagination,
+} from 'flowbite-react';
+import { HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineTrash, HiOutlineUsers } from 'react-icons/hi';
 import api from '@/services/api';
-import { USERS } from '@/services/endpoints';
-import Modal from '@/components/Modal';
+import { USERS, PARTNERS } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
+import PageHeader from '@/components/PageHeader';
+import StatusBadge from '@/components/StatusBadge';
+import EmptyState from '@/components/EmptyState';
+import ConfirmModal from '@/components/ConfirmModal';
+import { ToastContainer, useToast } from '@/components/Toast';
 
-const ROLE_BADGE = {
-  super_admin: { bg: 'bg-purple-100', text: 'text-purple-800', label: 'Super Admin' },
-  admin: { bg: 'bg-blue-100', text: 'text-blue-800', label: 'Admin' },
-  staff: { bg: 'bg-gray-100', text: 'text-gray-700', label: 'Staff' },
+const ROLES = [
+  { value: 'super_admin', label: 'Super Admin' },
+  { value: 'provincial_stockist', label: 'Provincial Stockist' },
+  { value: 'city_stockist', label: 'City Stockist' },
+  { value: 'staff', label: 'Staff' },
+  { value: 'mobile_stockist', label: 'Mobile Stockist' },
+];
+
+const EMPTY_FORM = {
+  name: '', email: '', phone: '', role_slug: '', partner_id: '', status: 'active', password: '',
 };
 
-const STATUS_BADGE_USER = {
-  active: { bg: 'bg-green-100', text: 'text-green-700', label: 'Active' },
-  inactive: { bg: 'bg-gray-100', text: 'text-gray-600', label: 'Inactive' },
+const roleBadge = (role) => {
+  const m = {
+    super_admin: 'badge-approved',
+    provincial_stockist: 'badge-delivered',
+    city_stockist: 'badge-delivering',
+    staff: 'badge-inactive',
+    mobile_stockist: 'badge-pending',
+  };
+  const label = ROLES.find((r) => r.value === role)?.label || role;
+  return <span className={m[role] || 'badge-inactive'}>{label}</span>;
 };
 
-const inputCls = 'w-full px-4 py-3 bg-gray-100 border-0 rounded-xl text-sm placeholder-gray-400 focus:ring-2 focus:ring-orange-400 outline-none';
-const labelCls = 'block text-sm font-semibold text-gray-800 mb-1';
-
-const Users = () => {
+export default function Users() {
+  const { toasts, showToast, dismiss } = useToast();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
-  const [pagination, setPagination] = useState(null);
   const [page, setPage] = useState(1);
-  const [showModal, setShowModal] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const [partners, setPartners] = useState([]);
+
+  const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
-  const [editingUserId, setEditingUserId] = useState(null);
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    role_slug: 'staff',
-    password: '',
-  });
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await api.get(USERS.LIST, {
-        params: { page, search, role: roleFilter || undefined, limit: 20 },
+        params: { page, search: search || undefined, role: roleFilter || undefined, limit: 15 },
       });
       setUsers(data.data || []);
-      setPagination(data.pagination || null);
+      setTotalPages(data.pagination?.pages || 1);
     } catch {
       setUsers([]);
     } finally {
@@ -52,333 +72,265 @@ const Users = () => {
     }
   }, [page, search, roleFilter]);
 
+  useEffect(() => { fetchUsers(); }, [fetchUsers]);
+
   useEffect(() => {
-    fetchUsers();
-  }, [fetchUsers]);
+    api.get(PARTNERS.LIST, { params: { limit: 200 } })
+      .then((r) => setPartners(r.data.data || []))
+      .catch(() => {});
+  }, []);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const payload = {
-      name: String(formData.get('name') || '').trim(),
-      email: String(formData.get('email') || '').trim(),
-      password: String(formData.get('password') || ''),
-      role_slug: String(formData.get('role_slug') || 'staff'),
-    };
-
-    if (!payload.name) {
-      alert('Name is required');
-      return;
-    }
-    if (payload.password.length < 6) {
-      alert('Password must be at least 6 characters');
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      await api.post(USERS.CREATE, payload);
-      setShowModal(false);
-      fetchUsers();
-    } catch (err) {
-      alert(err.response?.data?.message || 'Failed to add user');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const openModal = () => {
-    setForm({ name: '', email: '', role_slug: 'staff', password: '' });
-    setShowModal(true);
-  };
-
-  const openEditModal = (user) => {
-    const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.name || '';
-    setEditingUserId(user.id);
-    setForm({
-      name: fullName,
-      email: user.email || '',
-      role_slug: user.role_slug || 'staff',
-      password: '',
-      status: user.status || 'active',
-    });
+  const openAdd = () => { setForm(EMPTY_FORM); setShowAddModal(true); };
+  const openEdit = (u) => {
+    setSelected(u);
+    setForm({ name: u.name, email: u.email, phone: u.phone || '', role_slug: u.role_slug, partner_id: u.partner_id || '', status: u.status || 'active', password: '' });
     setShowEditModal(true);
   };
+  const openDetail = (u) => { setSelected(u); setShowDetailModal(true); };
 
-  const handleEditSubmit = async (e) => {
-    e.preventDefault();
-    if (!editingUserId) return;
-
-    const payload = {
-      name: form.name.trim(),
-      email: form.email.trim(),
-      status: form.status,
-    };
-
-    if (!payload.name) {
-      alert('Name is required');
-      return;
-    }
-
+  const handleAdd = async () => {
     setSubmitting(true);
     try {
-      await api.put(USERS.UPDATE(editingUserId), payload);
-      setShowEditModal(false);
-      setEditingUserId(null);
+      await api.post(USERS.CREATE, form);
+      showToast('User created', 'success');
+      setShowAddModal(false);
       fetchUsers();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update user');
+      showToast(err.response?.data?.message || 'Failed to create user', 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDeleteUser = async (user) => {
-    const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.name || user.email;
-    const confirmed = window.confirm(`Delete user ${fullName}?`);
-    if (!confirmed) return;
-
+  const handleEdit = async () => {
+    setSubmitting(true);
     try {
-      await api.delete(USERS.DELETE(user.id));
+      const payload = { ...form };
+      if (!payload.password) delete payload.password;
+      await api.put(USERS.UPDATE(selected.id), payload);
+      showToast('User updated', 'success');
+      setShowEditModal(false);
       fetchUsers();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete user');
+      showToast(err.response?.data?.message || 'Update failed', 'error');
+    } finally {
+      setSubmitting(false);
     }
   };
 
-  // Compute KPI counts
-  const totalUsers = pagination?.total || users.length;
-  const activeUsers = users.filter((u) => u.is_active !== false).length;
-  const admins = users.filter((u) => u.role_slug === 'super_admin' || u.role_slug === 'admin').length;
+  const handleDelete = async () => {
+    setSubmitting(true);
+    try {
+      await api.delete(USERS.DELETE(deleteTarget.id));
+      showToast('User removed', 'info');
+      setDeleteTarget(null);
+      fetchUsers();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Delete failed', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-  return (
-    <div style={{ backgroundColor: '#FFF3E0', minHeight: '100vh' }}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-wide uppercase">USER MANAGEMENT</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage system users</p>
-        </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm">
-          <FiDownload />Export
-        </button>
+  const handleResetPassword = async (u) => {
+    try {
+      await api.post(`/users/${u.id}/reset-password`);
+      showToast('Password reset email sent', 'success');
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Reset failed', 'error');
+    }
+  };
+
+  const fld = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  const needsPartner = (role) => ['provincial_stockist', 'city_stockist', 'staff', 'mobile_stockist'].includes(role);
+
+  const UserFormFields = () => (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="col-span-2">
+        <Label value="Full Name" className="mb-1" />
+        <TextInput value={form.name} onChange={fld('name')} placeholder="Juan Dela Cruz" required />
       </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        {[
-          { title: 'Total Users', value: totalUsers },
-          { title: 'Active Users', value: activeUsers },
-          { title: 'Admins', value: admins },
-        ].map((k) => (
-          <div key={k.title} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5">
-            <p className="text-sm text-gray-500 font-medium">{k.title}</p>
-            <p className="text-2xl font-bold text-gray-800 mt-2">{k.value}</p>
-          </div>
-        ))}
+      <div>
+        <Label value="Email" className="mb-1" />
+        <TextInput type="email" value={form.email} onChange={fld('email')} placeholder="juan@example.com" required />
       </div>
-
-      {/* Search & Filter & Add */}
-      <div className="flex gap-3 mb-5">
-        <div className="relative flex-1">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search"
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-400 outline-none"
-          />
-        </div>
-        <div className="relative">
-          <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <select
-            value={roleFilter}
-            onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-            className="pl-10 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-400 outline-none appearance-none"
-          >
-            <option value="">Filter</option>
-            <option value="super_admin">Super Admin</option>
-            <option value="admin">Admin</option>
-            <option value="staff">Staff</option>
-          </select>
-        </div>
-        <button
-          onClick={openModal}
-          className="flex items-center gap-2 px-4 py-2 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
-          style={{ backgroundColor: '#FF8C00' }}
-        >
-          <FiPlus />Add User
-        </button>
+      <div>
+        <Label value="Phone" className="mb-1" />
+        <TextInput value={form.phone} onChange={fld('phone')} placeholder="09xxxxxxxxx" />
       </div>
-
-      {/* Users Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="px-5 py-4 border-b border-gray-100">
-          <h3 className="text-sm font-bold text-gray-800">System Users</h3>
-        </div>
-
-        {loading ? (
-          <div className="flex justify-center py-16">
-            <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
-          </div>
-        ) : users.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">No users found</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="bg-gray-50 border-b border-gray-100">
-                  {['Name', 'Email', 'Role', 'Level', 'Location', 'Status', 'Last Login', 'Actions'].map((h) => (
-                    <th key={h} className="px-4 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wide">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {users.map((user) => {
-                  const roleBadge = ROLE_BADGE[user.role_slug] || ROLE_BADGE.staff;
-                  const statusBadge = STATUS_BADGE_USER[user.is_active !== false ? 'active' : 'inactive'];
-                  const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || user.name || 'N/A';
-                  return (
-                    <tr key={user.id} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-4 py-3 font-medium text-gray-800 whitespace-nowrap">{fullName}</td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">{user.email}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${roleBadge.bg} ${roleBadge.text}`}>
-                          {roleBadge.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-600 text-xs capitalize">{user.level || user.role_slug || 'Main'}</td>
-                      <td className="px-4 py-3 text-gray-500 text-xs">{user.location || user.warehouse_name || 'Regional Hub - North'}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${statusBadge.bg} ${statusBadge.text}`}>
-                          {statusBadge.label}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-gray-400 text-xs whitespace-nowrap">
-                        {user.last_login ? formatDate(user.last_login) : 'Never'}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => openEditModal(user)}
-                            className="flex items-center gap-1 px-2.5 py-1.5 text-xs font-medium text-white rounded-lg transition-colors"
-                            style={{ backgroundColor: '#FF8C00' }}
-                          >
-                            <FiEdit2 size={11} /> Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteUser(user)}
-                            className="px-2.5 py-1.5 text-xs font-medium text-white rounded-lg bg-red-500 hover:bg-red-600 transition-colors"
-                          >
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
-        )}
+      <div>
+        <Label value="Role" className="mb-1" />
+        <Select value={form.role_slug} onChange={fld('role_slug')} required>
+          <option value="">Select role...</option>
+          {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+        </Select>
       </div>
-
-      {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-5">
-          <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="px-4 py-2 text-sm bg-white border rounded-lg disabled:opacity-30">Previous</button>
-          <span className="px-4 py-2 text-sm text-gray-600">{page} / {pagination.totalPages}</span>
-          <button disabled={page >= pagination.totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 text-sm bg-white border rounded-lg disabled:opacity-30">Next</button>
+      <div>
+        <Label value="Status" className="mb-1" />
+        <Select value={form.status} onChange={fld('status')}>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </Select>
+      </div>
+      {needsPartner(form.role_slug) && (
+        <div className="col-span-2">
+          <Label value="Stockist (Partner)" className="mb-1" />
+          <Select value={form.partner_id} onChange={fld('partner_id')}>
+            <option value="">Select stockist...</option>
+            {partners.map((p) => <option key={p.id} value={p.id}>{p.business_name}</option>)}
+          </Select>
         </div>
       )}
-
-      {/* Add User Modal */}
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-extrabold text-gray-900 uppercase">ADD NEW USER</h2>
-          <p className="text-sm text-gray-500 mt-1">Create a new system user account</p>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className={labelCls}>Full Name</label>
-            <input name="name" required type="text" placeholder="Full Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>Email</label>
-            <input name="email" required type="email" placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>Role</label>
-            <select name="role_slug" value={form.role_slug} onChange={(e) => setForm({ ...form, role_slug: e.target.value })} className={inputCls}>
-              <option value="staff">Staff</option>
-              <option value="admin">Admin</option>
-              <option value="super_admin">Super Admin</option>
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Password</label>
-            <input name="password" required minLength={6} type="password" placeholder="Password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className={inputCls} />
-          </div>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-3.5 text-white font-bold uppercase rounded-xl tracking-widest transition-colors disabled:opacity-50"
-            style={{ backgroundColor: '#6B2D0E' }}
-          >
-            {submitting ? 'Adding...' : 'ADD USER'}
-          </button>
-        </form>
-      </Modal>
-
-      <Modal isOpen={showEditModal} onClose={() => setShowEditModal(false)} title="Edit User">
-        <form onSubmit={handleEditSubmit} className="space-y-4">
-          <div>
-            <label className={labelCls}>Full Name</label>
-            <input
-              required
-              type="text"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className={inputCls}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Email</label>
-            <input
-              required
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className={inputCls}
-            />
-          </div>
-          <div>
-            <label className={labelCls}>Status</label>
-            <select
-              value={form.status || 'active'}
-              onChange={(e) => setForm({ ...form, status: e.target.value })}
-              className={inputCls}
-            >
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-              <option value="suspended">Suspended</option>
-            </select>
-          </div>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-3.5 text-white font-bold uppercase rounded-xl tracking-widest transition-colors disabled:opacity-50"
-            style={{ backgroundColor: '#6B2D0E' }}
-          >
-            {submitting ? 'Saving...' : 'SAVE CHANGES'}
-          </button>
-        </form>
-      </Modal>
+      <div className="col-span-2">
+        <Label value="Password (leave blank to keep current)" className="mb-1" />
+        <TextInput type="password" value={form.password} onChange={fld('password')} placeholder="••••••••" autoComplete="new-password" />
+      </div>
     </div>
   );
-};
 
-export default Users;
+  return (
+    <div className="page-enter">
+      <PageHeader
+        title="Users"
+        subtitle="Manage system user accounts"
+        actions={[{ label: 'Add User', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: openAdd }]}
+      />
+
+      <Card>
+        <div className="flex flex-wrap gap-3 mb-4">
+          <div className="relative flex-1 min-w-48">
+            <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <TextInput
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+              placeholder="Search by name or email..."
+              className="pl-8"
+              sizing="sm"
+            />
+          </div>
+          <Select value={roleFilter} onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }} sizing="sm">
+            <option value="">All Roles</option>
+            {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+          </Select>
+        </div>
+
+        <div className="overflow-x-auto">
+          <Table striped>
+            <TableHead>
+              <TableHeadCell>Name</TableHeadCell>
+              <TableHeadCell>Email</TableHeadCell>
+              <TableHeadCell>Phone</TableHeadCell>
+              <TableHeadCell>Role</TableHeadCell>
+              <TableHeadCell>Stockist</TableHeadCell>
+              <TableHeadCell>Status</TableHeadCell>
+              <TableHeadCell>Last Login</TableHeadCell>
+              <TableHeadCell>Actions</TableHeadCell>
+            </TableHead>
+            <TableBody className="divide-y">
+              {loading ? (
+                Array.from({ length: 8 }).map((_, i) => (
+                  <TableRow key={i}>
+                    {Array.from({ length: 8 }).map((__, j) => (
+                      <TableCell key={j}><div className="skeleton h-4 w-full rounded" /></TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : users.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={8}>
+                    <EmptyState icon={HiOutlineUsers} title="No users found" description="Add user accounts to manage access" actionLabel="Add User" onAction={openAdd} />
+                  </TableCell>
+                </TableRow>
+              ) : (
+                users.map((u) => (
+                  <TableRow key={u.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(u)}>
+                    <TableCell className="font-medium text-gray-900">{u.name}</TableCell>
+                    <TableCell className="text-xs text-gray-600">{u.email}</TableCell>
+                    <TableCell className="text-xs">{u.phone || '—'}</TableCell>
+                    <TableCell>{roleBadge(u.role_slug)}</TableCell>
+                    <TableCell className="text-xs">{u.partner_name || '—'}</TableCell>
+                    <TableCell><StatusBadge status={u.status || (u.is_active ? 'active' : 'inactive')} /></TableCell>
+                    <TableCell className="text-xs text-gray-500">{u.last_login_at ? formatDate(u.last_login_at) : 'Never'}</TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <div className="flex gap-1">
+                        <Button size="xs" color="light" onClick={() => openEdit(u)}>
+                          <HiOutlinePencil className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button size="xs" color="failure" outline onClick={() => setDeleteTarget(u)}>
+                          <HiOutlineTrash className="w-3.5 h-3.5" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+        {totalPages > 1 && (
+          <div className="flex justify-center mt-4">
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} showIcons />
+          </div>
+        )}
+      </Card>
+
+      {/* Add Modal */}
+      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg">
+        <ModalHeader>Add User</ModalHeader>
+        <ModalBody><UserFormFields /></ModalBody>
+        <ModalFooter>
+          <Button color="warning" onClick={handleAdd} disabled={submitting} isProcessing={submitting}>Create User</Button>
+          <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Edit Modal */}
+      <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
+        <ModalHeader>Edit User — {selected?.name}</ModalHeader>
+        <ModalBody><UserFormFields /></ModalBody>
+        <ModalFooter>
+          <Button color="warning" onClick={handleEdit} disabled={submitting} isProcessing={submitting}>Save Changes</Button>
+          <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Detail Modal */}
+      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="md">
+        <ModalHeader>{selected?.name}</ModalHeader>
+        <ModalBody>
+          {selected && (
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div><p className="text-gray-500 text-xs">Email</p><p className="font-semibold">{selected.email}</p></div>
+              <div><p className="text-gray-500 text-xs">Phone</p><p>{selected.phone || '—'}</p></div>
+              <div><p className="text-gray-500 text-xs">Role</p>{roleBadge(selected.role_slug)}</div>
+              <div><p className="text-gray-500 text-xs">Status</p><StatusBadge status={selected.status || (selected.is_active ? 'active' : 'inactive')} /></div>
+              <div><p className="text-gray-500 text-xs">Stockist</p><p>{selected.partner_name || '—'}</p></div>
+              <div><p className="text-gray-500 text-xs">Last Login</p><p>{selected.last_login_at ? formatDate(selected.last_login_at) : 'Never'}</p></div>
+            </div>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button color="warning" size="sm" onClick={() => { setShowDetailModal(false); openEdit(selected); }}>Edit</Button>
+          <Button color="light" size="sm" onClick={() => { setShowDetailModal(false); handleResetPassword(selected); }}>Reset Password</Button>
+          <Button color="failure" size="sm" outline onClick={() => { setShowDetailModal(false); setDeleteTarget(selected); }}>Delete</Button>
+          <Button color="gray" size="sm" onClick={() => setShowDetailModal(false)}>Close</Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Delete Confirm */}
+      <ConfirmModal
+        show={!!deleteTarget}
+        title="Delete User"
+        message={`Delete user "${deleteTarget?.name}"? They will lose access immediately.`}
+        confirmLabel="Delete"
+        confirmColor="failure"
+        onConfirm={handleDelete}
+        onClose={() => setDeleteTarget(null)}
+        loading={submitting}
+      />
+
+      <ToastContainer toasts={toasts} dismiss={dismiss} />
+    </div>
+  );
+}

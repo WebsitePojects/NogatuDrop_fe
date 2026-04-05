@@ -1,24 +1,29 @@
-import React from 'react';
+import { Button } from 'flowbite-react';
 
-const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
-
-const PageHeader = ({ title, subtitle, actions, className = '' }) => {
+export default function PageHeader({ title, subtitle, actions = [], children, className = '' }) {
   return (
-    <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6 ${className}`}>
-      <div className="flex items-start gap-3">
-        <img
-          src={BRAND_LOGO}
-          alt="Nogatu logo"
-          className="w-12 h-12 rounded-xl object-cover border-2 border-amber-200 shadow-[0_0_0_3px_rgba(255,140,0,0.14)]"
-        />
-        <div>
-        <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
-        {subtitle && <p className="text-sm text-gray-500 mt-1">{subtitle}</p>}
-        </div>
+    <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5 ${className}`}>
+      <div>
+        <h1 className="text-xl font-bold text-gray-900 leading-tight">{title}</h1>
+        {subtitle && <p className="text-sm text-gray-500 mt-0.5">{subtitle}</p>}
       </div>
-      {actions && <div className="flex items-center gap-3 flex-wrap">{actions}</div>}
+      {(actions.length > 0 || children) && (
+        <div className="flex items-center gap-2 flex-wrap">
+          {actions.map((action, i) => (
+            <Button
+              key={i}
+              color={action.color || 'warning'}
+              size="sm"
+              onClick={action.onClick}
+              outline={action.variant === 'outline'}
+            >
+              {action.icon && <span className="mr-1.5">{action.icon}</span>}
+              {action.label}
+            </Button>
+          ))}
+          {children}
+        </div>
+      )}
     </div>
   );
-};
-
-export default PageHeader;
+}

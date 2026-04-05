@@ -2,10 +2,11 @@ import React from 'react';
 import { FiMapPin, FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
 import { useNotifications } from '@/context/NotificationContext';
 
-const NotificationDrawer = ({ isOpen, onClose }) => {
+const NotificationDrawer = ({ isOpen, open, onClose }) => {
   const { notifications, markAsRead } = useNotifications();
+  const visible = isOpen || open;
 
-  if (!isOpen) return null;
+  if (!visible) return null;
 
   const getStatusInfo = (notif) => {
     const type = notif.type;

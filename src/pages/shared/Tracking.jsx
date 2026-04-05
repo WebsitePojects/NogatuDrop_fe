@@ -1,250 +1,253 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
-import { FiArrowLeft, FiTruck, FiUser, FiCalendar, FiMapPin } from 'react-icons/fi';
+import { HiSearch, HiTruck, HiLocationMarker, HiCalendar, HiCheckCircle } from 'react-icons/hi';
+import { FiArrowLeft } from 'react-icons/fi';
+import { Spinner } from 'flowbite-react';
+import StatusBadge from '@/components/StatusBadge';
 import api from '@/services/api';
 import { TRACKING } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
-import Badge from '@/components/Badge';
-import { STATUS_BADGE } from '@/utils/constants';
 
-const mapContainerStyle = {
-  width: '100%',
-  height: '400px',
+const STATUS_TIMELINE = [
+  { key: 'pending', label: 'Order Placed' },
+  { key: 'approved', label: 'Approved' },
+  { key: 'delivering', label: 'Out for Delivery' },
+  { key: 'delivered', label: 'Delivered' },
+];
+
+const statusIndex = (status) => {
+  const idx = STATUS_TIMELINE.findIndex(s => s.key === status);
+  return idx === -1 ? 0 : idx;
 };
 
-const defaultCenter = { lat: 14.5995, lng: 120.9842 };
+export default function Tracking() {
+  const { orderNumber: urlOrderNumber } = useParams();
 
-const Tracking = () => {
-  const { orderId } = useParams();
+  const [query, setQuery] = useState(urlOrderNumber || '');
   const [trackingData, setTrackingData] = useState(null);
   const [gpsPings, setGpsPings] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const intervalRef = useRef(null);
 
-  const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '',
-  });
-
-  const fetchTracking = useCallback(async () => {
+  const fetchTracking = useCallback(async (num) => {
+    if (!num.trim()) return;
+    setLoading(true);
+    setError('');
+    setTrackingData(null);
     try {
-      const { data } = await api.get(TRACKING.BY_ORDER(orderId));
+      const { data } = await api.get(TRACKING.PUBLIC(num.trim()));
       setTrackingData(data.data);
     } catch (err) {
-      setError(err.response?.data?.message || 'Failed to load tracking data');
+      setError(err?.response?.data?.message || 'Order not found. Please check your order number.');
     } finally {
       setLoading(false);
     }
-  }, [orderId]);
+  }, []);
 
-  const fetchGps = useCallback(async () => {
-    try {
-      // GPS pings via tracking endpoint
-      const { data } = await api.get(`/tracking/${orderId}/pings`);
-      setGpsPings(data.data || []);
-    } catch {
-      // silently fail
-    }
-  }, [orderId]);
-
+  // Auto-fetch if orderNumber in URL
   useEffect(() => {
-    fetchTracking();
-    fetchGps();
-    intervalRef.current = setInterval(fetchGps, 30000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [fetchTracking, fetchGps]);
+    if (urlOrderNumber) fetchTracking(urlOrderNumber);
+  }, [urlOrderNumber, fetchTracking]);
 
-  const latestPing = gpsPings.length > 0 ? gpsPings[gpsPings.length - 1] : null;
-  const center = latestPing
-    ? { lat: Number(latestPing.latitude), lng: Number(latestPing.longitude) }
-    : defaultCenter;
+  // Poll GPS if delivering
+  useEffect(() => {
+    if (trackingData?.status === 'delivering') {
+      const poll = async () => {
+        try {
+          const { data } = await api.get(`/tracking/${trackingData.order_id}/pings`);
+          setGpsPings(data.data || []);
+        } catch { /* silent */ }
+      };
+      poll();
+      intervalRef.current = setInterval(poll, 30000);
+    }
+    return () => clearInterval(intervalRef.current);
+  }, [trackingData?.status, trackingData?.order_id]);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen" style={{ background: '#F0FFF0' }}>
-        <div className="w-10 h-10 border-4 border-green-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  const handleSearch = (e) => {
+    e.preventDefault();
+    fetchTracking(query);
+  };
 
-  if (error) {
-    return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-6" style={{ background: '#F0FFF0' }}>
-        <p className="text-red-500 mb-4">{error}</p>
-        <Link to="/" className="text-green-700 hover:underline">
-          Go back
-        </Link>
-      </div>
-    );
-  }
-
-  const statusBadge = STATUS_BADGE[trackingData?.status] || STATUS_BADGE.pending;
+  const latestPing = gpsPings[gpsPings.length - 1];
+  const currentStep = trackingData ? statusIndex(trackingData.status) : -1;
 
   return (
-    <div className="min-h-screen" style={{ background: '#F0FFF0' }}>
-      <div className="max-w-4xl mx-auto p-6">
-        <Link
-          to="/"
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 mb-6"
-        >
-          <FiArrowLeft /> Back
-        </Link>
-
-        {/* Page Title */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-800">Tracking</h1>
-          <p className="text-sm text-gray-500 mt-1">Track Monitoring</p>
+    <div className="min-h-screen bg-gray-50 py-10 px-4">
+      <div className="max-w-2xl mx-auto">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-900 mb-1">Track Your Order</h1>
+          <p className="text-sm text-gray-500">Enter your order number to check the delivery status</p>
         </div>
 
-        {/* Info Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-          <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-            <FiTruck className="text-2xl text-green-700" />
-            <div>
-              <p className="text-xs text-gray-500">Status</p>
-              <Badge {...statusBadge} />
-            </div>
+        {/* Search */}
+        <form onSubmit={handleSearch} className="flex gap-2 mb-8">
+          <div className="relative flex-1">
+            <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <input
+              type="text"
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder="Enter order number (e.g. ORD-001234)"
+              className="w-full pl-9 pr-4 py-3 text-sm border border-gray-200 rounded-xl bg-white focus:outline-none focus:border-amber-400"
+            />
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-            <FiUser className="text-2xl text-green-700" />
-            <div>
-              <p className="text-xs text-gray-500">Rider</p>
-              <p className="text-sm font-semibold text-gray-800">
-                {trackingData?.rider_name || 'Not assigned'}
-              </p>
-            </div>
+          <button
+            type="submit"
+            disabled={loading || !query.trim()}
+            className="px-5 py-3 bg-amber-500 text-white rounded-xl font-semibold text-sm hover:bg-amber-600 transition-colors disabled:opacity-60 flex items-center gap-2 flex-shrink-0"
+          >
+            {loading ? <Spinner size="sm" color="white" /> : <HiSearch className="w-4 h-4" />}
+            Track
+          </button>
+        </form>
+
+        {/* Error */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl p-4 text-sm mb-6">
+            {error}
           </div>
-          <div className="bg-white rounded-xl border border-gray-200 p-4 flex items-center gap-3">
-            <FiCalendar className="text-2xl text-green-700" />
-            <div>
-              <p className="text-xs text-gray-500">Est. Delivery</p>
-              <p className="text-sm font-semibold text-gray-800">
-                {formatDate(trackingData?.estimated_delivery)}
-              </p>
-            </div>
+        )}
+
+        {/* Loading */}
+        {loading && (
+          <div className="flex justify-center py-12">
+            <Spinner size="xl" color="warning" />
           </div>
-        </div>
+        )}
 
-        {/* Map */}
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-          {isLoaded && import.meta.env.VITE_GOOGLE_MAPS_API_KEY ? (
-            <GoogleMap
-              mapContainerStyle={mapContainerStyle}
-              center={center}
-              zoom={11}
-            >
-              {latestPing && (
-                <Marker position={center} title="Rider Location" />
-              )}
-              {/* Default pin at Metro Manila if no GPS data */}
-              {!latestPing && (
-                <Marker position={defaultCenter} title="Metro Manila" />
-              )}
-            </GoogleMap>
-          ) : (
-            /* Fallback map placeholder matching the reference screenshot style */
-            <div
-              className="relative flex items-center justify-center"
-              style={{ height: '400px', background: '#e8ecf0' }}
-            >
-              {/* Simulated map grid */}
-              <div className="absolute inset-0 opacity-30">
-                {Array.from({ length: 10 }).map((_, i) => (
-                  <div
-                    key={`h${i}`}
-                    className="absolute w-full border-t border-gray-400"
-                    style={{ top: `${i * 10}%` }}
-                  />
-                ))}
-                {Array.from({ length: 10 }).map((_, i) => (
-                  <div
-                    key={`v${i}`}
-                    className="absolute h-full border-l border-gray-400"
-                    style={{ left: `${i * 10}%` }}
-                  />
-                ))}
-              </div>
-
-              {/* Location labels */}
-              <div className="absolute inset-0 pointer-events-none">
-                {[
-                  { label: 'Quezon City', top: '28%', left: '40%' },
-                  { label: 'Manila', top: '52%', left: '32%' },
-                  { label: 'Makati', top: '60%', left: '42%' },
-                  { label: 'Pasig', top: '55%', left: '58%' },
-                  { label: 'Antipolo', top: '44%', left: '65%' },
-                  { label: 'Valenzuela', top: '22%', left: '28%' },
-                  { label: 'Caloocan', top: '32%', left: '30%' },
-                  { label: 'Taguig', top: '68%', left: '48%' },
-                  { label: 'Taytay', top: '58%', left: '72%' },
-                  { label: 'San Jose del\nMonte City', top: '12%', left: '45%' },
-                  { label: 'Bulacan', top: '5%', left: '25%' },
-                  { label: 'Rodriguez', top: '28%', left: '70%' },
-                  { label: 'Pandi', top: '4%', left: '12%' },
-                  { label: 'Norzagaray', top: '4%', left: '65%' },
-                  { label: 'Santa Maria', top: '10%', left: '35%' },
-                ].map(({ label, top, left }) => (
-                  <span
-                    key={label}
-                    className="absolute text-[10px] text-gray-600 font-medium whitespace-pre-line"
-                    style={{ top, left }}
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
-
-              {/* Center pin */}
-              <div className="relative z-10 flex flex-col items-center">
-                <div
-                  className="w-8 h-8 rounded-full border-4 border-white flex items-center justify-center shadow-lg"
-                  style={{ background: '#FF8C00' }}
-                >
-                  <span className="text-white text-xs font-bold">1</span>
+        {/* Tracking Result */}
+        {trackingData && !loading && (
+          <div className="space-y-4">
+            {/* Status card */}
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+              <div className="flex items-start justify-between mb-4">
+                <div>
+                  <p className="text-xs text-gray-500 mb-0.5">Order Number</p>
+                  <p className="font-mono font-bold text-gray-900">#{trackingData.order_number}</p>
                 </div>
+                <StatusBadge status={trackingData.status} />
               </div>
 
-              {/* Google Maps watermark style */}
-              <div className="absolute bottom-2 right-2 text-[9px] text-gray-500">
-                Map data ©2025
-              </div>
-              <div className="absolute bottom-2 left-2">
-                <div className="px-2 py-0.5 bg-white rounded shadow text-[10px] font-medium text-gray-600">
-                  Google
+              {/* Timeline */}
+              <div className="relative">
+                <div className="absolute left-4 top-4 bottom-4 w-0.5 bg-gray-100" />
+                <div className="space-y-4">
+                  {STATUS_TIMELINE.map((s, i) => {
+                    const isDone = i <= currentStep;
+                    const isCurrent = i === currentStep;
+                    return (
+                      <div key={s.key} className="flex items-center gap-3 pl-2">
+                        <div className={`relative z-10 w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 transition-colors ${
+                          isDone ? 'bg-emerald-500' : 'bg-gray-200'
+                        }`}>
+                          {isDone && <HiCheckCircle className="w-4 h-4 text-white" />}
+                        </div>
+                        <span className={`text-sm font-medium ${isCurrent ? 'text-amber-600' : isDone ? 'text-emerald-700' : 'text-gray-400'}`}>
+                          {s.label}
+                        </span>
+                        {isCurrent && (
+                          <span className="text-xs bg-amber-100 text-amber-600 px-2 py-0.5 rounded-full font-medium">
+                            Current
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
-          )}
-        </div>
 
-        {/* GPS History */}
-        {gpsPings.length > 0 && (
-          <div className="mt-5 bg-white rounded-xl border border-gray-200 p-5">
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">GPS History</h3>
-            <div className="space-y-2 max-h-60 overflow-y-auto">
-              {[...gpsPings].reverse().map((ping, i) => (
-                <div
-                  key={i}
-                  className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg text-sm"
-                >
-                  <FiMapPin className="text-green-700 flex-shrink-0" />
-                  <span className="text-gray-600">
-                    {Number(ping.latitude).toFixed(6)}, {Number(ping.longitude).toFixed(6)}
-                  </span>
-                  <span className="text-xs text-gray-400 ml-auto">
-                    {formatDate(ping.pinged_at, true)}
-                  </span>
+            {/* Info cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              {[
+                {
+                  icon: HiTruck,
+                  label: 'Courier',
+                  value: trackingData.courier_name || 'Not assigned',
+                  color: 'text-blue-500 bg-blue-50',
+                },
+                {
+                  icon: HiCalendar,
+                  label: 'Est. Delivery',
+                  value: trackingData.estimated_delivery
+                    ? formatDate(trackingData.estimated_delivery)
+                    : 'TBD',
+                  color: 'text-amber-500 bg-amber-50',
+                },
+                {
+                  icon: HiLocationMarker,
+                  label: 'Last Update',
+                  value: trackingData.updated_at
+                    ? formatDate(trackingData.updated_at, true)
+                    : 'N/A',
+                  color: 'text-emerald-500 bg-emerald-50',
+                },
+              ].map(({ icon: Icon, label, value, color }) => (
+                <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-start gap-3">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 ${color}`}>
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">{label}</p>
+                    <p className="text-sm font-semibold text-gray-900">{value}</p>
+                  </div>
                 </div>
               ))}
             </div>
+
+            {/* GPS Map placeholder (shown when delivering) */}
+            {trackingData.status === 'delivering' && (
+              <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div className="p-4 border-b border-gray-100 flex items-center gap-2">
+                  <HiLocationMarker className="text-orange-500 w-4 h-4" />
+                  <span className="text-sm font-semibold text-gray-900">Live Tracking</span>
+                  <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full font-medium ml-1">
+                    Live
+                  </span>
+                </div>
+                <div
+                  className="flex items-center justify-center bg-gray-100"
+                  style={{ height: '280px' }}
+                >
+                  {latestPing ? (
+                    <div className="text-center">
+                      <HiLocationMarker className="w-12 h-12 text-orange-400 mx-auto mb-2" />
+                      <p className="text-sm font-medium text-gray-700">Rider is on the way</p>
+                      <p className="text-xs text-gray-400 mt-0.5 font-mono">
+                        {Number(latestPing.latitude).toFixed(4)}, {Number(latestPing.longitude).toFixed(4)}
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="text-center text-gray-400">
+                      <HiTruck className="w-12 h-12 mx-auto mb-2 opacity-30" />
+                      <p className="text-sm">GPS data not available yet</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Courier tracking number */}
+            {trackingData.courier_tracking_number && (
+              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm">
+                <p className="font-medium text-blue-800">Courier Tracking:</p>
+                <p className="font-mono text-blue-600 mt-0.5">{trackingData.courier_tracking_number}</p>
+              </div>
+            )}
           </div>
         )}
+
+        {/* Back link */}
+        <div className="text-center mt-8">
+          <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600">
+            <FiArrowLeft size={14} />
+            Back to Home
+          </Link>
+        </div>
       </div>
     </div>
   );
-};
-
-export default Tracking;
+}

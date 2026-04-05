@@ -1,247 +1,375 @@
-import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { FiPlus, FiSearch, FiFilter } from 'react-icons/fi';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  Button, Modal, ModalHeader, ModalBody, ModalFooter,
+  TextInput, Select, Label, Textarea, Badge, Spinner, Card, Pagination,
+} from 'flowbite-react';
+import {
+  HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineTrash,
+  HiOutlineTag, HiOutlinePhotograph,
+} from 'react-icons/hi';
 import api from '@/services/api';
 import { PRODUCTS } from '@/services/endpoints';
-import Modal from '@/components/Modal';
-import { PRODUCT_CATEGORIES } from '@/utils/constants';
-import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
+import { formatCurrency } from '@/utils/formatCurrency';
+import PageHeader from '@/components/PageHeader';
+import EmptyState from '@/components/EmptyState';
+import ConfirmModal from '@/components/ConfirmModal';
+import { ToastContainer, useToast } from '@/components/Toast';
 
-const inputCls = 'w-full px-4 py-3 bg-gray-100 border-0 rounded-xl text-sm placeholder-gray-400 focus:ring-2 focus:ring-orange-400 outline-none';
-const labelCls = 'block text-sm font-semibold text-gray-800 mb-1';
+const CATEGORIES = ['Coffee', 'Barley', 'Supplements', 'Beverages', 'Personal Care', 'Other'];
 
-const Products = () => {
+const EMPTY_FORM = {
+  name: '', sku: '', category: '', retail_price: '', partner_price: '',
+  unit: 'box', description: '', is_active: true,
+};
+
+export default function Products() {
+  const { toasts, showToast, dismiss } = useToast();
+  const fileInputRef = useRef(null);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [categoryFilter, setCategoryFilter] = useState('');
-  const [pagination, setPagination] = useState(null);
   const [page, setPage] = useState(1);
-  const [showModal, setShowModal] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
+  const [totalPages, setTotalPages] = useState(1);
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
   const [imageFile, setImageFile] = useState(null);
-  const fileInputRef = useRef(null);
-  const [form, setForm] = useState({
-    name: '',
-    sku: '',
-    category: '',
-    retail_price: '',
-    partner_price: '',
-    unit: '',
-    description: '',
-  });
+  const [imagePreview, setImagePreview] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const fetchProducts = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await api.get(PRODUCTS.LIST, {
-        params: { page, search, category: categoryFilter || undefined, limit: 12 },
+        params: { page, search: search || undefined, limit: 16 },
       });
       setProducts(data.data || []);
-      setPagination(data.pagination || null);
+      setTotalPages(data.pagination?.pages || 1);
     } catch {
       setProducts([]);
     } finally {
       setLoading(false);
     }
-  }, [page, search, categoryFilter]);
+  }, [page, search]);
 
-  useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts]);
+  useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const openAdd = () => {
+    setForm(EMPTY_FORM);
+    setImageFile(null);
+    setImagePreview(null);
+    setShowAddModal(true);
+  };
+
+  const openDetail = (p) => {
+    setSelected(p);
+    setForm({
+      name: p.name, sku: p.sku, category: p.category,
+      retail_price: p.retail_price, partner_price: p.partner_price,
+      unit: p.unit, description: p.description || '', is_active: p.is_active,
+    });
+    setImageFile(null);
+    setImagePreview(p.image_url || null);
+    setIsEditing(false);
+    setShowDetailModal(true);
+  };
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setImageFile(file);
+    const reader = new FileReader();
+    reader.onload = (ev) => setImagePreview(ev.target.result);
+    reader.readAsDataURL(file);
+  };
+
+  const buildFormData = () => {
+    const fd = new FormData();
+    Object.entries(form).forEach(([k, v]) => fd.append(k, v));
+    if (imageFile) fd.append('image', imageFile);
+    return fd;
+  };
+
+  const handleAdd = async () => {
     setSubmitting(true);
     try {
-      const formData = new FormData();
-      Object.entries(form).forEach(([k, v]) => formData.append(k, v));
-      if (imageFile) formData.append('image', imageFile);
-      await api.post(PRODUCTS.CREATE, formData, {
+      await api.post(PRODUCTS.CREATE, buildFormData(), {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      setShowModal(false);
+      showToast('Product added successfully', 'success');
+      setShowAddModal(false);
       fetchProducts();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to add product');
+      showToast(err.response?.data?.message || 'Failed to add product', 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const openModal = () => {
-    setForm({ name: '', sku: '', category: '', retail_price: '', partner_price: '', unit: '', description: '' });
-    setImageFile(null);
-    setShowModal(true);
+  const handleEdit = async () => {
+    setSubmitting(true);
+    try {
+      await api.put(PRODUCTS.UPDATE(selected.id), buildFormData(), {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      showToast('Product updated', 'success');
+      setShowDetailModal(false);
+      fetchProducts();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Update failed', 'error');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  return (
-    <div style={{ backgroundColor: '#FFF3E0', minHeight: '100vh' }}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-wide uppercase">PRODUCTS CATALOG</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage your product inventory</p>
-        </div>
-        <button
-          onClick={openModal}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm"
-        >
-          <FiPlus />Add a Product
-        </button>
-      </div>
+  const handleDelete = async () => {
+    setSubmitting(true);
+    try {
+      await api.delete(PRODUCTS.DELETE(deleteTarget.id));
+      showToast('Product deleted', 'info');
+      setDeleteTarget(null);
+      fetchProducts();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Delete failed', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-      {/* Search & Filter */}
-      <div className="flex gap-3 mb-5">
-        <div className="relative flex-1">
-          <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
+  const fld = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
+
+  const ProductFormFields = () => (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="col-span-2">
+        <Label value="Product Name" className="mb-1" />
+        <TextInput value={form.name} onChange={fld('name')} placeholder="Nogatu Max Coffee" required />
+      </div>
+      <div>
+        <Label value="SKU" className="mb-1" />
+        <TextInput value={form.sku} onChange={fld('sku')} placeholder="NMC-001" />
+      </div>
+      <div>
+        <Label value="Category" className="mb-1" />
+        <Select value={form.category} onChange={fld('category')}>
+          <option value="">Select category...</option>
+          {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+        </Select>
+      </div>
+      <div>
+        <Label value="Retail Price (₱)" className="mb-1" />
+        <TextInput type="number" min="0" step="0.01" value={form.retail_price} onChange={fld('retail_price')} placeholder="0.00" />
+      </div>
+      <div>
+        <Label value="Partner Price (₱)" className="mb-1" />
+        <TextInput type="number" min="0" step="0.01" value={form.partner_price} onChange={fld('partner_price')} placeholder="0.00" />
+      </div>
+      <div>
+        <Label value="Unit" className="mb-1" />
+        <Select value={form.unit} onChange={fld('unit')}>
+          <option value="box">Box</option>
+          <option value="sachet">Sachet</option>
+          <option value="bottle">Bottle</option>
+          <option value="pack">Pack</option>
+          <option value="piece">Piece</option>
+        </Select>
+      </div>
+      <div className="flex items-center gap-2 mt-4">
+        <input type="checkbox" id="is_active" checked={form.is_active} onChange={fld('is_active')} className="w-4 h-4 text-amber-500" />
+        <Label htmlFor="is_active" value="Active / Listed" />
+      </div>
+      <div className="col-span-2">
+        <Label value="Description" className="mb-1" />
+        <Textarea value={form.description} onChange={fld('description')} rows={2} placeholder="Product description..." />
+      </div>
+      <div className="col-span-2">
+        <Label value="Product Image" className="mb-1" />
+        {imagePreview && (
+          <img src={imagePreview} alt="Preview" className="w-24 h-24 object-cover rounded-lg border border-gray-200 mb-2" />
+        )}
+        <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageChange} />
+        <Button color="light" size="sm" onClick={() => fileInputRef.current?.click()}>
+          <HiOutlinePhotograph className="w-4 h-4 mr-1.5" />
+          {imagePreview ? 'Change Image' : 'Upload Image'}
+        </Button>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="page-enter">
+      <PageHeader
+        title="Products"
+        subtitle="Manage your product catalog"
+        actions={[{ label: 'Add Product', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: openAdd }]}
+      />
+
+      {/* Search */}
+      <div className="flex gap-3 mb-4">
+        <div className="relative flex-1 max-w-xs">
+          <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <TextInput
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Search"
-            className="w-full pl-10 pr-4 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-400 outline-none"
+            placeholder="Search products..."
+            className="pl-8"
+            sizing="sm"
           />
-        </div>
-        <div className="relative">
-          <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-          <select
-            value={categoryFilter}
-            onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
-            className="pl-10 pr-8 py-2.5 bg-white border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-orange-400 outline-none appearance-none"
-          >
-            <option value="">Filter</option>
-            {PRODUCT_CATEGORIES.map((cat) => (
-              <option key={cat} value={cat}>{cat}</option>
-            ))}
-          </select>
         </div>
       </div>
 
-      {/* Product Grid */}
+      {/* Grid */}
       {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+          {Array.from({ length: 8 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl border border-gray-100 p-3">
+              <div className="skeleton h-36 w-full rounded-lg mb-3" />
+              <div className="skeleton h-4 w-3/4 rounded mb-2" />
+              <div className="skeleton h-3 w-1/2 rounded" />
+            </div>
+          ))}
         </div>
       ) : products.length === 0 ? (
-        <div className="text-center py-20 text-gray-400">No products found</div>
+        <EmptyState
+          icon={HiOutlineTag}
+          title="No products found"
+          description="Add your first product to get started"
+          actionLabel="Add Product"
+          onAction={openAdd}
+        />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-          {products.map((product) => (
-            <div key={product.id} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-md transition-shadow">
-              {/* Product Image */}
-              <div className="h-44 bg-gray-100 overflow-hidden">
-                <img
-                  src={getProductImageSrc(product)}
-                  alt={product.name}
-                  onError={(e) => attachProductImageFallback(e, product)}
-                  className="w-full h-full object-cover"
-                />
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
+          {products.map((p) => (
+            <div
+              key={p.id}
+              className="bg-white rounded-xl border border-gray-100 p-3 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all"
+              onClick={() => openDetail(p)}
+            >
+              <div className="relative">
+                {p.image_url ? (
+                  <img src={p.image_url} alt={p.name} className="w-full h-36 object-cover rounded-lg" />
+                ) : (
+                  <div className="w-full h-36 rounded-lg bg-amber-50 flex items-center justify-center">
+                    <HiOutlineTag className="w-10 h-10 text-amber-300" />
+                  </div>
+                )}
+                {!p.is_active && (
+                  <span className="absolute top-2 right-2 bg-gray-700 text-white text-xs px-1.5 py-0.5 rounded">
+                    Inactive
+                  </span>
+                )}
               </div>
-
-              {/* Card Body */}
-              <div className="p-4">
-                <p className="text-sm font-bold text-gray-900 uppercase">{product.name}</p>
-                <p className="text-xs text-gray-400 mt-0.5 uppercase">{product.category}</p>
-
-                {/* Prices */}
-                <div className="flex gap-6 mt-3">
-                  <div>
-                    <p className="text-xs text-gray-400">Retail Price</p>
-                    <p className="text-sm font-bold" style={{ color: '#FF8C00' }}>₱{Number(product.retail_price || 0).toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400">Partner Price</p>
-                    <p className="text-sm font-bold" style={{ color: '#FF8C00' }}>₱{Number(product.partner_price || 0).toLocaleString()}</p>
-                  </div>
+              <div className="mt-2">
+                <p className="text-sm font-semibold text-gray-900 truncate">{p.name}</p>
+                <p className="text-xs text-gray-500 mt-0.5">{p.sku} · {p.category}</p>
+                <div className="flex justify-between items-center mt-1.5">
+                  <span className="text-xs text-gray-500">Partner: {formatCurrency(p.partner_price)}</span>
                 </div>
-
-                {/* Stock */}
-                <div className="mt-3">
-                  <p className="text-xs text-gray-400">Total Stock</p>
-                  <p className="text-sm font-bold text-gray-800">{(product.total_stock || 0).toLocaleString()}</p>
-                  {product.unit && <p className="text-xs text-gray-400">{product.unit}</p>}
-                </div>
+                <p className="text-xs font-medium text-amber-600">{formatCurrency(p.retail_price)}</p>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Pagination */}
-      {pagination && pagination.totalPages > 1 && (
-        <div className="flex justify-center gap-2 mt-5">
-          <button disabled={page <= 1} onClick={() => setPage(page - 1)} className="px-4 py-2 text-sm bg-white border rounded-lg disabled:opacity-30">Previous</button>
-          <span className="px-4 py-2 text-sm text-gray-600">{page} / {pagination.totalPages}</span>
-          <button disabled={page >= pagination.totalPages} onClick={() => setPage(page + 1)} className="px-4 py-2 text-sm bg-white border rounded-lg disabled:opacity-30">Next</button>
+      {totalPages > 1 && (
+        <div className="flex justify-center mt-6">
+          <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} showIcons />
         </div>
       )}
 
-      {/* Add Product Modal */}
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-extrabold text-gray-900 uppercase">ADD NEW PRODUCT</h2>
-          <p className="text-sm text-gray-500 mt-1">Create a new product in your catalog</p>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className={labelCls}>Product</label>
-            <input required type="text" placeholder="Product" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelCls}>SKU</label>
-              <input type="text" placeholder="Type" value={form.sku} onChange={(e) => setForm({ ...form, sku: e.target.value })} className={inputCls} />
-            </div>
-            <div>
-              <label className={labelCls}>Category</label>
-              <select value={form.category} onChange={(e) => setForm({ ...form, category: e.target.value })} className={inputCls}>
-                <option value="">Category</option>
-                {PRODUCT_CATEGORIES.map((cat) => <option key={cat} value={cat}>{cat}</option>)}
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelCls}>Retail Price</label>
-              <input type="number" min="0" step="0.01" placeholder="Amount" value={form.retail_price} onChange={(e) => setForm({ ...form, retail_price: e.target.value })} className={inputCls} />
-            </div>
-            <div>
-              <label className={labelCls}>Partner Price</label>
-              <input type="number" min="0" step="0.01" placeholder="Amount" value={form.partner_price} onChange={(e) => setForm({ ...form, partner_price: e.target.value })} className={inputCls} />
-            </div>
-          </div>
-          <div>
-            <label className={labelCls}>Unit</label>
-            <input type="text" placeholder="Unit" value={form.unit} onChange={(e) => setForm({ ...form, unit: e.target.value })} className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>Description</label>
-            <textarea rows={3} placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} className={inputCls + ' resize-none'} />
-          </div>
-          {/* Add Picture button */}
-          <div className="flex justify-end">
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition-colors"
-            >
-              <FiPlus /> Add Picture
-            </button>
-            <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={(e) => setImageFile(e.target.files[0])} />
-          </div>
-          {imageFile && <p className="text-xs text-gray-500 text-right">{imageFile.name}</p>}
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-3.5 text-white font-bold uppercase rounded-xl tracking-widest transition-colors disabled:opacity-50"
-            style={{ backgroundColor: '#6B2D0E' }}
-          >
-            {submitting ? 'Adding...' : 'ADD PRODUCT'}
-          </button>
-        </form>
+      {/* Add Modal */}
+      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg">
+        <ModalHeader>Add New Product</ModalHeader>
+        <ModalBody><ProductFormFields /></ModalBody>
+        <ModalFooter>
+          <Button color="warning" onClick={handleAdd} disabled={submitting} isProcessing={submitting}>Add Product</Button>
+          <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
+        </ModalFooter>
       </Modal>
+
+      {/* Detail/Edit Modal */}
+      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="lg">
+        <ModalHeader>
+          {isEditing ? `Edit — ${selected?.name}` : selected?.name}
+        </ModalHeader>
+        <ModalBody>
+          {isEditing ? (
+            <ProductFormFields />
+          ) : (
+            selected && (
+              <div className="space-y-4">
+                <div className="flex gap-4">
+                  {selected.image_url ? (
+                    <img src={selected.image_url} alt={selected.name} className="w-28 h-28 object-cover rounded-xl border" />
+                  ) : (
+                    <div className="w-28 h-28 bg-amber-50 rounded-xl border flex items-center justify-center">
+                      <HiOutlineTag className="w-10 h-10 text-amber-300" />
+                    </div>
+                  )}
+                  <div className="flex-1 space-y-1">
+                    <p className="text-lg font-bold text-gray-900">{selected.name}</p>
+                    <p className="text-sm text-gray-500">SKU: <span className="font-mono">{selected.sku}</span></p>
+                    <p className="text-sm text-gray-500">Category: {selected.category}</p>
+                    <p className="text-sm text-gray-500">Unit: {selected.unit}</p>
+                    <span className={`badge-${selected.is_active ? 'active' : 'inactive'}`}>
+                      {selected.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 p-3 bg-amber-50 rounded-lg">
+                  <div>
+                    <p className="text-xs text-gray-500">Retail Price</p>
+                    <p className="font-bold text-amber-700">{formatCurrency(selected.retail_price)}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500">Partner Price</p>
+                    <p className="font-bold text-gray-900">{formatCurrency(selected.partner_price)}</p>
+                  </div>
+                </div>
+                {selected.description && (
+                  <p className="text-sm text-gray-600">{selected.description}</p>
+                )}
+              </div>
+            )
+          )}
+        </ModalBody>
+        <ModalFooter>
+          {isEditing ? (
+            <>
+              <Button color="warning" onClick={handleEdit} disabled={submitting} isProcessing={submitting}>Save</Button>
+              <Button color="gray" onClick={() => setIsEditing(false)}>Cancel</Button>
+            </>
+          ) : (
+            <>
+              <Button color="warning" size="sm" onClick={() => setIsEditing(true)}>
+                <HiOutlinePencil className="w-4 h-4 mr-1" /> Edit
+              </Button>
+              <Button color="failure" size="sm" outline onClick={() => { setShowDetailModal(false); setDeleteTarget(selected); }}>
+                <HiOutlineTrash className="w-4 h-4 mr-1" /> Delete
+              </Button>
+              <Button color="gray" size="sm" onClick={() => setShowDetailModal(false)}>Close</Button>
+            </>
+          )}
+        </ModalFooter>
+      </Modal>
+
+      {/* Delete Confirm */}
+      <ConfirmModal
+        show={!!deleteTarget}
+        title="Delete Product"
+        message={`Delete "${deleteTarget?.name}"? This action cannot be undone.`}
+        confirmLabel="Delete"
+        confirmColor="failure"
+        onConfirm={handleDelete}
+        onClose={() => setDeleteTarget(null)}
+        loading={submitting}
+      />
+
+      <ToastContainer toasts={toasts} dismiss={dismiss} />
     </div>
   );
-};
-
-export default Products;
+}

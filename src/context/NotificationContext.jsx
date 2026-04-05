@@ -69,6 +69,7 @@ export const NotificationProvider = ({ children }) => {
       value={{
         notifications,
         unreadCount,
+        count: unreadCount, // alias used by new layouts
         markAsRead,
         markAllRead,
         refetch: fetchNotifications,

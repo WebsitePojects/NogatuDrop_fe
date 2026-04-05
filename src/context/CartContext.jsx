@@ -11,7 +11,8 @@ export const CartProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
   const fetchCart = useCallback(async () => {
-    if (!user || user.role_slug !== 'admin') return;
+    const canUseCart = ['admin', 'provincial_stockist', 'city_stockist'].includes(user?.role_slug);
+    if (!canUseCart) return;
     setLoading(true);
     try {
       const { data } = await api.get(CART.LIST);

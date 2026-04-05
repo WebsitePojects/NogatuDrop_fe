@@ -1,29 +1,35 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { FiPlus, FiMapPin, FiUser } from 'react-icons/fi';
-import { MdWarehouse } from 'react-icons/md';
+import { useState, useEffect, useCallback } from 'react';
+import {
+  Button, Modal, ModalHeader, ModalBody, ModalFooter,
+  TextInput, Select, Label, Card, Badge,
+} from 'flowbite-react';
+import { HiOutlinePlus, HiOutlineOfficeBuilding, HiOutlineLocationMarker, HiOutlineUser, HiOutlinePencil, HiOutlineTrash } from 'react-icons/hi';
 import api from '@/services/api';
 import { WAREHOUSES } from '@/services/endpoints';
-import Badge from '@/components/Badge';
-import Modal from '@/components/Modal';
-import StatusProgressBar from '@/components/StatusProgressBar';
-import { WAREHOUSE_TYPES } from '@/utils/constants';
+import PageHeader from '@/components/PageHeader';
+import EmptyState from '@/components/EmptyState';
+import ConfirmModal from '@/components/ConfirmModal';
+import { ToastContainer, useToast } from '@/components/Toast';
 
-const inputCls = 'w-full px-4 py-3 bg-gray-100 border-0 rounded-xl text-sm placeholder-gray-400 focus:ring-2 focus:ring-orange-400 outline-none';
-const labelCls = 'block text-sm font-semibold text-gray-800 mb-1';
+const WAREHOUSE_TYPES = ['provincial', 'city', 'hub', 'storage'];
 
-const Warehouses = () => {
+const EMPTY_FORM = {
+  name: '', type: 'city', address: '', city: '', province: '', region: '',
+  capacity: '', manager_name: '', manager_phone: '', lat: '', lng: '',
+};
+
+export default function Warehouses() {
+  const { toasts, showToast, dismiss } = useToast();
   const [warehouses, setWarehouses] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [showModal, setShowModal] = useState(false);
+
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDetailModal, setShowDetailModal] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [selected, setSelected] = useState(null);
+  const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({
-    name: '',
-    type: 'region',
-    location: '',
-    manager_name: '',
-    capacity: '10000',
-    current_stock: '0',
-  });
 
   const fetchWarehouses = useCallback(async () => {
     setLoading(true);
@@ -37,168 +43,264 @@ const Warehouses = () => {
     }
   }, []);
 
-  useEffect(() => {
-    fetchWarehouses();
-  }, [fetchWarehouses]);
+  useEffect(() => { fetchWarehouses(); }, [fetchWarehouses]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const openAdd = () => { setForm(EMPTY_FORM); setShowAddModal(true); };
+  const openEdit = (w) => {
+    setSelected(w);
+    setForm({
+      name: w.name, type: w.type, address: w.address, city: w.city,
+      province: w.province, region: w.region, capacity: w.capacity || '',
+      manager_name: w.manager_name || '', manager_phone: w.manager_phone || '',
+      lat: w.lat || '', lng: w.lng || '',
+    });
+    setShowEditModal(true);
+  };
+  const openDetail = (w) => { setSelected(w); setShowDetailModal(true); };
+
+  const handleAdd = async () => {
     setSubmitting(true);
     try {
-      await api.post(WAREHOUSES.CREATE, {
-        ...form,
-        capacity: Number(form.capacity),
-        current_stock: Number(form.current_stock),
-      });
-      setShowModal(false);
+      await api.post(WAREHOUSES.CREATE, form);
+      showToast('Warehouse added', 'success');
+      setShowAddModal(false);
       fetchWarehouses();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to add warehouse');
+      showToast(err.response?.data?.message || 'Failed to add warehouse', 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const openModal = () => {
-    setForm({ name: '', type: 'region', location: '', manager_name: '', capacity: '10000', current_stock: '0' });
-    setShowModal(true);
+  const handleEdit = async () => {
+    setSubmitting(true);
+    try {
+      await api.put(WAREHOUSES.UPDATE(selected.id), form);
+      showToast('Warehouse updated', 'success');
+      setShowEditModal(false);
+      fetchWarehouses();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Update failed', 'error');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
-  return (
-    <div style={{ backgroundColor: '#FFF3E0', minHeight: '100vh' }}>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-3xl font-extrabold text-gray-900 tracking-wide uppercase">WAREHOUSE MANAGEMENT</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage warehouse locations and capacity</p>
-        </div>
-        <button
-          onClick={openModal}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 transition-colors shadow-sm"
-        >
-          <FiPlus />Add Warehouse
-        </button>
+  const handleDelete = async () => {
+    setSubmitting(true);
+    try {
+      await api.delete(WAREHOUSES.UPDATE(deleteTarget.id));
+      showToast('Warehouse removed', 'info');
+      setDeleteTarget(null);
+      fetchWarehouses();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Delete failed', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const fld = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  const typeBadgeColor = (type) => {
+    const m = { provincial: 'warning', city: 'info', hub: 'success', storage: 'gray' };
+    return m[type] || 'gray';
+  };
+
+  const WarehouseFormFields = () => (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="col-span-2">
+        <Label value="Warehouse Name" className="mb-1" />
+        <TextInput value={form.name} onChange={fld('name')} placeholder="Metro Manila Hub" required />
       </div>
+      <div>
+        <Label value="Type" className="mb-1" />
+        <Select value={form.type} onChange={fld('type')}>
+          {WAREHOUSE_TYPES.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+        </Select>
+      </div>
+      <div>
+        <Label value="Capacity (units)" className="mb-1" />
+        <TextInput type="number" min="0" value={form.capacity} onChange={fld('capacity')} placeholder="5000" />
+      </div>
+      <div className="col-span-2">
+        <Label value="Address" className="mb-1" />
+        <TextInput value={form.address} onChange={fld('address')} placeholder="123 Main St." />
+      </div>
+      <div>
+        <Label value="City" className="mb-1" />
+        <TextInput value={form.city} onChange={fld('city')} placeholder="Quezon City" />
+      </div>
+      <div>
+        <Label value="Province" className="mb-1" />
+        <TextInput value={form.province} onChange={fld('province')} placeholder="Metro Manila" />
+      </div>
+      <div>
+        <Label value="Manager Name" className="mb-1" />
+        <TextInput value={form.manager_name} onChange={fld('manager_name')} placeholder="Juan Dela Cruz" />
+      </div>
+      <div>
+        <Label value="Manager Phone" className="mb-1" />
+        <TextInput value={form.manager_phone} onChange={fld('manager_phone')} placeholder="09xxxxxxxxx" />
+      </div>
+      <div>
+        <Label value="Latitude (optional)" className="mb-1" />
+        <TextInput value={form.lat} onChange={fld('lat')} placeholder="14.5995" />
+      </div>
+      <div>
+        <Label value="Longitude (optional)" className="mb-1" />
+        <TextInput value={form.lng} onChange={fld('lng')} placeholder="120.9842" />
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="page-enter">
+      <PageHeader
+        title="Warehouses"
+        subtitle="Manage distribution warehouses"
+        actions={[{ label: 'Add Warehouse', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: openAdd }]}
+      />
 
       {loading ? (
-        <div className="flex justify-center py-20">
-          <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div key={i} className="bg-white rounded-xl border border-gray-100 p-5">
+              <div className="skeleton h-5 w-3/4 rounded mb-3" />
+              <div className="skeleton h-3 w-full rounded mb-2" />
+              <div className="skeleton h-3 w-2/3 rounded" />
+            </div>
+          ))}
         </div>
+      ) : warehouses.length === 0 ? (
+        <EmptyState
+          icon={HiOutlineOfficeBuilding}
+          title="No warehouses found"
+          description="Add your first warehouse to get started"
+          actionLabel="Add Warehouse"
+          onAction={openAdd}
+        />
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-          {warehouses.length === 0 ? (
-            <div className="col-span-full text-center py-20 text-gray-400">No warehouses found</div>
-          ) : (
-            warehouses.map((wh) => {
-              const typeBadge = WAREHOUSE_TYPES[wh.type] || WAREHOUSE_TYPES.region;
-              const usedStock = wh.current_stock || 0;
-              const capacity = wh.capacity || 10000;
-              const pct = capacity > 0 ? Math.min(Math.round((usedStock / capacity) * 100), 100) : 0;
-
-              return (
-                <div key={wh.id} className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 hover:shadow-md transition-shadow">
-                  {/* Card Header */}
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <MdWarehouse className="text-xl text-gray-500" />
-                      <h3 className="text-sm font-bold text-gray-800 uppercase">{wh.name}</h3>
-                    </div>
-                    <Badge {...typeBadge} />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {warehouses.map((w) => (
+            <div
+              key={w.id}
+              className="bg-white rounded-xl border border-gray-100 p-5 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all"
+              onClick={() => openDetail(w)}
+            >
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center">
+                    <HiOutlineOfficeBuilding className="w-5 h-5 text-amber-600" />
                   </div>
-
-                  {/* Location & Manager */}
-                  <div className="space-y-1.5 mb-4">
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <FiMapPin className="text-orange-500 flex-shrink-0" />
-                      <span>{wh.location || 'No location set'}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-gray-500">
-                      <FiUser className="text-orange-500 flex-shrink-0" />
-                      <span>{wh.manager_name || 'No manager assigned'}</span>
-                    </div>
-                  </div>
-
-                  {/* Capacity Bar */}
-                  <div className="mb-4">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs text-gray-500">Capacity</span>
-                      <span className="text-xs font-semibold text-gray-700">
-                        {usedStock.toLocaleString()} / {capacity.toLocaleString()}
-                      </span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden">
-                      <div
-                        className="h-2.5 rounded-full transition-all duration-500"
-                        style={{
-                          width: `${pct}%`,
-                          backgroundColor: pct >= 90 ? '#ef4444' : pct >= 70 ? '#f59e0b' : '#FF8C00',
-                        }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-400 mt-1 text-right">{pct}% used</p>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-gray-100">
-                    <div>
-                      <p className="text-xs text-gray-400">Products</p>
-                      <p className="text-sm font-bold text-gray-800">{wh.product_count ?? 0}</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-gray-400">Low Stock Items</p>
-                      <p className="text-sm font-bold text-orange-600">{wh.low_stock_count ?? 0}</p>
-                    </div>
+                  <div>
+                    <p className="font-semibold text-gray-900 text-sm">{w.name}</p>
+                    <Badge color={typeBadgeColor(w.type)} size="xs">{w.type}</Badge>
                   </div>
                 </div>
-              );
-            })
-          )}
+              </div>
+              <div className="space-y-1.5 text-xs text-gray-500">
+                <div className="flex items-center gap-1.5">
+                  <HiOutlineLocationMarker className="w-3.5 h-3.5 flex-shrink-0" />
+                  <span>{[w.address, w.city, w.province].filter(Boolean).join(', ') || 'No address'}</span>
+                </div>
+                {w.manager_name && (
+                  <div className="flex items-center gap-1.5">
+                    <HiOutlineUser className="w-3.5 h-3.5 flex-shrink-0" />
+                    <span>{w.manager_name}</span>
+                  </div>
+                )}
+                {w.capacity && (
+                  <div className="mt-3">
+                    <div className="flex justify-between text-xs mb-1">
+                      <span>Capacity</span>
+                      <span className="font-medium">{w.capacity.toLocaleString()} units</span>
+                    </div>
+                    <div className="w-full bg-gray-100 rounded-full h-1.5">
+                      <div className="bg-amber-400 h-1.5 rounded-full" style={{ width: '40%' }} />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       )}
 
-      {/* Add Warehouse Modal */}
-      <Modal isOpen={showModal} onClose={() => setShowModal(false)} title="">
-        <div className="text-center mb-6">
-          <h2 className="text-2xl font-extrabold text-gray-900 uppercase">ADD NEW WAREHOUSE</h2>
-          <p className="text-sm text-gray-500 mt-1">Create a new warehouse location</p>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className={labelCls}>Warehouse Name</label>
-            <input required type="text" placeholder="Warehouse Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>Type</label>
-            <select value={form.type} onChange={(e) => setForm({ ...form, type: e.target.value })} className={inputCls}>
-              <option value="manufacturer">Manufacturer</option>
-              <option value="region">Regional</option>
-              <option value="city">City</option>
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Location</label>
-            <input required type="text" placeholder="Location" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>Capacity (Units)</label>
-            <input type="number" min="1" placeholder="Capacity" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} className={inputCls} />
-          </div>
-          <div>
-            <label className={labelCls}>Manager Name</label>
-            <input type="text" placeholder="Manager Name" value={form.manager_name} onChange={(e) => setForm({ ...form, manager_name: e.target.value })} className={inputCls} />
-          </div>
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full py-3.5 text-white font-bold uppercase rounded-xl tracking-widest transition-colors disabled:opacity-50"
-            style={{ backgroundColor: '#6B2D0E' }}
-          >
-            {submitting ? 'Adding...' : 'ADD WAREHOUSE'}
-          </button>
-        </form>
+      {/* Add Modal */}
+      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg">
+        <ModalHeader>Add Warehouse</ModalHeader>
+        <ModalBody><WarehouseFormFields /></ModalBody>
+        <ModalFooter>
+          <Button color="warning" onClick={handleAdd} disabled={submitting} isProcessing={submitting}>Add Warehouse</Button>
+          <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
+        </ModalFooter>
       </Modal>
+
+      {/* Edit Modal */}
+      <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
+        <ModalHeader>Edit Warehouse — {selected?.name}</ModalHeader>
+        <ModalBody><WarehouseFormFields /></ModalBody>
+        <ModalFooter>
+          <Button color="warning" onClick={handleEdit} disabled={submitting} isProcessing={submitting}>Save Changes</Button>
+          <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Detail Modal */}
+      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="md">
+        <ModalHeader>{selected?.name}</ModalHeader>
+        <ModalBody>
+          {selected && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div><p className="text-gray-500 text-xs">Type</p><Badge color={typeBadgeColor(selected.type)}>{selected.type}</Badge></div>
+                <div><p className="text-gray-500 text-xs">Capacity</p><p className="font-semibold">{selected.capacity ? selected.capacity.toLocaleString() + ' units' : '—'}</p></div>
+                <div className="col-span-2"><p className="text-gray-500 text-xs">Address</p><p className="font-semibold">{[selected.address, selected.city, selected.province].filter(Boolean).join(', ') || '—'}</p></div>
+                <div><p className="text-gray-500 text-xs">Manager</p><p className="font-semibold">{selected.manager_name || '—'}</p></div>
+                <div><p className="text-gray-500 text-xs">Phone</p><p className="font-semibold">{selected.manager_phone || '—'}</p></div>
+                {(selected.lat && selected.lng) && (
+                  <div className="col-span-2">
+                    <p className="text-gray-500 text-xs mb-1">Location</p>
+                    <p className="font-mono text-xs">{selected.lat}, {selected.lng}</p>
+                    <a
+                      href={`https://maps.google.com/?q=${selected.lat},${selected.lng}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-amber-600 hover:underline"
+                    >
+                      View on Google Maps
+                    </a>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button color="warning" size="sm" onClick={() => { setShowDetailModal(false); openEdit(selected); }}>
+            <HiOutlinePencil className="w-4 h-4 mr-1" /> Edit
+          </Button>
+          <Button color="failure" size="sm" outline onClick={() => { setShowDetailModal(false); setDeleteTarget(selected); }}>
+            <HiOutlineTrash className="w-4 h-4 mr-1" /> Delete
+          </Button>
+          <Button color="gray" size="sm" onClick={() => setShowDetailModal(false)}>Close</Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* Delete Confirm */}
+      <ConfirmModal
+        show={!!deleteTarget}
+        title="Delete Warehouse"
+        message={`Delete "${deleteTarget?.name}"? This cannot be undone.`}
+        confirmLabel="Delete"
+        confirmColor="failure"
+        onConfirm={handleDelete}
+        onClose={() => setDeleteTarget(null)}
+        loading={submitting}
+      />
+
+      <ToastContainer toasts={toasts} dismiss={dismiss} />
     </div>
   );
-};
-
-export default Warehouses;
+}

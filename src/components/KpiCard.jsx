@@ -1,20 +1,44 @@
-import React from 'react';
+import { HiTrendingUp, HiTrendingDown } from 'react-icons/hi';
 
-const KpiCard = ({ title, value, icon: Icon, color = 'bg-white', textColor = 'text-gray-800', subtitle }) => {
+export default function KpiCard({
+  title,
+  value,
+  icon: Icon,
+  iconBg = 'bg-amber-100',
+  trend,
+  trendLabel,
+  prefix = '',
+  suffix = '',
+}) {
   return (
-    <div className={`${color} rounded-xl shadow-md p-5 flex items-center gap-4 border border-gray-100`}>
+    <div className="kpi-card">
+      <div className="flex-1 min-w-0">
+        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{title}</p>
+        <p className="kpi-value">
+          {prefix}
+          {value}
+          {suffix}
+        </p>
+        {trend !== undefined && (
+          <div className="flex items-center gap-1 mt-1">
+            {trend >= 0 ? (
+              <HiTrendingUp className="w-3.5 h-3.5 text-green-500" />
+            ) : (
+              <HiTrendingDown className="w-3.5 h-3.5 text-red-500" />
+            )}
+            <span className={`text-xs font-medium ${trend >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+              {trend >= 0 ? '+' : ''}
+              {trend}%
+            </span>
+            {trendLabel && <span className="text-xs text-gray-400">{trendLabel}</span>}
+          </div>
+        )}
+      </div>
       {Icon && (
-        <div className="flex-shrink-0 w-12 h-12 rounded-lg bg-orange-50 flex items-center justify-center">
-          <Icon className="text-2xl text-main-active" />
+        <div className={`kpi-icon-box ${iconBg}`}>
+          <Icon className="w-5 h-5 text-gray-700" />
         </div>
       )}
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium text-gray-500 truncate">{title}</p>
-        <p className={`text-2xl font-bold ${textColor} mt-1`}>{value}</p>
-        {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
-      </div>
     </div>
   );
-};
-
-export default KpiCard;
+}
