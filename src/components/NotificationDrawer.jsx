@@ -1,10 +1,19 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { FiMapPin, FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
 import { useNotifications } from '@/context/NotificationContext';
 
 const NotificationDrawer = ({ isOpen, open, onClose }) => {
   const { notifications, markAsRead } = useNotifications();
+  const [flashId, setFlashId] = useState(null);
   const visible = isOpen || open;
+
+  const handleNotifClick = (notif) => {
+    if (!notif.is_read) {
+      markAsRead(notif.id);
+    }
+    setFlashId(notif.id);
+    setTimeout(() => setFlashId(null), 600);
+  };
 
   if (!visible) return null;
 
@@ -51,12 +60,26 @@ const NotificationDrawer = ({ isOpen, open, onClose }) => {
             notifications.map((notif) => {
               const { icon, label, labelColor } = getStatusInfo(notif);
               const location = notif.location || notif.title || 'Unknown Location';
+              const isFlashing = flashId === notif.id;
               return (
-                <div
+                <button
                   key={notif.id}
-                  onClick={() => !notif.is_read && markAsRead(notif.id)}
-                  className="bg-gray-100 rounded-xl px-4 py-4 cursor-pointer hover:bg-gray-150 transition-colors"
+                  onClick={() => handleNotifClick(notif)}
+                  className={[
+                    'relative w-full text-left rounded-xl px-4 py-4',
+                    'transition-all duration-200 cursor-pointer',
+                    'hover:bg-gray-200 dark:hover:bg-[var(--dark-card2)]',
+                    isFlashing ? 'bg-yellow-100' : notif.is_read ? 'bg-gray-100' : 'bg-gray-100',
+                  ].join(' ')}
+                  style={isFlashing ? { transition: 'background-color 0.3s ease' } : undefined}
                 >
+                  {/* Pulsing unread indicator */}
+                  {!notif.is_read && (
+                    <>
+                      <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full animate-ping" />
+                      <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full" />
+                    </>
+                  )}
                   {/* Location row */}
                   <div className="flex items-center gap-2 mb-1.5">
                     <FiMapPin className="text-gray-700 text-base flex-shrink-0" />
@@ -69,7 +92,7 @@ const NotificationDrawer = ({ isOpen, open, onClose }) => {
                       {label}
                     </span>
                   </div>
-                </div>
+                </button>
               );
             })
           )}

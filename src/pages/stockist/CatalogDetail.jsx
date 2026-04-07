@@ -203,26 +203,22 @@ export default function CatalogDetail() {
 
             {/* CTAs */}
             <div className="flex gap-3 mt-auto">
-              <Button
-                color="warning"
-                className="flex-1"
+              <button
                 onClick={handleAddToCart}
                 disabled={addingCart || checkingOut}
-                isProcessing={addingCart}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white font-semibold text-sm transition-colors"
               >
-                <HiShoppingCart className="mr-2 w-4 h-4" />
-                Add to Cart
-              </Button>
-              <Button
-                color="dark"
-                className="flex-1"
+                <HiShoppingCart className="w-4 h-4" />
+                {addingCart ? 'Adding...' : 'Add to Cart'}
+              </button>
+              <button
                 onClick={handleCheckoutNow}
                 disabled={addingCart || checkingOut}
-                isProcessing={checkingOut}
+                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-60 text-white font-semibold text-sm transition-colors"
               >
-                <HiLightningBolt className="mr-2 w-4 h-4" />
-                Checkout Now
-              </Button>
+                <HiLightningBolt className="w-4 h-4" />
+                {checkingOut ? 'Processing...' : 'Checkout Now'}
+              </button>
             </div>
           </div>
         </div>

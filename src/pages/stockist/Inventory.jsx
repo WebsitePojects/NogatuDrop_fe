@@ -4,6 +4,10 @@ import {
 } from 'flowbite-react';
 import { HiSearch, HiAdjustments } from 'react-icons/hi';
 import { FiPackage } from 'react-icons/fi';
+// TODO: run `npm install xlsx jspdf jspdf-autotable` in NogatuDrop_fe
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import StatusBadge from '@/components/StatusBadge';
 import ConfirmModal from '@/components/ConfirmModal';
 import { ToastContainer, useToast } from '@/components/Toast';
@@ -80,28 +84,77 @@ export default function StockistInventory() {
 
   const available = (item) => (item.current_stock || 0) - (item.reserved_stock || 0);
 
+  const exportExcel = () => {
+    const rows = inventory.map((item) => ({
+      'Product': item.product?.name || item.product_name || `Item #${item.id}`,
+      'SKU': item.product?.sku || item.sku || '-',
+      'Warehouse': item.warehouse_name || '-',
+      'Current Stock': item.current_stock ?? 0,
+      'Reserved': item.reserved_stock ?? 0,
+      'Available': available(item),
+      'Status': item.status || '-',
+      'Warning Threshold': item.warning_threshold ?? '-',
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+    XLSX.writeFile(wb, `inventory_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text('Inventory Report', 14, 15);
+    doc.setFontSize(9);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 22);
+    doc.autoTable({
+      startY: 28,
+      head: [['Product', 'SKU', 'Warehouse', 'Stock', 'Reserved', 'Available', 'Status']],
+      body: inventory.map((item) => [
+        item.product?.name || item.product_name || `Item #${item.id}`,
+        item.product?.sku || item.sku || '-',
+        item.warehouse_name || '-',
+        item.current_stock ?? 0,
+        item.reserved_stock ?? 0,
+        available(item),
+        item.status || '-',
+      ]),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [61, 24, 0] },
+    });
+    doc.save(`inventory_${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
   return (
-    <div className="p-4 md:p-6 min-h-screen page-enter" style={{ background: '#FFF8F0' }}>
+    <div className="p-4 md:p-6 min-h-screen page-enter bg-[#FFF8F0] dark:bg-[var(--dark-bg)]">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <div className="mb-5">
-        <h1 className="text-2xl font-bold text-gray-900">My Inventory</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Current stock levels at your warehouse</p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)]">My Inventory</h1>
+        <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)] mt-0.5">Current stock levels at your warehouse</p>
       </div>
 
-      {/* Search */}
-      <div className="mb-4">
-        <TextInput
-          icon={HiSearch}
-          placeholder="Search products…"
-          value={search}
-          onChange={e => { setSearch(e.target.value); setPage(1); }}
-          sizing="md"
-        />
+      {/* Search + Export */}
+      <div className="mb-4 flex flex-wrap gap-2 items-center">
+        <div className="flex-1 min-w-48">
+          <TextInput
+            icon={HiSearch}
+            placeholder="Search products…"
+            value={search}
+            onChange={e => { setSearch(e.target.value); setPage(1); }}
+            sizing="md"
+          />
+        </div>
+        <Button size="sm" color="success" onClick={exportExcel} disabled={inventory.length === 0}>
+          Export Excel
+        </Button>
+        <Button size="sm" color="failure" onClick={exportPDF} disabled={inventory.length === 0}>
+          Export PDF
+        </Button>
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-[var(--dark-card)] rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex justify-center py-16">
             <Spinner size="xl" color="warning" />
@@ -115,10 +168,10 @@ export default function StockistInventory() {
           <>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-100">
+                <thead className="bg-gray-50 dark:bg-[var(--dark-card)] border-b border-gray-100 dark:border-[var(--dark-border)]">
                   <tr>
                     {['Product', 'Batch', 'Expiry', 'On Hand', 'Reserved', 'Available', 'Status', ''].map(h => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide whitespace-nowrap">
                         {h}
                       </th>
                     ))}
@@ -130,19 +183,19 @@ export default function StockistInventory() {
                     const badgeKey = item.status?.toLowerCase();
                     const badge = INVENTORY_BADGE[badgeKey] || INVENTORY_BADGE['in_stock'];
                     return (
-                      <tr key={item.id} className="border-b border-gray-50 hover:bg-amber-50/30 transition-colors">
+                      <tr key={item.id} className="border-b border-gray-50 dark:border-[var(--dark-border)] hover:bg-amber-50/30 dark:hover:bg-[var(--dark-card2)] transition-colors">
                         <td className="px-4 py-3">
-                          <p className="font-semibold text-gray-800 text-sm">
+                          <p className="font-semibold text-gray-800 dark:text-[var(--dark-text)] text-sm">
                             {item.product?.name || item.product_name || `Item #${item.id}`}
                           </p>
                           {item.product?.sku && (
-                            <p className="text-xs text-gray-400 font-mono">{item.product.sku}</p>
+                            <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)] font-mono">{item.product.sku}</p>
                           )}
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-500 font-mono">
+                        <td className="px-4 py-3 text-xs text-gray-500 dark:text-[var(--dark-muted)] font-mono">
                           {item.batch_number || '—'}
                         </td>
-                        <td className="px-4 py-3 text-xs text-gray-500">
+                        <td className="px-4 py-3 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
                           {item.expiry_date ? formatDate(item.expiry_date) : '—'}
                         </td>
                         <td className={`px-4 py-3 text-sm ${stockStatusColor(item.status)}`}>
@@ -194,15 +247,15 @@ export default function StockistInventory() {
       </div>
 
       {/* Adjustment Request Modal */}
-      <Modal show={!!adjustModal} onClose={() => setAdjustModal(null)} size="md">
+      <Modal show={!!adjustModal} onClose={() => setAdjustModal(null)} size="md" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Request Stock Adjustment</ModalHeader>
         <ModalBody className="space-y-4">
           {adjustModal && (
-            <div className="bg-amber-50 rounded-xl p-3 text-sm">
-              <p className="font-semibold text-gray-800">
+            <div className="bg-amber-50 dark:bg-[var(--dark-card2)] rounded-xl p-3 text-sm">
+              <p className="font-semibold text-gray-800 dark:text-[var(--dark-text)]">
                 {adjustModal.product?.name || adjustModal.product_name}
               </p>
-              <p className="text-gray-500 text-xs mt-0.5">
+              <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs mt-0.5">
                 Current stock: <span className="font-medium">{adjustModal.current_stock ?? 0}</span>
               </p>
             </div>

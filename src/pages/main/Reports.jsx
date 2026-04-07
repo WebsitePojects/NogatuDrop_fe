@@ -86,10 +86,12 @@ function RevenueTab() {
         <div className="overflow-x-auto">
           <Table striped>
             <TableHead>
-              <TableHeadCell>Stockist</TableHeadCell>
-              <TableHeadCell>Total Orders</TableHeadCell>
-              <TableHeadCell>Total Revenue</TableHeadCell>
-              <TableHeadCell>Avg Order Value</TableHeadCell>
+              <TableRow>
+                <TableHeadCell>Stockist</TableHeadCell>
+                <TableHeadCell>Total Orders</TableHeadCell>
+                <TableHeadCell>Total Revenue</TableHeadCell>
+                <TableHeadCell>Avg Order Value</TableHeadCell>
+              </TableRow>
             </TableHead>
             <TableBody className="divide-y">
               {byStockist.length === 0 ? (
@@ -166,7 +168,10 @@ function ProductsTab() {
   useEffect(() => {
     setLoading(true);
     api.get(REPORTS.PRODUCTS)
-      .then((r) => setData(r.data.data || []))
+      .then((r) => {
+        const raw = r.data.data;
+        setData(Array.isArray(raw) ? raw : (raw?.products || []));
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -211,10 +216,12 @@ function ProductsTab() {
         <div className="overflow-x-auto">
           <Table striped>
             <TableHead>
-              <TableHeadCell>Product</TableHeadCell>
-              <TableHeadCell>Category</TableHeadCell>
-              <TableHeadCell>Qty Sold</TableHeadCell>
-              <TableHeadCell>Revenue</TableHeadCell>
+              <TableRow>
+                <TableHeadCell>Product</TableHeadCell>
+                <TableHeadCell>Category</TableHeadCell>
+                <TableHeadCell>Qty Sold</TableHeadCell>
+                <TableHeadCell>Revenue</TableHeadCell>
+              </TableRow>
             </TableHead>
             <TableBody className="divide-y">
               {data.length === 0 ? (
@@ -243,7 +250,10 @@ function MovementsTab() {
   useEffect(() => {
     setLoading(true);
     api.get(REPORTS.MOVEMENTS)
-      .then((r) => setData(r.data.data || []))
+      .then((r) => {
+        const raw = r.data.data;
+        setData(Array.isArray(raw) ? raw : (raw?.movements || []));
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -278,11 +288,13 @@ function MovementsTab() {
         <div className="overflow-x-auto">
           <Table striped>
             <TableHead>
-              <TableHeadCell>Date</TableHeadCell>
-              <TableHeadCell>Product</TableHeadCell>
-              <TableHeadCell>Warehouse</TableHeadCell>
-              <TableHeadCell>Type</TableHeadCell>
-              <TableHeadCell>Quantity</TableHeadCell>
+              <TableRow>
+                <TableHeadCell>Date</TableHeadCell>
+                <TableHeadCell>Product</TableHeadCell>
+                <TableHeadCell>Warehouse</TableHeadCell>
+                <TableHeadCell>Type</TableHeadCell>
+                <TableHeadCell>Quantity</TableHeadCell>
+              </TableRow>
             </TableHead>
             <TableBody className="divide-y">
               {data.length === 0 ? (
@@ -318,7 +330,10 @@ function StockistsTab() {
   useEffect(() => {
     setLoading(true);
     api.get(REPORTS.PURCHASES)
-      .then((r) => setData(r.data.data || []))
+      .then((r) => {
+        const raw = r.data.data;
+        setData(Array.isArray(raw) ? raw : (raw?.purchases || []));
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -343,11 +358,13 @@ function StockistsTab() {
         <div className="overflow-x-auto">
           <Table striped>
             <TableHead>
-              <TableHeadCell>Stockist</TableHeadCell>
-              <TableHeadCell>Level</TableHeadCell>
-              <TableHeadCell>Total Orders</TableHeadCell>
-              <TableHeadCell>Revenue</TableHeadCell>
-              <TableHeadCell>Last Order</TableHeadCell>
+              <TableRow>
+                <TableHeadCell>Stockist</TableHeadCell>
+                <TableHeadCell>Level</TableHeadCell>
+                <TableHeadCell>Total Orders</TableHeadCell>
+                <TableHeadCell>Revenue</TableHeadCell>
+                <TableHeadCell>Last Order</TableHeadCell>
+              </TableRow>
             </TableHead>
             <TableBody className="divide-y">
               {data.length === 0 ? (
@@ -377,7 +394,10 @@ function InventoryTab() {
   useEffect(() => {
     setLoading(true);
     api.get('/inventory', { params: { limit: 200 } })
-      .then((r) => setData(r.data.data || []))
+      .then((r) => {
+        const raw = r.data.data;
+        setData(Array.isArray(raw) ? raw : (raw?.items || []));
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -437,10 +457,12 @@ function InventoryTab() {
           <div className="overflow-x-auto">
             <Table striped>
               <TableHead>
-                <TableHeadCell>Product</TableHeadCell>
-                <TableHeadCell>Warehouse</TableHeadCell>
-                <TableHeadCell>Stock</TableHeadCell>
-                <TableHeadCell>Status</TableHeadCell>
+                <TableRow>
+                  <TableHeadCell>Product</TableHeadCell>
+                  <TableHeadCell>Warehouse</TableHeadCell>
+                  <TableHeadCell>Stock</TableHeadCell>
+                  <TableHeadCell>Status</TableHeadCell>
+                </TableRow>
               </TableHead>
               <TableBody className="divide-y">
                 {lowStock.map((i) => (
@@ -477,7 +499,7 @@ export default function Reports() {
       />
 
       <Card className="no-print-header">
-        <Tabs>
+        <Tabs variant="underline">
           <TabItem title="Revenue"><RevenueTab /></TabItem>
           <TabItem title="Orders"><OrdersTab /></TabItem>
           <TabItem title="Products"><ProductsTab /></TabItem>

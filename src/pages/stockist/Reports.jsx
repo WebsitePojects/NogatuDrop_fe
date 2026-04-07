@@ -124,7 +124,7 @@ export default function StockistReports() {
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <Tabs aria-label="Reports tabs" style="underline">
+        <Tabs aria-label="Reports tabs" variant="underline">
           {/* Revenue Tab */}
           <TabItem title="Revenue">
             <div className="p-4">

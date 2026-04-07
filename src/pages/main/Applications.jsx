@@ -144,15 +144,15 @@ export default function Applications() {
                         <TableRow key={app.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(app)}>
                           <TableCell>
                             <div>
-                              <p className="font-medium text-gray-900">{app.applicant_name || `${app.first_name} ${app.last_name}`}</p>
-                              <p className="text-xs text-gray-500">{app.email}</p>
+                              <p className="font-medium text-gray-900 dark:text-[var(--dark-text)]">{app.applicant_name || `${app.first_name} ${app.last_name}`}</p>
+                              <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{app.email}</p>
                             </div>
                           </TableCell>
                           <TableCell className="text-sm">{app.business_name || '—'}</TableCell>
                           <TableCell>
                             <span className="badge-approved">{levelLabel(app.requested_level)}</span>
                           </TableCell>
-                          <TableCell className="text-xs text-gray-500">{formatDate(app.created_at)}</TableCell>
+                          <TableCell className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{formatDate(app.created_at)}</TableCell>
                           <TableCell><StatusBadge status={app.status} /></TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <div className="flex gap-1">
@@ -188,19 +188,19 @@ export default function Applications() {
       </Card>
 
       {/* Detail Modal */}
-      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="lg">
+      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Application Detail</ModalHeader>
         <ModalBody>
           {selected && (
             <div className="space-y-5">
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><p className="text-gray-500 text-xs">Applicant Name</p><p className="font-semibold">{selected.applicant_name || `${selected.first_name} ${selected.last_name}`}</p></div>
-                <div><p className="text-gray-500 text-xs">Email</p><p className="font-semibold">{selected.email}</p></div>
-                <div><p className="text-gray-500 text-xs">Phone</p><p>{selected.phone || '—'}</p></div>
-                <div><p className="text-gray-500 text-xs">Business Name</p><p className="font-semibold">{selected.business_name || '—'}</p></div>
-                <div><p className="text-gray-500 text-xs">Level Requested</p><span className="badge-approved">{levelLabel(selected.requested_level)}</span></div>
-                <div><p className="text-gray-500 text-xs">Status</p><StatusBadge status={selected.status} /></div>
-                <div className="col-span-2"><p className="text-gray-500 text-xs">Address</p><p>{selected.address || '—'}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Applicant Name</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.applicant_name || `${selected.first_name} ${selected.last_name}`}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Email</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.email}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Phone</p><p className="dark:text-[var(--dark-text)]">{selected.phone || '—'}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Business Name</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.business_name || '—'}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Level Requested</p><span className="badge-approved">{levelLabel(selected.requested_level)}</span></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Status</p><StatusBadge status={selected.status} /></div>
+                <div className="col-span-2"><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Address</p><p className="dark:text-[var(--dark-text)]">{selected.address || '—'}</p></div>
               </div>
 
               {/* Documents */}
@@ -256,7 +256,7 @@ export default function Applications() {
       />
 
       {/* Reject Modal */}
-      <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} size="sm">
+      <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} size="sm" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Reject Application</ModalHeader>
         <ModalBody>
           <Label value="Reason for rejection" className="mb-1" />

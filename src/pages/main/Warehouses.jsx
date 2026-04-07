@@ -165,7 +165,7 @@ export default function Warehouses() {
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-100 p-5">
+            <div key={i} className="bg-white dark:bg-[var(--dark-card)] rounded-xl border border-gray-100 dark:border-[var(--dark-border)] p-5">
               <div className="skeleton h-5 w-3/4 rounded mb-3" />
               <div className="skeleton h-3 w-full rounded mb-2" />
               <div className="skeleton h-3 w-2/3 rounded" />
@@ -185,7 +185,7 @@ export default function Warehouses() {
           {warehouses.map((w) => (
             <div
               key={w.id}
-              className="bg-white rounded-xl border border-gray-100 p-5 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all"
+              className="bg-white dark:bg-[var(--dark-card)] rounded-xl border border-gray-100 dark:border-[var(--dark-border)] p-5 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all"
               onClick={() => openDetail(w)}
             >
               <div className="flex items-start justify-between mb-3">
@@ -194,12 +194,12 @@ export default function Warehouses() {
                     <HiOutlineOfficeBuilding className="w-5 h-5 text-amber-600" />
                   </div>
                   <div>
-                    <p className="font-semibold text-gray-900 text-sm">{w.name}</p>
+                    <p className="font-semibold text-gray-900 dark:text-[var(--dark-text)] text-sm">{w.name}</p>
                     <Badge color={typeBadgeColor(w.type)} size="xs">{w.type}</Badge>
                   </div>
                 </div>
               </div>
-              <div className="space-y-1.5 text-xs text-gray-500">
+              <div className="space-y-1.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
                 <div className="flex items-center gap-1.5">
                   <HiOutlineLocationMarker className="w-3.5 h-3.5 flex-shrink-0" />
                   <span>{[w.address, w.city, w.province].filter(Boolean).join(', ') || 'No address'}</span>
@@ -228,7 +228,7 @@ export default function Warehouses() {
       )}
 
       {/* Add Modal */}
-      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg">
+      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Add Warehouse</ModalHeader>
         <ModalBody><WarehouseFormFields /></ModalBody>
         <ModalFooter>
@@ -238,7 +238,7 @@ export default function Warehouses() {
       </Modal>
 
       {/* Edit Modal */}
-      <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
+      <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Edit Warehouse — {selected?.name}</ModalHeader>
         <ModalBody><WarehouseFormFields /></ModalBody>
         <ModalFooter>
@@ -248,17 +248,17 @@ export default function Warehouses() {
       </Modal>
 
       {/* Detail Modal */}
-      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="md">
+      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="md" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>{selected?.name}</ModalHeader>
         <ModalBody>
           {selected && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><p className="text-gray-500 text-xs">Type</p><Badge color={typeBadgeColor(selected.type)}>{selected.type}</Badge></div>
-                <div><p className="text-gray-500 text-xs">Capacity</p><p className="font-semibold">{selected.capacity ? selected.capacity.toLocaleString() + ' units' : '—'}</p></div>
-                <div className="col-span-2"><p className="text-gray-500 text-xs">Address</p><p className="font-semibold">{[selected.address, selected.city, selected.province].filter(Boolean).join(', ') || '—'}</p></div>
-                <div><p className="text-gray-500 text-xs">Manager</p><p className="font-semibold">{selected.manager_name || '—'}</p></div>
-                <div><p className="text-gray-500 text-xs">Phone</p><p className="font-semibold">{selected.manager_phone || '—'}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Type</p><Badge color={typeBadgeColor(selected.type)}>{selected.type}</Badge></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Capacity</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.capacity ? selected.capacity.toLocaleString() + ' units' : '—'}</p></div>
+                <div className="col-span-2"><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Address</p><p className="font-semibold dark:text-[var(--dark-text)]">{[selected.address, selected.city, selected.province].filter(Boolean).join(', ') || '—'}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Manager</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.manager_name || '—'}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Phone</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.manager_phone || '—'}</p></div>
                 {(selected.lat && selected.lng) && (
                   <div className="col-span-2">
                     <p className="text-gray-500 text-xs mb-1">Location</p>

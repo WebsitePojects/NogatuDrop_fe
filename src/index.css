@@ -22,8 +22,18 @@
   --stockist-border:         #C8E6C8;
 
   /* Mobile */
-  --mobile-accent: #F59E0B;
+  --mobile-accent: #FF8C00;
   --mobile-bg:     #FFFFFF;
+
+  /* ── Dark mode palette (portal-specific via CSS vars set inline on root div) ── */
+  /* Defaults — overridden per portal in layout inline styles */
+  --dark-bg:      #1e1613;   /* warm charcoal — main portal default */
+  --dark-card:    #271c18;   /* warm dark card */
+  --dark-card2:   #2e221e;   /* slightly lighter card variant */
+  --dark-border:  #3d2e28;   /* warm dark border */
+  --dark-topbar:  #221a16;   /* topbar bg */
+  --dark-text:    #f5ebe3;   /* primary text */
+  --dark-muted:   #9e8a7e;   /* muted text */
 }
 
 /* ─── Base ───────────────────────────────────────────────────────────────────── */
@@ -307,32 +317,28 @@ table tbody tr:hover td {
   background-color: rgba(255,248,240,0.6);
 }
 
-/* ─── Dark mode page backgrounds ─────────────────────────────────────────────── */
+/* ─── Dark mode page backgrounds (portal-aware via CSS vars) ─────────────────── */
 .dark .kpi-card {
-  background: #1f2937;
-  border-color: #374151;
-  color: #f9fafb;
+  background: var(--dark-card);
+  border-color: var(--dark-border);
+  color: var(--dark-text);
 }
 
 .dark .kpi-card .kpi-value {
-  color: #f9fafb;
+  color: var(--dark-text);
 }
 
 .dark .kpi-card p.text-gray-500 {
-  color: #9ca3af !important;
+  color: var(--dark-muted) !important;
 }
 
 /* Dark mode Cards */
-.dark [class*="bg-white"] {
-  background-color: #1f2937;
-  border-color: #374151;
-}
-
-/* Force Flowbite Card dark */
-.dark .rounded-xl.border.border-coffee-100.bg-white,
+.dark .rounded-2xl.bg-white,
+.dark .rounded-xl.bg-white,
+.dark .rounded-lg.bg-white,
 .dark .ng-card {
-  background: #1f2937;
-  border-color: #374151;
+  background-color: var(--dark-card) !important;
+  border-color: var(--dark-border) !important;
 }
 
 /* ─── Ensure all text is visible — catch-all ─────────────────────────────────── */
@@ -378,3 +384,105 @@ textarea {
 .dark select {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
 }
+
+/* ─── Dark mode: override hardcoded inline page backgrounds ─────────────────── */
+.dark [style*="#FFF8F0"],
+.dark [style*="#F0F9F0"],
+.dark [style*="#FFFFFF"],
+.dark [style*="rgb(255, 248, 240)"],
+.dark [style*="rgb(240, 249, 240)"] {
+  background: var(--dark-bg) !important;
+}
+
+/* ─── Dark mode: topbar ──────────────────────────────────────────────────────── */
+.dark .portal-topbar {
+  background: var(--dark-topbar) !important;
+  border-color: var(--dark-border) !important;
+}
+
+/* ─── Dark mode: tables (portal-aware) ─────────────────────────────────────── */
+.dark table thead tr {
+  background-color: var(--dark-card) !important;
+}
+.dark table thead tr th {
+  background-color: var(--dark-card) !important;
+  color: var(--dark-muted) !important;
+  border-color: var(--dark-border) !important;
+}
+.dark table tbody tr {
+  border-color: var(--dark-border) !important;
+  background-color: var(--dark-bg) !important;
+}
+.dark table tbody tr td {
+  color: var(--dark-text) !important;
+  border-color: var(--dark-border) !important;
+  background-color: transparent !important;
+}
+.dark table tbody tr:hover td {
+  background-color: var(--dark-card) !important;
+}
+
+/* ─── Dark mode: containers ─────────────────────────────────────────────────── */
+.dark .rounded-xl.bg-gray-50,
+.dark .rounded-2xl.bg-gray-50,
+.dark .bg-gray-50.rounded-xl,
+.dark .bg-gray-50.p-5,
+.dark .bg-gray-50.p-4,
+.dark .bg-gray-50.p-3 {
+  background-color: var(--dark-card2) !important;
+}
+
+/* ─── Dark mode: text ───────────────────────────────────────────────────────── */
+.dark .text-gray-900 { color: var(--dark-text) !important; }
+.dark .text-gray-800 { color: var(--dark-text) !important; }
+.dark .text-gray-700 { color: #d4c5bc !important; }
+.dark h1.text-gray-900, .dark h2.text-gray-900, .dark h3.text-gray-900 { color: var(--dark-text) !important; }
+.dark p.text-gray-500, .dark p.text-gray-600 { color: var(--dark-muted) !important; }
+.dark span.text-gray-500, .dark span.text-gray-600 { color: var(--dark-muted) !important; }
+.dark label { color: #c9b9b0 !important; }
+
+/* ─── Dark mode: borders ─────────────────────────────────────────────────────── */
+.dark .border-gray-100 { border-color: var(--dark-border) !important; }
+.dark .border-gray-200 { border-color: var(--dark-border) !important; }
+.dark .divide-gray-100 > * + * { border-color: var(--dark-border) !important; }
+.dark .divide-gray-200 > * + * { border-color: var(--dark-border) !important; }
+
+/* ─── Dark mode: Flowbite Tabs ──────────────────────────────────────────────── */
+/* Tab buttons — underline variant — active tab label should be visible */
+.dark [role="tablist"] button {
+  color: var(--dark-muted) !important;
+}
+.dark [role="tablist"] button[aria-selected="true"] {
+  color: var(--dark-text) !important;
+  border-bottom-color: currentColor !important;
+}
+.dark [role="tablist"] button:hover {
+  color: var(--dark-text) !important;
+}
+
+/* ─── Dark mode: Flowbite Modal ─────────────────────────────────────────────── */
+.dark [role="dialog"] > div {
+  background: var(--dark-card) !important;
+  border-color: var(--dark-border) !important;
+}
+.dark [role="dialog"] .border-b,
+.dark [role="dialog"] .border-t {
+  border-color: var(--dark-border) !important;
+}
+.dark [role="dialog"] h3 { color: var(--dark-text) !important; }
+.dark [role="dialog"] p  { color: #c9b9b0 !important; }
+.dark [role="dialog"] label { color: #c9b9b0 !important; }
+
+/* ─── Dark mode: overflow-x-auto ───────────────────────────────────────────── */
+.dark .overflow-x-auto { background-color: transparent !important; }
+
+/* ─── Dark mode: mobile tab bar ─────────────────────────────────────────────── */
+.dark .mobile-tab-bar {
+  background: var(--dark-topbar) !important;
+  border-color: var(--dark-border) !important;
+}
+.dark .mobile-tab-item { color: var(--dark-muted) !important; }
+.dark .mobile-tab-item.active { color: #FF8C00 !important; }
+
+/* ─── Dark mode: KPI icon boxes ─────────────────────────────────────────────── */
+/* Background and icon color are now handled via Tailwind dark: variants in KpiCard.jsx */

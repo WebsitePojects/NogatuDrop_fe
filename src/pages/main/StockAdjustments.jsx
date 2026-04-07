@@ -157,12 +157,12 @@ export default function StockAdjustments() {
                     ) : (
                       adjustments.map((a) => (
                         <TableRow key={a.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(a)}>
-                          <TableCell className="text-xs text-gray-500">{formatDate(a.created_at)}</TableCell>
-                          <TableCell className="font-medium text-gray-900 text-xs">{a.product_name}</TableCell>
+                          <TableCell className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{formatDate(a.created_at)}</TableCell>
+                          <TableCell className="font-medium text-gray-900 dark:text-[var(--dark-text)] text-xs">{a.product_name}</TableCell>
                           <TableCell className="text-xs">{a.warehouse_name}</TableCell>
                           <TableCell>{typeBadge(a.type)}</TableCell>
                           <TableCell className="font-semibold">{a.quantity}</TableCell>
-                          <TableCell className="text-xs text-gray-600 max-w-xs truncate">{a.reason || '—'}</TableCell>
+                          <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)] max-w-xs truncate">{a.reason || '—'}</TableCell>
                           <TableCell className="text-xs">{a.requested_by_name || '—'}</TableCell>
                           <TableCell><StatusBadge status={a.status} /></TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
@@ -196,7 +196,7 @@ export default function StockAdjustments() {
       </Card>
 
       {/* Add Modal */}
-      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="md">
+      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="md" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Request Stock Adjustment</ModalHeader>
         <ModalBody>
           <div className="space-y-3">
@@ -234,19 +234,19 @@ export default function StockAdjustments() {
       </Modal>
 
       {/* Detail Modal */}
-      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="md">
+      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="md" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Adjustment Detail</ModalHeader>
         <ModalBody>
           {selected && (
             <div className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-3">
-                <div><p className="text-gray-500 text-xs">Product</p><p className="font-semibold">{selected.product_name}</p></div>
-                <div><p className="text-gray-500 text-xs">Warehouse</p><p className="font-semibold">{selected.warehouse_name}</p></div>
-                <div><p className="text-gray-500 text-xs">Type</p>{typeBadge(selected.type)}</div>
-                <div><p className="text-gray-500 text-xs">Quantity</p><p className="font-bold text-lg">{selected.quantity}</p></div>
-                <div><p className="text-gray-500 text-xs">Status</p><StatusBadge status={selected.status} /></div>
-                <div><p className="text-gray-500 text-xs">Requested By</p><p>{selected.requested_by_name || '—'}</p></div>
-                <div className="col-span-2"><p className="text-gray-500 text-xs">Reason</p><p>{selected.reason || '—'}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Product</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.product_name}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Warehouse</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.warehouse_name}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Type</p>{typeBadge(selected.type)}</div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Quantity</p><p className="font-bold text-lg dark:text-[var(--dark-text)]">{selected.quantity}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Status</p><StatusBadge status={selected.status} /></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Requested By</p><p className="dark:text-[var(--dark-text)]">{selected.requested_by_name || '—'}</p></div>
+                <div className="col-span-2"><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Reason</p><p className="dark:text-[var(--dark-text)]">{selected.reason || '—'}</p></div>
               </div>
             </div>
           )}
@@ -277,7 +277,7 @@ export default function StockAdjustments() {
       />
 
       {/* Reject Modal */}
-      <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} size="sm">
+      <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} size="sm" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Reject Adjustment</ModalHeader>
         <ModalBody>
           <Label value="Reason for rejection" className="mb-1" />

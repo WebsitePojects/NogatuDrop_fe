@@ -139,8 +139,22 @@ export default function StockistLayout() {
     admin:               'Stockist',
   }[role] || 'Stockist';
 
+  /* Forest dark palette — complements green #0A2E0A sidebar */
+  const darkVars = dark ? {
+    '--dark-bg':     '#0e1a0e',
+    '--dark-card':   '#162316',
+    '--dark-card2':  '#1a2a1a',
+    '--dark-border': '#2d4a2d',
+    '--dark-topbar': '#111f11',
+    '--dark-text':   '#e8f5e8',
+    '--dark-muted':  '#7aaa7a',
+  } : {};
+
   return (
-    <div className={`flex min-h-screen ${dark ? 'dark' : ''}`} style={{ background: dark ? '#0f1117' : 'var(--stockist-bg)' }}>
+    <div
+      className={`flex min-h-screen ${dark ? 'dark' : ''}`}
+      style={{ background: dark ? '#0e1a0e' : 'var(--stockist-bg)', ...darkVars }}
+    >
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -219,8 +233,8 @@ export default function StockistLayout() {
         <header
           className="portal-topbar"
           style={{
-            borderColor: dark ? '#374151' : 'var(--stockist-border)',
-            background: dark ? '#1f2937' : '#fff',
+            borderColor: dark ? '#2d4a2d' : 'var(--stockist-border)',
+            background: dark ? '#111f11' : '#fff',
           }}
         >
           {/* Hamburger */}
@@ -302,7 +316,7 @@ export default function StockistLayout() {
         {/* Page content */}
         <main
           className="flex-1 p-4 md:p-5 page-enter"
-          style={{ background: dark ? '#0f1117' : 'var(--stockist-bg)' }}
+          style={{ background: dark ? '#0e1a0e' : 'var(--stockist-bg)' }}
         >
           <Outlet />
         </main>

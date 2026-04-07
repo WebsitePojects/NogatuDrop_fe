@@ -161,10 +161,10 @@ export default function StockistGRN() {
     return (
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b border-gray-100">
+          <thead className="bg-gray-50 dark:bg-[var(--dark-card)] border-b border-gray-100 dark:border-[var(--dark-border)]">
             <tr>
               {['GRN #', 'Supplier', 'Warehouse', 'Received By', 'Status', 'Date', ''].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide">
                   {h}
                 </th>
               ))}
@@ -177,14 +177,14 @@ export default function StockistGRN() {
                 className="border-b border-gray-50 hover:bg-amber-50/30 cursor-pointer transition-colors"
                 onClick={() => openDetail(grn)}
               >
-                <td className="px-4 py-3 font-mono font-semibold text-xs text-gray-800">
+                <td className="px-4 py-3 font-mono font-semibold text-xs text-gray-800 dark:text-[var(--dark-text)]">
                   #{grn.grn_number || grn.id}
                 </td>
-                <td className="px-4 py-3 text-gray-700">{grn.supplier || '—'}</td>
-                <td className="px-4 py-3 text-gray-600 text-xs">{grn.warehouse_name || '—'}</td>
-                <td className="px-4 py-3 text-gray-600 text-xs">{grn.received_by_name || '—'}</td>
+                <td className="px-4 py-3 text-gray-700 dark:text-[var(--dark-text)]">{grn.supplier || '—'}</td>
+                <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-xs">{grn.warehouse_name || '—'}</td>
+                <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-xs">{grn.received_by_name || '—'}</td>
                 <td className="px-4 py-3"><StatusBadge status={grn.status} /></td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{formatDate(grn.created_at)}</td>
+                <td className="px-4 py-3 text-gray-500 dark:text-[var(--dark-muted)] text-xs">{formatDate(grn.created_at)}</td>
                 <td className="px-4 py-3">
                   <button className="text-xs text-amber-600 hover:text-amber-700 font-medium">View</button>
                 </td>
@@ -199,13 +199,13 @@ export default function StockistGRN() {
   const detail = detailData || selectedGRN;
 
   return (
-    <div className="p-4 md:p-6 min-h-screen page-enter" style={{ background: '#FFF8F0' }}>
+    <div className="p-4 md:p-6 min-h-screen page-enter bg-[#FFF8F0] dark:bg-[var(--dark-bg)]">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Goods Receipt Notes</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Record incoming stock from your supplier</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)]">Goods Receipt Notes</h1>
+          <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)] mt-0.5">Record incoming stock from your supplier</p>
         </div>
         <Button color="warning" onClick={() => setCreateModal(true)}>
           <HiPlus className="mr-2 w-4 h-4" />
@@ -213,8 +213,8 @@ export default function StockistGRN() {
         </Button>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-        <Tabs aria-label="GRN tabs" style="underline">
+      <div className="bg-white dark:bg-[var(--dark-card)] rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] shadow-sm overflow-hidden">
+        <Tabs aria-label="GRN tabs" variant="underline">
           <TabItem title="All">{renderTable(grns)}</TabItem>
           <TabItem title="Draft">{renderTable(filterByStatus(['draft']))}</TabItem>
           <TabItem title="Completed">{renderTable(filterByStatus(['completed']))}</TabItem>
@@ -223,7 +223,7 @@ export default function StockistGRN() {
       </div>
 
       {/* GRN Detail Modal */}
-      <Modal show={!!selectedGRN} onClose={() => { setSelectedGRN(null); setDetailData(null); }} size="xl">
+      <Modal show={!!selectedGRN} onClose={() => { setSelectedGRN(null); setDetailData(null); }} size="xl" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>
           GRN Details
           {detail?.grn_number && (
@@ -245,9 +245,9 @@ export default function StockistGRN() {
                   { label: 'Delivery Ref', value: detail.delivery_reference || '—' },
                   { label: 'Date', value: formatDate(detail.created_at) },
                 ].map(({ label, value }) => (
-                  <div key={label} className="bg-gray-50 rounded-xl p-3">
-                    <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-                    <div className="text-sm font-semibold text-gray-900">{value}</div>
+                  <div key={label} className="bg-gray-50 dark:bg-[var(--dark-card2)] rounded-xl p-3">
+                    <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)] mb-0.5">{label}</p>
+                    <div className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)]">{value}</div>
                   </div>
                 ))}
               </div>
@@ -255,13 +255,13 @@ export default function StockistGRN() {
               {/* Items */}
               {detail.items && detail.items.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Items</h3>
-                  <div className="border border-gray-100 rounded-xl overflow-hidden">
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-2">Items</h3>
+                  <div className="border border-gray-100 dark:border-[var(--dark-border)] rounded-xl overflow-hidden">
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-gray-50 dark:bg-[var(--dark-card)]">
                         <tr>
                           {['Product', 'Expected', 'Received', 'Discrepancy', 'Batch', 'Expiry', 'Unit Cost'].map(h => (
-                            <th key={h} className="text-left px-3 py-2 text-xs text-gray-500 font-semibold">{h}</th>
+                            <th key={h} className="text-left px-3 py-2 text-xs text-gray-500 dark:text-[var(--dark-muted)] font-semibold">{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -269,12 +269,12 @@ export default function StockistGRN() {
                         {detail.items.map((item, i) => {
                           const disc = (item.expected_qty || 0) - (item.received_qty || 0);
                           return (
-                            <tr key={i} className="border-t border-gray-50">
-                              <td className="px-3 py-2.5 font-medium text-gray-800">
+                            <tr key={i} className="border-t border-gray-50 dark:border-[var(--dark-border)]">
+                              <td className="px-3 py-2.5 font-medium text-gray-800 dark:text-[var(--dark-text)]">
                                 {item.product_name || `Product #${item.product_id}`}
                               </td>
-                              <td className="px-3 py-2.5 text-gray-600">{item.expected_qty}</td>
-                              <td className="px-3 py-2.5 text-gray-600">{item.received_qty}</td>
+                              <td className="px-3 py-2.5 text-gray-600 dark:text-[var(--dark-muted)]">{item.expected_qty}</td>
+                              <td className="px-3 py-2.5 text-gray-600 dark:text-[var(--dark-muted)]">{item.received_qty}</td>
                               <td className={`px-3 py-2.5 font-semibold ${disc !== 0 ? 'text-red-600' : 'text-emerald-600'}`}>
                                 {disc !== 0 ? (
                                   <span className="flex items-center gap-1">
@@ -283,11 +283,11 @@ export default function StockistGRN() {
                                   </span>
                                 ) : '—'}
                               </td>
-                              <td className="px-3 py-2.5 text-xs text-gray-500 font-mono">{item.batch_number || '—'}</td>
-                              <td className="px-3 py-2.5 text-xs text-gray-500">
+                              <td className="px-3 py-2.5 text-xs text-gray-500 dark:text-[var(--dark-muted)] font-mono">{item.batch_number || '—'}</td>
+                              <td className="px-3 py-2.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
                                 {item.expiry_date ? formatDate(item.expiry_date) : '—'}
                               </td>
-                              <td className="px-3 py-2.5 text-gray-600">
+                              <td className="px-3 py-2.5 text-gray-600 dark:text-[var(--dark-muted)]">
                                 {item.unit_cost ? formatCurrency(item.unit_cost) : '—'}
                               </td>
                             </tr>
@@ -326,7 +326,7 @@ export default function StockistGRN() {
       />
 
       {/* Create GRN Modal */}
-      <Modal show={createModal} onClose={() => setCreateModal(false)} size="2xl">
+      <Modal show={createModal} onClose={() => setCreateModal(false)} size="2xl" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Create New GRN</ModalHeader>
         <ModalBody className="space-y-4 max-h-[70vh] overflow-y-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -378,9 +378,9 @@ export default function StockistGRN() {
 
             <div className="space-y-3">
               {form.items.map((item, i) => (
-                <div key={i} className="border border-gray-100 rounded-xl p-3 bg-gray-50">
+                <div key={i} className="border border-gray-100 dark:border-[var(--dark-border)] rounded-xl p-3 bg-gray-50 dark:bg-[var(--dark-card2)]">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-gray-500">Item {i + 1}</span>
+                    <span className="text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)]">Item {i + 1}</span>
                     {form.items.length > 1 && (
                       <button onClick={() => removeItem(i)} className="text-red-400 hover:text-red-600">
                         <HiX className="w-4 h-4" />

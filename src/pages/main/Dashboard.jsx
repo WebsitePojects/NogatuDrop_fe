@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell } from 'flowbite-react';
+import { Card, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell } from 'flowbite-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, Legend,
@@ -56,10 +56,12 @@ export default function Dashboard() {
         if (kpiRes.status === 'fulfilled') setKpis(kpiRes.value.data.data);
         if (trendRes.status === 'fulfilled') setRevenueTrend(trendRes.value.data.data || []);
         if (distRes.status === 'fulfilled') {
+          const raw = distRes.value.data.data;
+          const arr = Array.isArray(raw) ? raw : (raw?.products || []);
           setProductDist(
-            (distRes.value.data.data || []).slice(0, 6).map((r) => ({
+            arr.slice(0, 6).map((r) => ({
               name: r.product_name || r.name,
-              value: Number(r.total_qty || r.quantity || 0),
+              value: Number(r.total_qty_sold || r.total_qty || r.quantity || 0),
             }))
           );
         }
@@ -188,11 +190,13 @@ export default function Dashboard() {
               <div className="overflow-x-auto">
                 <Table striped>
                   <TableHead>
-                    <TableHeadCell>Order #</TableHeadCell>
-                    <TableHeadCell>Stockist</TableHeadCell>
-                    <TableHeadCell>Amount</TableHeadCell>
-                    <TableHeadCell>Status</TableHeadCell>
-                    <TableHeadCell>Date</TableHeadCell>
+                    <TableRow>
+                      <TableHeadCell>Order #</TableHeadCell>
+                      <TableHeadCell>Stockist</TableHeadCell>
+                      <TableHeadCell>Amount</TableHeadCell>
+                      <TableHeadCell>Status</TableHeadCell>
+                      <TableHeadCell>Date</TableHeadCell>
+                    </TableRow>
                   </TableHead>
                   <TableBody className="divide-y">
                     {recentOrders.length === 0 ? (

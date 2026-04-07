@@ -170,7 +170,7 @@ export default function StockTransfers() {
                     ) : (
                       transfers.map((t) => (
                         <TableRow key={t.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(t)}>
-                          <TableCell className="font-mono font-medium text-xs text-gray-900">{t.transfer_number || `TRF-${t.id}`}</TableCell>
+                          <TableCell className="font-mono font-medium text-xs text-gray-900 dark:text-[var(--dark-text)]">{t.transfer_number || `TRF-${t.id}`}</TableCell>
                           <TableCell className="text-xs">{t.from_warehouse_name}</TableCell>
                           <TableCell className="text-xs">
                             <span className="flex items-center gap-1">
@@ -180,7 +180,7 @@ export default function StockTransfers() {
                           </TableCell>
                           <TableCell><StatusBadge status={t.status} /></TableCell>
                           <TableCell>{t.items_count ?? '—'}</TableCell>
-                          <TableCell className="text-xs text-gray-500">{formatDate(t.created_at)}</TableCell>
+                          <TableCell className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{formatDate(t.created_at)}</TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <Button size="xs" color="light" onClick={() => openDetail(t)}>View</Button>
                           </TableCell>
@@ -201,7 +201,7 @@ export default function StockTransfers() {
       </Card>
 
       {/* Add Modal */}
-      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg">
+      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>New Stock Transfer</ModalHeader>
         <ModalBody>
           <div className="space-y-4">
@@ -271,27 +271,27 @@ export default function StockTransfers() {
       </Modal>
 
       {/* Detail Modal */}
-      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="lg">
+      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Transfer Detail — {selected?.transfer_number || `TRF-${selected?.id}`}</ModalHeader>
         <ModalBody>
           {selected && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
-                  <p className="text-gray-500 text-xs">From</p>
-                  <p className="font-semibold">{selected.from_warehouse_name}</p>
+                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">From</p>
+                  <p className="font-semibold dark:text-[var(--dark-text)]">{selected.from_warehouse_name}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs">To</p>
-                  <p className="font-semibold">{selected.to_warehouse_name}</p>
+                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">To</p>
+                  <p className="font-semibold dark:text-[var(--dark-text)]">{selected.to_warehouse_name}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs">Status</p>
+                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Status</p>
                   <StatusBadge status={selected.status} />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs">Date</p>
-                  <p>{formatDate(selected.created_at)}</p>
+                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Date</p>
+                  <p className="dark:text-[var(--dark-text)]">{formatDate(selected.created_at)}</p>
                 </div>
               </div>
               {/* Status Timeline */}
@@ -303,13 +303,13 @@ export default function StockTransfers() {
                   const done = cur >= stepIdx;
                   return (
                     <div key={s} className="flex items-center gap-2 flex-1">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${done ? 'bg-amber-500 text-white' : 'bg-gray-200 text-gray-400'}`}>
+                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${done ? 'bg-amber-500 text-white' : 'bg-gray-200 dark:bg-[var(--dark-card2)] text-gray-400'}`}>
                         {stepIdx + 1}
                       </div>
-                      <span className={`text-xs capitalize ${done ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
+                      <span className={`text-xs capitalize ${done ? 'text-gray-900 dark:text-[var(--dark-text)] font-medium' : 'text-gray-400 dark:text-[var(--dark-muted)]'}`}>
                         {s.replace(/_/g, ' ')}
                       </span>
-                      {i < 2 && <div className={`flex-1 h-0.5 ${cur > stepIdx ? 'bg-amber-400' : 'bg-gray-200'}`} />}
+                      {i < 2 && <div className={`flex-1 h-0.5 ${cur > stepIdx ? 'bg-amber-400' : 'bg-gray-200 dark:bg-[var(--dark-border)]'}`} />}
                     </div>
                   );
                 })}
@@ -317,8 +317,8 @@ export default function StockTransfers() {
               {/* Items */}
               {(selected.items || []).length > 0 && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Items</p>
-                  <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                  <p className="text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase mb-2">Items</p>
+                  <div className="overflow-x-auto border border-gray-100 dark:border-[var(--dark-border)] rounded-lg">
                     <Table>
                       <TableHead>
                         <TableHeadCell>Product</TableHeadCell>

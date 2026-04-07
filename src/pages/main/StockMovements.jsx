@@ -163,8 +163,8 @@ export default function StockMovements() {
               ) : (
                 movements.map((m) => (
                   <TableRow key={m.id} className="hover:bg-amber-50/20">
-                    <TableCell className="text-xs text-gray-600">{formatDateTime(m.created_at)}</TableCell>
-                    <TableCell className="font-medium text-gray-900 text-xs">{m.product_name}</TableCell>
+                    <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{formatDateTime(m.created_at)}</TableCell>
+                    <TableCell className="font-medium text-gray-900 dark:text-[var(--dark-text)] text-xs">{m.product_name}</TableCell>
                     <TableCell className="text-xs">{m.warehouse_name}</TableCell>
                     <TableCell>{typeSpan(m.movement_type)}</TableCell>
                     <TableCell>
@@ -174,8 +174,8 @@ export default function StockMovements() {
                     </TableCell>
                     <TableCell className="text-xs">{m.stock_before ?? '—'}</TableCell>
                     <TableCell className="text-xs">{m.stock_after ?? '—'}</TableCell>
-                    <TableCell className="text-xs font-mono text-gray-500">{m.reference_id || '—'}</TableCell>
-                    <TableCell className="text-xs text-gray-500 max-w-xs truncate">{m.notes || '—'}</TableCell>
+                    <TableCell className="text-xs font-mono text-gray-500 dark:text-[var(--dark-muted)]">{m.reference_id || '—'}</TableCell>
+                    <TableCell className="text-xs text-gray-500 dark:text-[var(--dark-muted)] max-w-xs truncate">{m.notes || '—'}</TableCell>
                   </TableRow>
                 ))
               )}

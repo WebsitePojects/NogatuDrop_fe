@@ -138,13 +138,13 @@ export default function StockistMobileStockists() {
   );
 
   return (
-    <div className="p-4 md:p-6 min-h-screen page-enter" style={{ background: '#FFF8F0' }}>
+    <div className="p-4 md:p-6 min-h-screen page-enter bg-[#FFF8F0] dark:bg-[var(--dark-bg)]">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Mobile Stockists</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Manage Mobile Stockists under your territory</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)]">Mobile Stockists</h1>
+          <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)] mt-0.5">Manage Mobile Stockists under your territory</p>
         </div>
         <Button color="warning" onClick={openAdd}>
           <HiPlus className="mr-2 w-4 h-4" />
@@ -163,7 +163,7 @@ export default function StockistMobileStockists() {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-[var(--dark-card)] rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex justify-center py-16"><Spinner size="xl" color="warning" /></div>
         ) : items.length === 0 ? (
@@ -178,10 +178,10 @@ export default function StockistMobileStockists() {
           <>
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
-                <thead className="bg-gray-50 border-b border-gray-100">
+                <thead className="bg-gray-50 dark:bg-[var(--dark-card)] border-b border-gray-100 dark:border-[var(--dark-border)]">
                   <tr>
                     {['Name', 'Email', 'Phone', 'Region', 'Status', 'Joined', ''].map(h => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide">
                         {h}
                       </th>
                     ))}
@@ -189,17 +189,17 @@ export default function StockistMobileStockists() {
                 </thead>
                 <tbody>
                   {items.map(item => (
-                    <tr key={item.id} className="border-b border-gray-50 hover:bg-amber-50/30 transition-colors">
+                    <tr key={item.id} className="border-b border-gray-50 dark:border-[var(--dark-border)] hover:bg-amber-50/30 dark:hover:bg-[var(--dark-card2)] transition-colors">
                       <td className="px-4 py-3">
-                        <p className="font-semibold text-gray-800">{item.name}</p>
+                        <p className="font-semibold text-gray-800 dark:text-[var(--dark-text)]">{item.name}</p>
                       </td>
-                      <td className="px-4 py-3 text-gray-600 text-sm">{item.email}</td>
-                      <td className="px-4 py-3 text-gray-600 text-sm">{item.phone || '—'}</td>
-                      <td className="px-4 py-3 text-gray-600 text-sm">{item.region || '—'}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-sm">{item.email}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-sm">{item.phone || '—'}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-sm">{item.region || '—'}</td>
                       <td className="px-4 py-3">
                         <StatusBadge status={item.status || 'active'} />
                       </td>
-                      <td className="px-4 py-3 text-xs text-gray-400">{formatDate(item.created_at)}</td>
+                      <td className="px-4 py-3 text-xs text-gray-400 dark:text-[var(--dark-muted)]">{formatDate(item.created_at)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <button
@@ -235,7 +235,7 @@ export default function StockistMobileStockists() {
       </div>
 
       {/* Add/Edit Modal */}
-      <Modal show={!!modal} onClose={closeModal} size="md">
+      <Modal show={!!modal} onClose={closeModal} size="md" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>{modal === 'edit' ? 'Edit Mobile Stockist' : 'Add Mobile Stockist'}</ModalHeader>
         <ModalBody className="space-y-4">
           {f('Full Name', 'name', 'text', true)}

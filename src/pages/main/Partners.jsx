@@ -234,8 +234,8 @@ export default function Partners() {
               ) : (
                 partners.map((p) => (
                   <TableRow key={p.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(p)}>
-                    <TableCell className="font-medium text-gray-900">{p.business_name}</TableCell>
-                    <TableCell className="text-xs text-gray-600">{p.email}</TableCell>
+                    <TableCell className="font-medium text-gray-900 dark:text-[var(--dark-text)]">{p.business_name}</TableCell>
+                    <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{p.email}</TableCell>
                     <TableCell className="text-xs">{p.phone || '—'}</TableCell>
                     <TableCell className="text-xs">{p.region || '—'}</TableCell>
                     <TableCell>{levelBadge(p.stockist_level)}</TableCell>
@@ -265,7 +265,7 @@ export default function Partners() {
       </Card>
 
       {/* Add Modal */}
-      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg">
+      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Add Stockist</ModalHeader>
         <ModalBody><PartnerFormFields /></ModalBody>
         <ModalFooter>
@@ -275,7 +275,7 @@ export default function Partners() {
       </Modal>
 
       {/* Edit Modal */}
-      <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
+      <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Edit Stockist — {selected?.business_name}</ModalHeader>
         <ModalBody><PartnerFormFields /></ModalBody>
         <ModalFooter>
@@ -285,19 +285,19 @@ export default function Partners() {
       </Modal>
 
       {/* Detail Modal */}
-      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="md">
+      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="md" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>{selected?.business_name}</ModalHeader>
         <ModalBody>
           {selected && (
             <div className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-3">
-                <div><p className="text-gray-500 text-xs">Email</p><p className="font-semibold">{selected.email}</p></div>
-                <div><p className="text-gray-500 text-xs">Phone</p><p>{selected.phone || '—'}</p></div>
-                <div><p className="text-gray-500 text-xs">Level</p>{levelBadge(selected.stockist_level)}</div>
-                <div><p className="text-gray-500 text-xs">Region</p><p>{selected.region || '—'}</p></div>
-                <div><p className="text-gray-500 text-xs">Discount</p><p className="font-bold text-amber-600">{selected.discount_pct ?? 0}%</p></div>
-                <div><p className="text-gray-500 text-xs">Status</p><StatusBadge status={selected.is_active ? 'active' : 'inactive'} /></div>
-                <div className="col-span-2"><p className="text-gray-500 text-xs">Address</p><p>{selected.address || '—'}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Email</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.email}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Phone</p><p className="dark:text-[var(--dark-text)]">{selected.phone || '—'}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Level</p>{levelBadge(selected.stockist_level)}</div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Region</p><p className="dark:text-[var(--dark-text)]">{selected.region || '—'}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Discount</p><p className="font-bold text-amber-600">{selected.discount_pct ?? 0}%</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Status</p><StatusBadge status={selected.is_active ? 'active' : 'inactive'} /></div>
+                <div className="col-span-2"><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Address</p><p className="dark:text-[var(--dark-text)]">{selected.address || '—'}</p></div>
               </div>
             </div>
           )}
@@ -310,7 +310,7 @@ export default function Partners() {
       </Modal>
 
       {/* Discount Modal */}
-      <Modal show={showDiscountModal} onClose={() => setShowDiscountModal(false)} size="sm">
+      <Modal show={showDiscountModal} onClose={() => setShowDiscountModal(false)} size="sm" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Update Discount — {selected?.business_name}</ModalHeader>
         <ModalBody>
           <Label value="Discount Percentage (%)" className="mb-1" />
@@ -323,7 +323,7 @@ export default function Partners() {
             onChange={(e) => setDiscountVal(e.target.value)}
             placeholder="0"
           />
-          <p className="text-xs text-gray-500 mt-2">
+          <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)] mt-2">
             Applied at checkout: partner_price × (1 − discount / 100)
           </p>
         </ModalBody>

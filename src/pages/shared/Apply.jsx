@@ -70,7 +70,7 @@ export default function Apply() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-12" style={{ colorScheme: 'light' }}>
         <div className="bg-white rounded-2xl shadow-lg p-10 max-w-md w-full text-center">
           <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <HiCheck className="w-9 h-9 text-emerald-500" />
@@ -100,7 +100,7 @@ export default function Apply() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-10 px-4">
+    <div className="min-h-screen bg-gray-50 py-10 px-4" style={{ colorScheme: 'light' }}>
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <div className="max-w-2xl mx-auto">

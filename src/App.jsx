@@ -179,7 +179,9 @@ const AppRoutes = () => {
         path="/mobile/*"
         element={
           <ProtectedRoute allowedRoles={[ROLE_SLUGS.MOBILE_STOCKIST]}>
-            <MobileLayout />
+            <CartProvider>
+              <MobileLayout />
+            </CartProvider>
           </ProtectedRoute>
         }
       >

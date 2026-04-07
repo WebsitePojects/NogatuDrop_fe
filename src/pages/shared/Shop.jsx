@@ -97,7 +97,7 @@ export default function Shop() {
 
   if (step === 'success') {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4" style={{ colorScheme: 'light' }}>
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-10 max-w-md w-full text-center">
           <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <HiCheckCircle className="w-9 h-9 text-emerald-500" />
@@ -125,7 +125,7 @@ export default function Shop() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50" style={{ colorScheme: 'light' }}>
       {/* Header */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-30 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">

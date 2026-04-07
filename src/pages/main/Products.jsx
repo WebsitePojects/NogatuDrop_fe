@@ -225,7 +225,7 @@ export default function Products() {
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="bg-white rounded-xl border border-gray-100 p-3">
+            <div key={i} className="bg-white dark:bg-[var(--dark-card)] rounded-xl border border-gray-100 dark:border-[var(--dark-border)] p-3">
               <div className="skeleton h-36 w-full rounded-lg mb-3" />
               <div className="skeleton h-4 w-3/4 rounded mb-2" />
               <div className="skeleton h-3 w-1/2 rounded" />
@@ -245,17 +245,18 @@ export default function Products() {
           {products.map((p) => (
             <div
               key={p.id}
-              className="bg-white rounded-xl border border-gray-100 p-3 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all"
+              className="bg-white dark:bg-[var(--dark-card)] rounded-xl border border-gray-100 dark:border-[var(--dark-border)] p-3 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all"
               onClick={() => openDetail(p)}
             >
               <div className="relative">
-                {p.image_url ? (
-                  <img src={p.image_url} alt={p.name} className="w-full h-36 object-cover rounded-lg" />
-                ) : (
-                  <div className="w-full h-36 rounded-lg bg-amber-50 flex items-center justify-center">
-                    <HiOutlineTag className="w-10 h-10 text-amber-300" />
-                  </div>
-                )}
+                <img
+                  src={p.image_url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%231e1613'/%3E%3Crect x='60' y='60' width='80' height='80' rx='8' fill='%23271c18'/%3E%3Cpath d='M85 95 L100 75 L115 95 L130 110 H70 Z' fill='%23B85C00' opacity='0.6'/%3E%3Ccircle cx='115' cy='82' r='8' fill='%23B85C00' opacity='0.5'/%3E%3C/svg%3E"}
+                  alt={p.name}
+                  className="w-full h-36 object-cover rounded-lg"
+                  onError={(e) => {
+                    e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%231e1613'/%3E%3Crect x='60' y='60' width='80' height='80' rx='8' fill='%23271c18'/%3E%3Cpath d='M85 95 L100 75 L115 95 L130 110 H70 Z' fill='%23B85C00' opacity='0.6'/%3E%3Ccircle cx='115' cy='82' r='8' fill='%23B85C00' opacity='0.5'/%3E%3C/svg%3E";
+                  }}
+                />
                 {!p.is_active && (
                   <span className="absolute top-2 right-2 bg-gray-700 text-white text-xs px-1.5 py-0.5 rounded">
                     Inactive
@@ -263,10 +264,10 @@ export default function Products() {
                 )}
               </div>
               <div className="mt-2">
-                <p className="text-sm font-semibold text-gray-900 truncate">{p.name}</p>
-                <p className="text-xs text-gray-500 mt-0.5">{p.sku} · {p.category}</p>
+                <p className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)] truncate">{p.name}</p>
+                <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)] mt-0.5">{p.sku} · {p.category}</p>
                 <div className="flex justify-between items-center mt-1.5">
-                  <span className="text-xs text-gray-500">Partner: {formatCurrency(p.partner_price)}</span>
+                  <span className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Partner: {formatCurrency(p.partner_price)}</span>
                 </div>
                 <p className="text-xs font-medium text-amber-600">{formatCurrency(p.retail_price)}</p>
               </div>
@@ -282,7 +283,7 @@ export default function Products() {
       )}
 
       {/* Add Modal */}
-      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg">
+      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Add New Product</ModalHeader>
         <ModalBody><ProductFormFields /></ModalBody>
         <ModalFooter>
@@ -292,7 +293,7 @@ export default function Products() {
       </Modal>
 
       {/* Detail/Edit Modal */}
-      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="lg">
+      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>
           {isEditing ? `Edit — ${selected?.name}` : selected?.name}
         </ModalHeader>
@@ -303,35 +304,36 @@ export default function Products() {
             selected && (
               <div className="space-y-4">
                 <div className="flex gap-4">
-                  {selected.image_url ? (
-                    <img src={selected.image_url} alt={selected.name} className="w-28 h-28 object-cover rounded-xl border" />
-                  ) : (
-                    <div className="w-28 h-28 bg-amber-50 rounded-xl border flex items-center justify-center">
-                      <HiOutlineTag className="w-10 h-10 text-amber-300" />
-                    </div>
-                  )}
+                  <img
+                    src={selected.image_url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%231e1613'/%3E%3Crect x='60' y='60' width='80' height='80' rx='8' fill='%23271c18'/%3E%3Cpath d='M85 95 L100 75 L115 95 L130 110 H70 Z' fill='%23B85C00' opacity='0.6'/%3E%3Ccircle cx='115' cy='82' r='8' fill='%23B85C00' opacity='0.5'/%3E%3C/svg%3E"}
+                    alt={selected.name}
+                    className="w-28 h-28 object-cover rounded-xl border"
+                    onError={(e) => {
+                      e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%231e1613'/%3E%3Crect x='60' y='60' width='80' height='80' rx='8' fill='%23271c18'/%3E%3Cpath d='M85 95 L100 75 L115 95 L130 110 H70 Z' fill='%23B85C00' opacity='0.6'/%3E%3Ccircle cx='115' cy='82' r='8' fill='%23B85C00' opacity='0.5'/%3E%3C/svg%3E";
+                    }}
+                  />
                   <div className="flex-1 space-y-1">
-                    <p className="text-lg font-bold text-gray-900">{selected.name}</p>
-                    <p className="text-sm text-gray-500">SKU: <span className="font-mono">{selected.sku}</span></p>
-                    <p className="text-sm text-gray-500">Category: {selected.category}</p>
-                    <p className="text-sm text-gray-500">Unit: {selected.unit}</p>
+                    <p className="text-lg font-bold text-gray-900 dark:text-[var(--dark-text)]">{selected.name}</p>
+                    <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)]">SKU: <span className="font-mono">{selected.sku}</span></p>
+                    <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)]">Category: {selected.category}</p>
+                    <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)]">Unit: {selected.unit}</p>
                     <span className={`badge-${selected.is_active ? 'active' : 'inactive'}`}>
                       {selected.is_active ? 'Active' : 'Inactive'}
                     </span>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 p-3 bg-amber-50 rounded-lg">
+                <div className="grid grid-cols-2 gap-4 p-3 bg-amber-50 dark:bg-[var(--dark-card2)] rounded-lg">
                   <div>
-                    <p className="text-xs text-gray-500">Retail Price</p>
+                    <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Retail Price</p>
                     <p className="font-bold text-amber-700">{formatCurrency(selected.retail_price)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500">Partner Price</p>
-                    <p className="font-bold text-gray-900">{formatCurrency(selected.partner_price)}</p>
+                    <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Partner Price</p>
+                    <p className="font-bold text-gray-900 dark:text-[var(--dark-text)]">{formatCurrency(selected.partner_price)}</p>
                   </div>
                 </div>
                 {selected.description && (
-                  <p className="text-sm text-gray-600">{selected.description}</p>
+                  <p className="text-sm text-gray-600 dark:text-[var(--dark-muted)]">{selected.description}</p>
                 )}
               </div>
             )

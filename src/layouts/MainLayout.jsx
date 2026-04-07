@@ -92,8 +92,22 @@ export default function MainLayout() {
     .flatMap((g) => g.items)
     .find((i) => location.pathname.startsWith(i.path))?.label || '';
 
+  /* Warm charcoal palette — complements brown #1C0A00 sidebar */
+  const darkVars = dark ? {
+    '--dark-bg':     '#1e1613',
+    '--dark-card':   '#271c18',
+    '--dark-card2':  '#2e221e',
+    '--dark-border': '#3d2e28',
+    '--dark-topbar': '#221a16',
+    '--dark-text':   '#f5ebe3',
+    '--dark-muted':  '#9e8a7e',
+  } : {};
+
   return (
-    <div className={`flex min-h-screen ${dark ? 'dark' : ''}`} style={{ background: dark ? '#0f1117' : 'var(--main-bg)' }}>
+    <div
+      className={`flex min-h-screen ${dark ? 'dark' : ''}`}
+      style={{ background: dark ? '#1e1613' : 'var(--main-bg)', ...darkVars }}
+    >
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -168,8 +182,8 @@ export default function MainLayout() {
         <header
           className="portal-topbar"
           style={{
-            borderColor: dark ? '#374151' : 'var(--main-border)',
-            background: dark ? '#1f2937' : '#fff',
+            borderColor: dark ? '#3d2e28' : 'var(--main-border)',
+            background: dark ? '#221a16' : '#fff',
           }}
         >
           <button
@@ -248,7 +262,7 @@ export default function MainLayout() {
 
         <main
           className="flex-1 p-4 md:p-5 page-enter"
-          style={{ background: dark ? '#0f1117' : 'var(--main-bg)' }}
+          style={{ background: dark ? '#1e1613' : 'var(--main-bg)' }}
         >
           <Outlet />
         </main>

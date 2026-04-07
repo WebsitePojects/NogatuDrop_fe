@@ -125,7 +125,7 @@ export default function Couriers() {
       </div>
       <label className="flex items-center gap-2 cursor-pointer">
         <input type="checkbox" checked={form.is_active} onChange={fld('is_active')} className="w-4 h-4 text-amber-500" />
-        <span className="text-sm font-medium text-gray-700">Active</span>
+        <span className="text-sm font-medium text-gray-700 dark:text-[var(--dark-text)]">Active</span>
       </label>
     </div>
   );
@@ -139,9 +139,9 @@ export default function Couriers() {
       />
 
       {/* Info Banner */}
-      <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl mb-5">
+      <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-[var(--dark-card2)] border border-amber-200 dark:border-[var(--dark-border)] rounded-xl mb-5">
         <HiInformationCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-        <p className="text-sm text-amber-800">
+        <p className="text-sm text-amber-800 dark:text-amber-300">
           Couriers are third-party delivery partners (J&T, LBC, Flash Express, etc.) assigned to orders when generating delivery magic links.
           No employed riders — all deliveries are via courier partnerships.
         </p>
@@ -181,7 +181,7 @@ export default function Couriers() {
                 ) : (
                   couriers.map((c) => (
                     <TableRow key={c.id} className="hover:bg-amber-50/30">
-                      <TableCell className="font-semibold text-gray-900">{c.name}</TableCell>
+                      <TableCell className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{c.name}</TableCell>
                       <TableCell className="font-mono text-xs">{c.code || '—'}</TableCell>
                       <TableCell className="text-xs">
                         <div>{c.contact_name || '—'}</div>
@@ -217,7 +217,7 @@ export default function Couriers() {
       </Card>
 
       {/* Add Modal */}
-      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg">
+      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Add Courier</ModalHeader>
         <ModalBody><FormFields /></ModalBody>
         <ModalFooter>
@@ -227,7 +227,7 @@ export default function Couriers() {
       </Modal>
 
       {/* Edit Modal */}
-      <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
+      <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Edit Courier — {selected?.name}</ModalHeader>
         <ModalBody><FormFields /></ModalBody>
         <ModalFooter>

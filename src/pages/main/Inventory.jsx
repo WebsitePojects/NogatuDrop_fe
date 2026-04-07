@@ -5,6 +5,10 @@ import {
   Card, Spinner, TextInput, Select, Label, Badge, Pagination,
 } from 'flowbite-react';
 import { HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineAdjustments } from 'react-icons/hi';
+// TODO: run `npm install xlsx jspdf jspdf-autotable` in NogatuDrop_fe
+import * as XLSX from 'xlsx';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import api from '@/services/api';
 import { INVENTORY, WAREHOUSES, PRODUCTS } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
@@ -150,6 +154,47 @@ export default function Inventory() {
     }
   };
 
+  const exportExcel = () => {
+    const rows = items.map((item) => ({
+      'Product': item.product_name,
+      'SKU': item.sku,
+      'Warehouse': item.warehouse_name,
+      'Current Stock': item.current_stock,
+      'Reserved': item.reserved_stock ?? 0,
+      'Available': (item.current_stock ?? 0) - (item.reserved_stock ?? 0),
+      'Status': item.status,
+      'Warning Threshold': item.warning_threshold,
+    }));
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+    XLSX.writeFile(wb, `inventory_${new Date().toISOString().slice(0, 10)}.xlsx`);
+  };
+
+  const exportPDF = () => {
+    const doc = new jsPDF();
+    doc.setFontSize(14);
+    doc.text('Inventory Report', 14, 15);
+    doc.setFontSize(9);
+    doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 22);
+    doc.autoTable({
+      startY: 28,
+      head: [['Product', 'SKU', 'Warehouse', 'Stock', 'Reserved', 'Available', 'Status']],
+      body: items.map((item) => [
+        item.product_name,
+        item.sku || '-',
+        item.warehouse_name || '-',
+        item.current_stock,
+        item.reserved_stock ?? 0,
+        (item.current_stock ?? 0) - (item.reserved_stock ?? 0),
+        item.status || '-',
+      ]),
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [61, 24, 0] },
+    });
+    doc.save(`inventory_${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
   const fld = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const stockStatusBadge = (item) => {
@@ -193,6 +238,12 @@ export default function Inventory() {
             <option value="low_stock">Low Stock</option>
             <option value="out_of_stock">Out of Stock</option>
           </Select>
+          <Button size="sm" color="success" onClick={exportExcel} disabled={items.length === 0}>
+            Export Excel
+          </Button>
+          <Button size="sm" color="failure" onClick={exportPDF} disabled={items.length === 0}>
+            Export PDF
+          </Button>
         </div>
 
         {/* Table */}

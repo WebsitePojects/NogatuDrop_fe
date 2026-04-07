@@ -201,7 +201,7 @@ export default function Orders() {
                     ) : (
                       orders.map((order) => (
                         <TableRow key={order.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(order)}>
-                          <TableCell className="font-mono font-medium text-gray-900 text-xs">
+                          <TableCell className="font-mono font-medium text-gray-900 dark:text-[var(--dark-text)] text-xs">
                             {order.order_number}
                           </TableCell>
                           <TableCell className="text-xs">{order.partner_name || order.business_name || 'N/A'}</TableCell>
@@ -220,7 +220,7 @@ export default function Orders() {
                               </span>
                             ) : '—'}
                           </TableCell>
-                          <TableCell className="text-xs text-gray-500">{formatDate(order.created_at)}</TableCell>
+                          <TableCell className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{formatDate(order.created_at)}</TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <Button size="xs" color="light" onClick={() => openDetail(order)}>
                               <HiOutlineEye className="w-3.5 h-3.5" />
@@ -243,7 +243,7 @@ export default function Orders() {
       </Card>
 
       {/* Detail Modal */}
-      <Modal show={showDetail} onClose={() => setShowDetail(false)} size="2xl">
+      <Modal show={showDetail} onClose={() => setShowDetail(false)} size="2xl" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>
           Order Details {selectedOrder ? `— ${selectedOrder.order_number}` : ''}
         </ModalHeader>
@@ -257,24 +257,24 @@ export default function Orders() {
               {/* Header info */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-gray-500 text-xs mb-0.5">Stockist</p>
-                  <p className="font-semibold text-gray-900">{selectedOrder.partner_name || selectedOrder.business_name || 'N/A'}</p>
+                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs mb-0.5">Stockist</p>
+                  <p className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{selectedOrder.partner_name || selectedOrder.business_name || 'N/A'}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs mb-0.5">Date Ordered</p>
-                  <p className="font-semibold text-gray-900">{formatDateTime(selectedOrder.created_at)}</p>
+                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs mb-0.5">Date Ordered</p>
+                  <p className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{formatDateTime(selectedOrder.created_at)}</p>
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs mb-0.5">Order Status</p>
+                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs mb-0.5">Order Status</p>
                   <StatusBadge status={selectedOrder.status} />
                 </div>
                 <div>
-                  <p className="text-gray-500 text-xs mb-0.5">Payment Status</p>
+                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs mb-0.5">Payment Status</p>
                   <StatusBadge status={selectedOrder.payment_status || 'unpaid'} />
                 </div>
                 {selectedOrder.payment_deadline && (
                   <div>
-                    <p className="text-gray-500 text-xs mb-0.5">Payment Deadline</p>
+                    <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs mb-0.5">Payment Deadline</p>
                     <p className="font-semibold text-amber-700 flex items-center gap-1">
                       <HiOutlineClock className="w-3.5 h-3.5" />
                       {formatDateTime(selectedOrder.payment_deadline)}
@@ -285,8 +285,8 @@ export default function Orders() {
 
               {/* Items table */}
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Order Items</p>
-                <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                <p className="text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase mb-2">Order Items</p>
+                <div className="overflow-x-auto border border-gray-100 dark:border-[var(--dark-border)] rounded-lg">
                   <Table>
                     <TableHead>
                       <TableHeadCell>Product</TableHeadCell>
@@ -307,7 +307,7 @@ export default function Orders() {
                   </Table>
                 </div>
                 <div className="flex justify-end mt-2">
-                  <p className="text-base font-bold text-gray-900">
+                  <p className="text-base font-bold text-gray-900 dark:text-[var(--dark-text)]">
                     Total: {formatCurrency(selectedOrder.total_amount)}
                   </p>
                 </div>
@@ -316,7 +316,7 @@ export default function Orders() {
               {/* Payment proof */}
               {selectedOrder.payment_proof_url && (
                 <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase mb-2">Payment Proof</p>
+                  <p className="text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase mb-2">Payment Proof</p>
                   <a href={selectedOrder.payment_proof_url} target="_blank" rel="noopener noreferrer"
                     className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:underline">
                     <HiOutlinePhotograph className="w-4 h-4" />
@@ -382,7 +382,7 @@ export default function Orders() {
       />
 
       {/* Reject Modal */}
-      <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} size="md">
+      <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} size="md" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Reject Order</ModalHeader>
         <ModalBody>
           <Label htmlFor="rejectReason" value="Reason for rejection (optional)" className="mb-2" />

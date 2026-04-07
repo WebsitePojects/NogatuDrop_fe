@@ -136,11 +136,11 @@ export default function BankAccounts() {
       <div className="col-span-2 flex gap-6">
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={form.is_default} onChange={fld('is_default')} className="w-4 h-4 text-amber-500" />
-          <span className="text-sm font-medium text-gray-700">Set as Default Account</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-[var(--dark-text)]">Set as Default Account</span>
         </label>
         <label className="flex items-center gap-2 cursor-pointer">
           <input type="checkbox" checked={form.is_active} onChange={fld('is_active')} className="w-4 h-4 text-amber-500" />
-          <span className="text-sm font-medium text-gray-700">Active</span>
+          <span className="text-sm font-medium text-gray-700 dark:text-[var(--dark-text)]">Active</span>
         </label>
       </div>
     </div>
@@ -155,9 +155,9 @@ export default function BankAccounts() {
       />
 
       {/* Info Banner */}
-      <div className="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl mb-5">
+      <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-[var(--dark-card2)] border border-amber-200 dark:border-[var(--dark-border)] rounded-xl mb-5">
         <HiInformationCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-        <p className="text-sm text-amber-800">
+        <p className="text-sm text-amber-800 dark:text-amber-300">
           Bank accounts are used to route payment instructions to the correct account when a stockist order is approved.
           Each warehouse can have its own bank account. If no warehouse is assigned, the account acts as the company default.
         </p>
@@ -198,10 +198,10 @@ export default function BankAccounts() {
                 ) : (
                   accounts.map((a) => (
                     <TableRow key={a.id} className="hover:bg-amber-50/30">
-                      <TableCell className="font-semibold text-gray-900">{a.bank_name}</TableCell>
+                      <TableCell className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{a.bank_name}</TableCell>
                       <TableCell>{a.account_name}</TableCell>
                       <TableCell className="font-mono text-sm">{a.account_number}</TableCell>
-                      <TableCell className="text-xs text-gray-600">{a.warehouse_name || <span className="text-gray-400">Default</span>}</TableCell>
+                      <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{a.warehouse_name || <span className="text-gray-400 dark:text-[var(--dark-muted)]">Default</span>}</TableCell>
                       <TableCell>
                         {a.is_default ? (
                           <span className="badge-paid">Default</span>
@@ -234,7 +234,7 @@ export default function BankAccounts() {
       </Card>
 
       {/* Add Modal */}
-      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg">
+      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Add Bank Account</ModalHeader>
         <ModalBody><FormFields /></ModalBody>
         <ModalFooter>
@@ -244,7 +244,7 @@ export default function BankAccounts() {
       </Modal>
 
       {/* Edit Modal */}
-      <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg">
+      <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Edit Bank Account</ModalHeader>
         <ModalBody><FormFields /></ModalBody>
         <ModalFooter>

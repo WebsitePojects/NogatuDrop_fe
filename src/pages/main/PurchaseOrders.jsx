@@ -179,7 +179,7 @@ export default function PurchaseOrders() {
                             ) : <span className="text-gray-400 text-xs">Manual</span>}
                           </TableCell>
                           <TableCell className="font-semibold text-xs">{formatCurrency(o.total_amount || 0)}</TableCell>
-                          <TableCell className="text-xs text-gray-500">{formatDate(o.created_at)}</TableCell>
+                          <TableCell className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{formatDate(o.created_at)}</TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <Button size="xs" color="light" onClick={() => openDetail(o)}>View</Button>
                           </TableCell>
@@ -200,7 +200,7 @@ export default function PurchaseOrders() {
       </Card>
 
       {/* Add Modal */}
-      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg">
+      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Create Purchase Order</ModalHeader>
         <ModalBody>
           <div className="space-y-4">
@@ -242,7 +242,7 @@ export default function PurchaseOrders() {
                 ))}
               </div>
               <div className="flex justify-end mt-2">
-                <p className="text-sm font-bold text-gray-900">Total: {formatCurrency(itemsTotal)}</p>
+                <p className="text-sm font-bold text-gray-900 dark:text-[var(--dark-text)]">Total: {formatCurrency(itemsTotal)}</p>
               </div>
             </div>
             <div>
@@ -258,19 +258,19 @@ export default function PurchaseOrders() {
       </Modal>
 
       {/* Detail Modal */}
-      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="lg">
+      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>PO Detail — {selected?.po_number || `PO-${selected?.id}`}</ModalHeader>
         <ModalBody>
           {selected && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><p className="text-gray-500 text-xs">Supplier</p><p className="font-semibold">{selected.supplier}</p></div>
-                <div><p className="text-gray-500 text-xs">Status</p><StatusBadge status={selected.status} /></div>
-                <div><p className="text-gray-500 text-xs">Date</p><p>{formatDate(selected.created_at)}</p></div>
-                <div><p className="text-gray-500 text-xs">Warehouse</p><p className="font-semibold">{selected.warehouse_name || '—'}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Supplier</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.supplier}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Status</p><StatusBadge status={selected.status} /></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Date</p><p className="dark:text-[var(--dark-text)]">{formatDate(selected.created_at)}</p></div>
+                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Warehouse</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.warehouse_name || '—'}</p></div>
               </div>
               {(selected.items || []).length > 0 && (
-                <div className="overflow-x-auto border border-gray-100 rounded-lg">
+                <div className="overflow-x-auto border border-gray-100 dark:border-[var(--dark-border)] rounded-lg">
                   <Table>
                     <TableHead>
                       <TableHeadCell>Product</TableHeadCell>

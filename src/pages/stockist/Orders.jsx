@@ -152,12 +152,12 @@ export default function StockistOrders() {
       <div className="overflow-x-auto">
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-gray-100 bg-gray-50">
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Order #</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Total</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Payment</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Date</th>
+            <tr className="border-b border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card)]">
+              <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide">Order #</th>
+              <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide">Total</th>
+              <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide">Status</th>
+              <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide">Payment</th>
+              <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide">Date</th>
               <th className="py-2.5 px-4" />
             </tr>
           </thead>
@@ -168,10 +168,10 @@ export default function StockistOrders() {
                 className="border-b border-gray-50 hover:bg-amber-50/40 cursor-pointer transition-colors"
                 onClick={() => openDetail(order)}
               >
-                <td className="py-3 px-4 font-mono font-semibold text-xs text-gray-800">
+                <td className="py-3 px-4 font-mono font-semibold text-xs text-gray-800 dark:text-[var(--dark-text)]">
                   #{order.order_number || order.id}
                 </td>
-                <td className="py-3 px-4 font-semibold text-gray-900">
+                <td className="py-3 px-4 font-semibold text-gray-900 dark:text-[var(--dark-text)]">
                   {formatCurrency(order.total_amount)}
                 </td>
                 <td className="py-3 px-4">
@@ -180,7 +180,7 @@ export default function StockistOrders() {
                 <td className="py-3 px-4">
                   <StatusBadge status={order.payment_status || 'unpaid'} />
                 </td>
-                <td className="py-3 px-4 text-gray-500 text-xs">
+                <td className="py-3 px-4 text-gray-500 dark:text-[var(--dark-muted)] text-xs">
                   {formatDate(order.created_at)}
                 </td>
                 <td className="py-3 px-4">
@@ -199,22 +199,22 @@ export default function StockistOrders() {
   const detail = orderDetail || selectedOrder;
 
   return (
-    <div className="p-4 md:p-6 min-h-screen page-enter" style={{ background: '#FFF8F0' }}>
+    <div className="p-4 md:p-6 min-h-screen page-enter bg-[#FFF8F0] dark:bg-[var(--dark-bg)]">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)] flex items-center gap-2">
           <HiShoppingCart className="text-amber-500" />
           My Orders
         </h1>
-        <p className="text-sm text-gray-500 mt-0.5">Track and manage your orders</p>
+        <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)] mt-0.5">Track and manage your orders</p>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-[var(--dark-card)] rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] shadow-sm overflow-hidden">
         <Tabs
           aria-label="Orders tabs"
-          style="underline"
+          variant="underline"
           onActiveTabChange={idx => {
             const keys = Object.keys(TAB_STATUSES);
             setActiveTab(keys[idx]);
@@ -243,7 +243,7 @@ export default function StockistOrders() {
       </div>
 
       {/* Order Detail Modal */}
-      <Modal show={!!selectedOrder} onClose={closeDetail} size="xl">
+      <Modal show={!!selectedOrder} onClose={closeDetail} size="xl" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>
           Order Details
           {detail && (
@@ -272,42 +272,42 @@ export default function StockistOrders() {
                   { label: 'Status', value: <StatusBadge status={detail.status} /> },
                   { label: 'Payment', value: <StatusBadge status={detail.payment_status || 'unpaid'} /> },
                 ].map(({ label, value }) => (
-                  <div key={label} className="bg-gray-50 rounded-xl p-3">
-                    <p className="text-xs text-gray-500 mb-0.5">{label}</p>
-                    <div className="font-semibold text-sm text-gray-900">{value}</div>
+                  <div key={label} className="bg-gray-50 dark:bg-[var(--dark-card2)] rounded-xl p-3">
+                    <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)] mb-0.5">{label}</p>
+                    <div className="font-semibold text-sm text-gray-900 dark:text-[var(--dark-text)]">{value}</div>
                   </div>
                 ))}
               </div>
 
               {/* Items */}
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">Order Items</h3>
+                <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-2">Order Items</h3>
                 {(!detail.items || detail.items.length === 0) ? (
-                  <p className="text-sm text-gray-400 bg-gray-50 rounded-xl px-4 py-3">No items found</p>
+                  <p className="text-sm text-gray-400 bg-gray-50 dark:bg-[var(--dark-card2)] rounded-xl px-4 py-3">No items found</p>
                 ) : (
-                  <div className="border border-gray-100 rounded-xl overflow-hidden">
+                  <div className="border border-gray-100 dark:border-[var(--dark-border)] rounded-xl overflow-hidden">
                     <table className="w-full text-sm">
-                      <thead className="bg-gray-50">
+                      <thead className="bg-gray-50 dark:bg-[var(--dark-card)]">
                         <tr>
-                          <th className="text-left px-4 py-2.5 text-xs text-gray-500 font-semibold">Product</th>
-                          <th className="text-center px-4 py-2.5 text-xs text-gray-500 font-semibold">Qty</th>
-                          <th className="text-right px-4 py-2.5 text-xs text-gray-500 font-semibold">Price</th>
-                          <th className="text-right px-4 py-2.5 text-xs text-gray-500 font-semibold">Subtotal</th>
+                          <th className="text-left px-4 py-2.5 text-xs text-gray-500 dark:text-[var(--dark-muted)] font-semibold">Product</th>
+                          <th className="text-center px-4 py-2.5 text-xs text-gray-500 dark:text-[var(--dark-muted)] font-semibold">Qty</th>
+                          <th className="text-right px-4 py-2.5 text-xs text-gray-500 dark:text-[var(--dark-muted)] font-semibold">Price</th>
+                          <th className="text-right px-4 py-2.5 text-xs text-gray-500 dark:text-[var(--dark-muted)] font-semibold">Subtotal</th>
                         </tr>
                       </thead>
                       <tbody>
                         {detail.items.map((item, i) => (
-                          <tr key={i} className="border-t border-gray-50">
-                            <td className="px-4 py-2.5 font-medium text-gray-800">{item.product_name}</td>
-                            <td className="px-4 py-2.5 text-center text-gray-600">{item.quantity}</td>
-                            <td className="px-4 py-2.5 text-right text-gray-600">{formatCurrency(item.unit_price)}</td>
-                            <td className="px-4 py-2.5 text-right font-semibold text-gray-900">
+                          <tr key={i} className="border-t border-gray-50 dark:border-[var(--dark-border)]">
+                            <td className="px-4 py-2.5 font-medium text-gray-800 dark:text-[var(--dark-text)]">{item.product_name}</td>
+                            <td className="px-4 py-2.5 text-center text-gray-600 dark:text-[var(--dark-muted)]">{item.quantity}</td>
+                            <td className="px-4 py-2.5 text-right text-gray-600 dark:text-[var(--dark-muted)]">{formatCurrency(item.unit_price)}</td>
+                            <td className="px-4 py-2.5 text-right font-semibold text-gray-900 dark:text-[var(--dark-text)]">
                               {formatCurrency(item.subtotal ?? (item.quantity * item.unit_price))}
                             </td>
                           </tr>
                         ))}
-                        <tr className="border-t-2 border-gray-200 bg-gray-50">
-                          <td colSpan={3} className="px-4 py-3 text-right font-bold text-gray-900">Total</td>
+                        <tr className="border-t-2 border-gray-200 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)]">
+                          <td colSpan={3} className="px-4 py-3 text-right font-bold text-gray-900 dark:text-[var(--dark-text)]">Total</td>
                           <td className="px-4 py-3 text-right font-bold text-amber-600 text-base">
                             {formatCurrency(detail.total_amount)}
                           </td>
@@ -321,7 +321,7 @@ export default function StockistOrders() {
               {/* Payment section */}
               {detail.status === 'approved' && (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 mb-2">Payment</h3>
+                  <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-2">Payment</h3>
                   <PaymentCountdownTimer
                     deadline={detail.payment_deadline}
                     bankAccount={bankAccount}
