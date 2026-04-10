@@ -1,8 +1,7 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Modal, ModalHeader, ModalBody, ModalFooter,
-  Button, TextInput, Label, Select, Spinner,
-} from 'flowbite-react';
+  Button, TextInput, Label, Select, Spinner } from 'flowbite-react';
 import { HiPlus, HiPencil, HiSearch } from 'react-icons/hi';
 import { FiUser } from 'react-icons/fi';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -295,7 +294,7 @@ export default function StockistUsers() {
           )}
         </ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleSubmit} disabled={submitting} isProcessing={submitting}>
+          <Button color="warning" onClick={handleSubmit} disabled={submitting}>
             {modal === 'edit' ? 'Save Changes' : 'Create User'}
           </Button>
           <Button color="gray" onClick={closeModal}>Cancel</Button>

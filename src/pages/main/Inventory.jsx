@@ -1,9 +1,7 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell,
-  Modal, ModalHeader, ModalBody, ModalFooter,
-  Card, Spinner, TextInput, Select, Label, Badge, Pagination,
-} from 'flowbite-react';
+  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Card, Spinner, TextInput, Select, Label, Badge, Pagination } from 'flowbite-react';
 import { HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineAdjustments } from 'react-icons/hi';
 // TODO: run `npm install xlsx jspdf jspdf-autotable` in NogatuDrop_fe
 import * as XLSX from 'xlsx';
@@ -360,7 +358,7 @@ export default function Inventory() {
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleAdd} disabled={submitting} isProcessing={submitting}>Add Item</Button>
+          <Button color="warning" onClick={handleAdd} disabled={submitting}>Add Item</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>
@@ -393,7 +391,7 @@ export default function Inventory() {
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleEdit} disabled={submitting} isProcessing={submitting}>Save Changes</Button>
+          <Button color="warning" onClick={handleEdit} disabled={submitting}>Save Changes</Button>
           <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>
@@ -425,7 +423,7 @@ export default function Inventory() {
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleAdjust} disabled={submitting} isProcessing={submitting}>Submit Adjustment</Button>
+          <Button color="warning" onClick={handleAdjust} disabled={submitting}>Submit Adjustment</Button>
           <Button color="gray" onClick={() => setShowAdjustModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>

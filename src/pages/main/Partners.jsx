@@ -1,9 +1,7 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell,
-  Modal, ModalHeader, ModalBody, ModalFooter,
-  Card, TextInput, Select, Label, Badge, Pagination,
-} from 'flowbite-react';
+  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Card, TextInput, Select, Label, Badge, Pagination } from 'flowbite-react';
 import {
   HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineAdjustments,
   HiOutlineUserGroup,
@@ -269,7 +267,7 @@ export default function Partners() {
         <ModalHeader>Add Stockist</ModalHeader>
         <ModalBody><PartnerFormFields /></ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleAdd} disabled={submitting} isProcessing={submitting}>Add Stockist</Button>
+          <Button color="warning" onClick={handleAdd} disabled={submitting}>Add Stockist</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>
@@ -279,7 +277,7 @@ export default function Partners() {
         <ModalHeader>Edit Stockist — {selected?.business_name}</ModalHeader>
         <ModalBody><PartnerFormFields /></ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleEdit} disabled={submitting} isProcessing={submitting}>Save Changes</Button>
+          <Button color="warning" onClick={handleEdit} disabled={submitting}>Save Changes</Button>
           <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>
@@ -328,7 +326,7 @@ export default function Partners() {
           </p>
         </ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleDiscount} disabled={submitting} isProcessing={submitting}>Update Discount</Button>
+          <Button color="warning" onClick={handleDiscount} disabled={submitting}>Update Discount</Button>
           <Button color="gray" onClick={() => setShowDiscountModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>

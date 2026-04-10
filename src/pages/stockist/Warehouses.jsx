@@ -1,8 +1,9 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 /**
  * Stockist: My Warehouses — view warehouses associated with this stockist
  */
 import { useState, useEffect } from 'react';
-import { Card, Button, Modal, ModalHeader, ModalBody, ModalFooter, Badge } from 'flowbite-react';
+import { Card, Button, Badge } from 'flowbite-react';
 import {
   HiOutlineOfficeBuilding, HiOutlineLocationMarker, HiOutlineUser,
   HiOutlinePhone, HiOutlineMail, HiOutlineEye, HiOutlineRefresh,

@@ -109,10 +109,12 @@ export const COURIERS = {
   LIST:   '/couriers',
   CREATE: '/couriers',
   UPDATE: (id) => `/couriers/${id}`,
+  DELETE: (id) => `/couriers/${id}`,
 };
 
 export const DELIVERY_TOKENS = {
   GENERATE:  '/delivery-tokens',
+  BY_ORDER:  (orderId) => `/delivery-tokens/by-order/${orderId}`,
   INFO:      (token) => `/delivery-tokens/deliver/${token}`,
   COMPLETE:  (token) => `/delivery-tokens/deliver/${token}/complete`,
 };

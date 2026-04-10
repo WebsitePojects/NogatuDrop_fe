@@ -12,6 +12,11 @@ function getApiOrigin() {
 export function resolveImageUrl(imageUrl) {
   if (!imageUrl) return '';
 
+  // Legacy local-upload paths are no longer served; use catalog fallback image instead.
+  if (/^\/?uploads\//i.test(imageUrl) || imageUrl.includes('/uploads/')) {
+    return '';
+  }
+
   if (/^https?:\/\//i.test(imageUrl)) {
     return imageUrl;
   }

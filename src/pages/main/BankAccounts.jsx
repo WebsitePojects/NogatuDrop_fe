@@ -1,9 +1,7 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell,
-  Modal, ModalHeader, ModalBody, ModalFooter,
-  Card, TextInput, Select, Label,
-} from 'flowbite-react';
+  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Card, TextInput, Select, Label } from 'flowbite-react';
 import { HiOutlinePlus, HiOutlinePencil, HiOutlineTrash, HiOutlineCurrencyDollar, HiInformationCircle } from 'react-icons/hi';
 import api from '@/services/api';
 import { BANK_ACCOUNTS, WAREHOUSES } from '@/services/endpoints';
@@ -238,7 +236,7 @@ export default function BankAccounts() {
         <ModalHeader>Add Bank Account</ModalHeader>
         <ModalBody><FormFields /></ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleAdd} disabled={submitting} isProcessing={submitting}>Add Account</Button>
+          <Button color="warning" onClick={handleAdd} disabled={submitting}>Add Account</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>
@@ -248,7 +246,7 @@ export default function BankAccounts() {
         <ModalHeader>Edit Bank Account</ModalHeader>
         <ModalBody><FormFields /></ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleEdit} disabled={submitting} isProcessing={submitting}>Save Changes</Button>
+          <Button color="warning" onClick={handleEdit} disabled={submitting}>Save Changes</Button>
           <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>

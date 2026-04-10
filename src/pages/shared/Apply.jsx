@@ -342,7 +342,6 @@ export default function Apply() {
               color="success"
               onClick={handleSubmit}
               disabled={submitting}
-              isProcessing={submitting}
             >
               <HiCheck className="mr-2 w-4 h-4" />
               Submit Application

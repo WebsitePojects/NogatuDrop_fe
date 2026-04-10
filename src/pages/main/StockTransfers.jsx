@@ -1,9 +1,7 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell,
-  Modal, ModalHeader, ModalBody, ModalFooter,
-  Card, TextInput, Select, Label, Tabs, TabItem, Pagination, Badge,
-} from 'flowbite-react';
+  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Card, TextInput, Select, Label, Tabs, TabItem, Pagination, Badge } from 'flowbite-react';
 import { HiOutlinePlus, HiOutlineArrowRight, HiOutlineSearch, HiOutlineTrash } from 'react-icons/hi';
 import api from '@/services/api';
 import { STOCK_TRANSFERS, WAREHOUSES, PRODUCTS } from '@/services/endpoints';
@@ -146,13 +144,15 @@ export default function StockTransfers() {
               <div className="overflow-x-auto">
                 <Table striped>
                   <TableHead>
-                    <TableHeadCell>Transfer #</TableHeadCell>
-                    <TableHeadCell>From</TableHeadCell>
-                    <TableHeadCell>To</TableHeadCell>
-                    <TableHeadCell>Status</TableHeadCell>
-                    <TableHeadCell>Items</TableHeadCell>
-                    <TableHeadCell>Date</TableHeadCell>
-                    <TableHeadCell>Actions</TableHeadCell>
+                    <TableRow>
+                      <TableHeadCell>Transfer #</TableHeadCell>
+                      <TableHeadCell>From</TableHeadCell>
+                      <TableHeadCell>To</TableHeadCell>
+                      <TableHeadCell>Status</TableHeadCell>
+                      <TableHeadCell>Items</TableHeadCell>
+                      <TableHeadCell>Date</TableHeadCell>
+                      <TableHeadCell>Actions</TableHeadCell>
+                    </TableRow>
                   </TableHead>
                   <TableBody className="divide-y">
                     {loading ? (
@@ -265,7 +265,9 @@ export default function StockTransfers() {
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleAdd} disabled={submitting} isProcessing={submitting}>Create Transfer</Button>
+          <Button color="warning" onClick={handleAdd} disabled={submitting}>
+            {submitting ? 'Creating...' : 'Create Transfer'}
+          </Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>
@@ -321,8 +323,10 @@ export default function StockTransfers() {
                   <div className="overflow-x-auto border border-gray-100 dark:border-[var(--dark-border)] rounded-lg">
                     <Table>
                       <TableHead>
-                        <TableHeadCell>Product</TableHeadCell>
-                        <TableHeadCell>Quantity</TableHeadCell>
+                        <TableRow>
+                          <TableHeadCell>Product</TableHeadCell>
+                          <TableHeadCell>Quantity</TableHeadCell>
+                        </TableRow>
                       </TableHead>
                       <TableBody className="divide-y">
                         {selected.items.map((it, i) => (

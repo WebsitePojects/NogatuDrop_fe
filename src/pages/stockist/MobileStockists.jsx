@@ -1,8 +1,7 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Modal, ModalHeader, ModalBody, ModalFooter,
-  Button, TextInput, Label, Select, Spinner,
-} from 'flowbite-react';
+  Button, TextInput, Label, Select, Spinner } from 'flowbite-react';
 import { HiPlus, HiPencil, HiTrash, HiSearch } from 'react-icons/hi';
 import { FiUser } from 'react-icons/fi';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -256,7 +255,7 @@ export default function StockistMobileStockists() {
           {modal === 'add' && f('Password *', 'password', 'password', true)}
         </ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleSubmit} disabled={submitting} isProcessing={submitting}>
+          <Button color="warning" onClick={handleSubmit} disabled={submitting}>
             {modal === 'edit' ? 'Save Changes' : 'Create Account'}
           </Button>
           <Button color="gray" onClick={closeModal}>Cancel</Button>

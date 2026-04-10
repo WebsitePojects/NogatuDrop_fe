@@ -1,7 +1,7 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Modal, ModalHeader, ModalBody, Button, Spinner, Tabs, TabItem,
-} from 'flowbite-react';
+  Button, Spinner, Tabs, TabItem } from 'flowbite-react';
 import {
   HiShoppingCart, HiX, HiCheckCircle, HiExclamationCircle,
 } from 'react-icons/hi';

@@ -35,7 +35,7 @@ export default function Login() {
 
   return (
     /* Always light — login page never enters dark mode */
-    <div className="flex min-h-screen" style={{ colorScheme: 'light', background: '#ffffff' }}>
+    <div className="login-force-light flex min-h-screen" style={{ colorScheme: 'light', background: '#ffffff' }}>
 
       {/* ── Left panel: full-height poster ────────────────────────── */}
       <div className="hidden lg:block lg:w-[52%] xl:w-[55%] relative overflow-hidden flex-shrink-0">

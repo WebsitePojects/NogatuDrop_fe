@@ -120,13 +120,13 @@ const flowbiteTheme = {
       root: {
         base: 'fixed inset-x-0 top-0 z-50 h-screen overflow-y-auto overflow-x-hidden md:inset-0 md:h-full',
         show: {
-          on: 'flex bg-gray-900/60 backdrop-blur-sm',
+          on: 'flex bg-gray-500/45 backdrop-blur-sm',
           off: 'hidden',
         },
       },
       content: {
         base: 'relative h-full w-full p-4 md:h-auto',
-        inner: 'relative flex max-h-[90dvh] flex-col rounded-2xl bg-white shadow-modal',
+        inner: 'relative flex max-h-[90dvh] flex-col rounded-2xl bg-white shadow-modal ng-modal-force-light',
       },
       header: {
         base: 'flex items-start justify-between rounded-t-2xl border-b border-gray-100 p-5',

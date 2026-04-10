@@ -1,13 +1,11 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 /**
  * Stockist: Stock Transfers page
  * Scoped to this stockist's warehouses (backend filters by partner_id via JWT)
  */
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Card, Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell,
-  Modal, ModalHeader, ModalBody, ModalFooter, Badge, Label, TextInput, Select,
-  Textarea, Spinner, Tabs, TabItem,
-} from 'flowbite-react';
+  Card, Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Badge, Label, TextInput, Select, Textarea, Spinner, Tabs, TabItem } from 'flowbite-react';
 import {
   HiOutlineSwitchHorizontal, HiOutlinePlus, HiOutlineSearch,
   HiOutlineEye, HiOutlineRefresh, HiOutlineCheckCircle,

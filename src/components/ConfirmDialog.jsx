@@ -1,5 +1,6 @@
 import React from 'react';
 import { FiAlertTriangle } from 'react-icons/fi';
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 
 const ConfirmDialog = ({
   isOpen,
@@ -12,25 +13,30 @@ const ConfirmDialog = ({
   variant = 'danger',
   loading = false,
 }) => {
-  if (!isOpen) return null;
-
   const confirmColors =
     variant === 'danger'
       ? 'bg-red-600 hover:bg-red-700 text-white'
       : 'bg-main-sidebar hover:bg-main-accent text-white';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="fixed inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-sm w-full mx-4 p-6 z-10">
-        <div className="flex items-center gap-3 mb-4">
-          <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-            <FiAlertTriangle className="text-red-600 text-xl" />
+    <Modal
+      show={isOpen}
+      onClose={onClose}
+      dismissible
+      size="sm"
+      backdropClasses="bg-gray-500/45 backdrop-blur-sm"
+    >
+      <ModalHeader>{title}</ModalHeader>
+      <ModalBody>
+        <div className="flex items-start gap-3">
+          <div className="mt-0.5 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+            <FiAlertTriangle className="text-red-600 text-xl" aria-hidden="true" />
           </div>
-          <h3 className="text-lg font-bold text-gray-800">{title}</h3>
+          <p className="text-sm text-gray-600">{message}</p>
         </div>
-        <p className="text-sm text-gray-600 mb-6 ml-[52px]">{message}</p>
-        <div className="flex justify-end gap-3">
+      </ModalBody>
+      <ModalFooter>
+        <div className="flex w-full justify-end gap-3">
           <button
             onClick={onClose}
             disabled={loading}
@@ -46,8 +52,8 @@ const ConfirmDialog = ({
             {loading ? 'Processing...' : confirmText}
           </button>
         </div>
-      </div>
-    </div>
+      </ModalFooter>
+    </Modal>
   );
 };
 

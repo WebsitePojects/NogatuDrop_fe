@@ -1,9 +1,7 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell,
-  Modal, ModalHeader, ModalBody, ModalFooter,
-  Card, TextInput, Select, Label, Tabs, TabItem, Pagination, Textarea,
-} from 'flowbite-react';
+  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Card, TextInput, Select, Label, Tabs, TabItem, Pagination, Textarea } from 'flowbite-react';
 import { HiOutlinePlus, HiOutlineCheck, HiOutlineX, HiOutlineAdjustments } from 'react-icons/hi';
 import api from '@/services/api';
 import { STOCK_ADJUSTMENTS, INVENTORY } from '@/services/endpoints';
@@ -228,7 +226,7 @@ export default function StockAdjustments() {
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleAdd} disabled={submitting} isProcessing={submitting}>Submit Request</Button>
+          <Button color="warning" onClick={handleAdd} disabled={submitting}>Submit Request</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>
@@ -284,7 +282,7 @@ export default function StockAdjustments() {
           <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={3} placeholder="Reason..." />
         </ModalBody>
         <ModalFooter>
-          <Button color="failure" onClick={executeReject} disabled={actionLoading} isProcessing={actionLoading}>Reject</Button>
+          <Button color="failure" onClick={executeReject} disabled={actionLoading}>Reject</Button>
           <Button color="gray" onClick={() => setShowRejectModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>

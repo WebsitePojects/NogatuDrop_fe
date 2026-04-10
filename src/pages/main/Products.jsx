@@ -1,8 +1,7 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Button, Modal, ModalHeader, ModalBody, ModalFooter,
-  TextInput, Select, Label, Textarea, Badge, Spinner, Card, Pagination,
-} from 'flowbite-react';
+  Button, TextInput, Select, Label, Textarea, Badge, Spinner, Card, Pagination } from 'flowbite-react';
 import {
   HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineTrash,
   HiOutlineTag, HiOutlinePhotograph,
@@ -287,7 +286,7 @@ export default function Products() {
         <ModalHeader>Add New Product</ModalHeader>
         <ModalBody><ProductFormFields /></ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleAdd} disabled={submitting} isProcessing={submitting}>Add Product</Button>
+          <Button color="warning" onClick={handleAdd} disabled={submitting}>Add Product</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>
@@ -342,7 +341,7 @@ export default function Products() {
         <ModalFooter>
           {isEditing ? (
             <>
-              <Button color="warning" onClick={handleEdit} disabled={submitting} isProcessing={submitting}>Save</Button>
+              <Button color="warning" onClick={handleEdit} disabled={submitting}>Save</Button>
               <Button color="gray" onClick={() => setIsEditing(false)}>Cancel</Button>
             </>
           ) : (

@@ -1,7 +1,7 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Modal, ModalHeader, ModalBody, ModalFooter, Button, TextInput, Textarea, Label, Spinner,
-} from 'flowbite-react';
+  Button, TextInput, Textarea, Label, Spinner } from 'flowbite-react';
 import { HiSearch, HiAdjustments } from 'react-icons/hi';
 import { FiPackage } from 'react-icons/fi';
 // TODO: run `npm install xlsx jspdf jspdf-autotable` in NogatuDrop_fe

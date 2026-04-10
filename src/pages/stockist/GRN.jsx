@@ -1,8 +1,7 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Modal, ModalHeader, ModalBody, ModalFooter,
-  Button, TextInput, Textarea, Label, Select, Spinner, Tabs, TabItem,
-} from 'flowbite-react';
+  Button, TextInput, Textarea, Label, Select, Spinner, Tabs, TabItem } from 'flowbite-react';
 import { HiPlus, HiX } from 'react-icons/hi';
 import { FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -449,7 +448,7 @@ export default function StockistGRN() {
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleCreate} disabled={submitting} isProcessing={submitting}>
+          <Button color="warning" onClick={handleCreate} disabled={submitting}>
             Create GRN
           </Button>
           <Button color="gray" onClick={() => setCreateModal(false)}>Cancel</Button>

@@ -207,9 +207,13 @@ export default function StockistCart() {
                 className="w-full"
                 onClick={handleCheckout}
                 disabled={checkingOut || items.length === 0}
-                isProcessing={checkingOut}
               >
-                {checkingOut ? 'Placing Order…' : 'Place Order'}
+                {checkingOut ? (
+                  <span className="inline-flex items-center gap-2">
+                    <Spinner size="sm" />
+                    Placing Order...
+                  </span>
+                ) : 'Place Order'}
               </Button>
             </Card>
           </div>

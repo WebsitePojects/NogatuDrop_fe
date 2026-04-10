@@ -1,9 +1,7 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell,
-  Modal, ModalHeader, ModalBody, ModalFooter,
-  Card, Tabs, TabItem, Pagination, Textarea, Label,
-} from 'flowbite-react';
+  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Card, Tabs, TabItem, Pagination, Textarea, Label } from 'flowbite-react';
 import { HiOutlineCheck, HiOutlineX, HiOutlineEye, HiOutlineClipboardCheck, HiOutlineExternalLink } from 'react-icons/hi';
 import api from '@/services/api';
 import { APPLICATIONS } from '@/services/endpoints';
@@ -268,7 +266,7 @@ export default function Applications() {
           />
         </ModalBody>
         <ModalFooter>
-          <Button color="failure" onClick={executeReject} disabled={actionLoading} isProcessing={actionLoading}>Reject</Button>
+          <Button color="failure" onClick={executeReject} disabled={actionLoading}>Reject</Button>
           <Button color="gray" onClick={() => setShowRejectModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>

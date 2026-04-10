@@ -139,7 +139,6 @@ export default function MobileProfile() {
                 className="w-full mt-2"
                 onClick={handleSave}
                 disabled={saving}
-                isProcessing={saving}
               >
                 <HiCheck className="mr-1.5 w-4 h-4" />
                 Save Changes

@@ -1,9 +1,7 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell,
-  Modal, ModalHeader, ModalBody, ModalFooter,
-  Card, TextInput, Select, Label, Tabs, TabItem, Pagination, Badge,
-} from 'flowbite-react';
+  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Card, TextInput, Select, Label, Tabs, TabItem, Pagination, Badge } from 'flowbite-react';
 import { HiOutlinePlus, HiOutlineTrash, HiOutlineCheck, HiOutlineX } from 'react-icons/hi';
 import api from '@/services/api';
 import { PURCHASE_ORDERS, PRODUCTS, WAREHOUSES } from '@/services/endpoints';
@@ -144,14 +142,16 @@ export default function PurchaseOrders() {
               <div className="overflow-x-auto">
                 <Table striped>
                   <TableHead>
-                    <TableHeadCell>PO #</TableHeadCell>
-                    <TableHeadCell>Supplier</TableHeadCell>
-                    <TableHeadCell>Warehouse</TableHeadCell>
-                    <TableHeadCell>Status</TableHeadCell>
-                    <TableHeadCell>Auto</TableHeadCell>
-                    <TableHeadCell>Total</TableHeadCell>
-                    <TableHeadCell>Date</TableHeadCell>
-                    <TableHeadCell>Actions</TableHeadCell>
+                    <TableRow>
+                      <TableHeadCell>PO #</TableHeadCell>
+                      <TableHeadCell>Supplier</TableHeadCell>
+                      <TableHeadCell>Warehouse</TableHeadCell>
+                      <TableHeadCell>Status</TableHeadCell>
+                      <TableHeadCell>Auto</TableHeadCell>
+                      <TableHeadCell>Total</TableHeadCell>
+                      <TableHeadCell>Date</TableHeadCell>
+                      <TableHeadCell>Actions</TableHeadCell>
+                    </TableRow>
                   </TableHead>
                   <TableBody className="divide-y">
                     {loading ? (
@@ -252,7 +252,7 @@ export default function PurchaseOrders() {
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleAdd} disabled={submitting} isProcessing={submitting}>Create PO</Button>
+          <Button color="warning" onClick={handleAdd} disabled={submitting}>Create PO</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>
@@ -273,10 +273,12 @@ export default function PurchaseOrders() {
                 <div className="overflow-x-auto border border-gray-100 dark:border-[var(--dark-border)] rounded-lg">
                   <Table>
                     <TableHead>
-                      <TableHeadCell>Product</TableHeadCell>
-                      <TableHeadCell>Qty</TableHeadCell>
-                      <TableHeadCell>Unit Price</TableHeadCell>
-                      <TableHeadCell>Subtotal</TableHeadCell>
+                      <TableRow>
+                        <TableHeadCell>Product</TableHeadCell>
+                        <TableHeadCell>Qty</TableHeadCell>
+                        <TableHeadCell>Unit Price</TableHeadCell>
+                        <TableHeadCell>Subtotal</TableHeadCell>
+                      </TableRow>
                     </TableHead>
                     <TableBody className="divide-y">
                       {selected.items.map((it, i) => (

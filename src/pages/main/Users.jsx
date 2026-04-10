@@ -1,9 +1,7 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell,
-  Modal, ModalHeader, ModalBody, ModalFooter,
-  Card, TextInput, Select, Label, Pagination,
-} from 'flowbite-react';
+  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Card, TextInput, Select, Label, Pagination } from 'flowbite-react';
 import { HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineTrash, HiOutlineUsers } from 'react-icons/hi';
 import api from '@/services/api';
 import { USERS, PARTNERS } from '@/services/endpoints';
@@ -280,7 +278,7 @@ export default function Users() {
         <ModalHeader>Add User</ModalHeader>
         <ModalBody><UserFormFields /></ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleAdd} disabled={submitting} isProcessing={submitting}>Create User</Button>
+          <Button color="warning" onClick={handleAdd} disabled={submitting}>Create User</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>
@@ -290,7 +288,7 @@ export default function Users() {
         <ModalHeader>Edit User — {selected?.name}</ModalHeader>
         <ModalBody><UserFormFields /></ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleEdit} disabled={submitting} isProcessing={submitting}>Save Changes</Button>
+          <Button color="warning" onClick={handleEdit} disabled={submitting}>Save Changes</Button>
           <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>

@@ -1,11 +1,11 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 /**
  * Stockist: Purchase Orders page
  * Scoped to this stockist's partner context
  */
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Card, Button, Modal, ModalHeader, ModalBody, ModalFooter, Label, Spinner,
-} from 'flowbite-react';
+  Card, Button, Label, Spinner } from 'flowbite-react';
 import {
   HiOutlinePlus, HiOutlineSearch, HiOutlineEye, HiOutlineRefresh,
   HiOutlineDocumentText,

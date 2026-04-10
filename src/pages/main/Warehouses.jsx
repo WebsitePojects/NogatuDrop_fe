@@ -1,8 +1,7 @@
+import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Button, Modal, ModalHeader, ModalBody, ModalFooter,
-  TextInput, Select, Label, Card, Badge,
-} from 'flowbite-react';
+  Button, TextInput, Select, Label, Card, Badge } from 'flowbite-react';
 import { HiOutlinePlus, HiOutlineOfficeBuilding, HiOutlineLocationMarker, HiOutlineUser, HiOutlinePencil, HiOutlineTrash } from 'react-icons/hi';
 import api from '@/services/api';
 import { WAREHOUSES } from '@/services/endpoints';
@@ -232,7 +231,7 @@ export default function Warehouses() {
         <ModalHeader>Add Warehouse</ModalHeader>
         <ModalBody><WarehouseFormFields /></ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleAdd} disabled={submitting} isProcessing={submitting}>Add Warehouse</Button>
+          <Button color="warning" onClick={handleAdd} disabled={submitting}>Add Warehouse</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>
@@ -242,7 +241,7 @@ export default function Warehouses() {
         <ModalHeader>Edit Warehouse — {selected?.name}</ModalHeader>
         <ModalBody><WarehouseFormFields /></ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleEdit} disabled={submitting} isProcessing={submitting}>Save Changes</Button>
+          <Button color="warning" onClick={handleEdit} disabled={submitting}>Save Changes</Button>
           <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>

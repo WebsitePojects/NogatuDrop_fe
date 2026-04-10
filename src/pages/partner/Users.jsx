@@ -5,9 +5,12 @@ import { USERS } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
 import Badge from '@/components/Badge';
 import Modal from '@/components/Modal';
+import ConfirmModal from '@/components/ConfirmModal';
+import { ToastContainer, useToast } from '@/components/Toast';
 import { STATUS_BADGE } from '@/utils/constants';
 
 const Users = () => {
+  const { toasts, showToast, dismiss } = useToast();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -15,6 +18,8 @@ const Users = () => {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
   const [editingUserId, setEditingUserId] = useState(null);
   const [form, setForm] = useState({ name: '', email: '', password: '' });
 
@@ -84,11 +89,11 @@ const Users = () => {
     };
 
     if (!payload.name) {
-      alert('Name is required');
+      showToast('Name is required', 'warning');
       return;
     }
     if (payload.password.length < 6) {
-      alert('Password must be at least 6 characters');
+      showToast('Password must be at least 6 characters', 'warning');
       return;
     }
 
@@ -96,9 +101,10 @@ const Users = () => {
     try {
       await api.post(USERS.CREATE, payload);
       setShowModal(false);
+      showToast('Staff user added', 'success');
       fetchUsers();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to add user');
+      showToast(err.response?.data?.message || 'Failed to add user', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -127,7 +133,7 @@ const Users = () => {
     };
 
     if (!payload.name) {
-      alert('Name is required');
+      showToast('Name is required', 'warning');
       return;
     }
 
@@ -136,24 +142,31 @@ const Users = () => {
       await api.put(USERS.UPDATE(editingUserId), payload);
       setShowEditModal(false);
       setEditingUserId(null);
+      showToast('User updated', 'success');
       fetchUsers();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to update user');
+      showToast(err.response?.data?.message || 'Failed to update user', 'error');
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDeleteUser = async (user) => {
-    const fullName = `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.name || user.email;
-    const confirmed = window.confirm(`Delete user ${fullName}?`);
-    if (!confirmed) return;
+  const askDeleteUser = (user) => {
+    setDeleteTarget(user);
+  };
 
+  const handleDeleteUser = async () => {
+    if (!deleteTarget?.id) return;
+    setDeleting(true);
     try {
-      await api.delete(USERS.DELETE(user.id));
+      await api.delete(USERS.DELETE(deleteTarget.id));
+      showToast('User deleted', 'info');
+      setDeleteTarget(null);
       fetchUsers();
     } catch (err) {
-      alert(err.response?.data?.message || 'Failed to delete user');
+      showToast(err.response?.data?.message || 'Failed to delete user', 'error');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -290,7 +303,7 @@ const Users = () => {
                                 Edit
                               </button>
                               <button
-                                onClick={() => handleDeleteUser(user)}
+                                onClick={() => askDeleteUser(user)}
                                 className="px-2 py-1 text-xs font-medium rounded text-white bg-red-500 hover:bg-red-600"
                               >
                                 Del
@@ -400,6 +413,19 @@ const Users = () => {
           </button>
         </form>
       </Modal>
+
+      <ConfirmModal
+        show={!!deleteTarget}
+        title="Delete User"
+        message={`Delete user ${(deleteTarget && (`${deleteTarget.first_name || ''} ${deleteTarget.last_name || ''}`.trim() || deleteTarget.name || deleteTarget.email)) || ''}?`}
+        confirmLabel="Delete"
+        confirmColor="failure"
+        onConfirm={handleDeleteUser}
+        onClose={() => setDeleteTarget(null)}
+        loading={deleting}
+      />
+
+      <ToastContainer toasts={toasts} dismiss={dismiss} />
     </div>
   );
 };

@@ -11,6 +11,7 @@ import {
   HiChevronDown,
 } from 'react-icons/hi';
 import NotificationDrawer from '@/components/NotificationDrawer';
+import FloatingTutorial from '@/components/FloatingTutorial';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -269,6 +270,7 @@ export default function MainLayout() {
       </div>
 
       <NotificationDrawer isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
+      <FloatingTutorial />
     </div>
   );
 }

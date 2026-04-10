@@ -373,6 +373,55 @@ textarea {
   border-color: #4b5563 !important;
 }
 
+/* ─── Login page: always light form fields ─────────────────────────────────── */
+.login-force-light,
+.login-force-light * {
+  color-scheme: light !important;
+}
+
+.login-force-light input:not([type="checkbox"]):not([type="radio"]),
+.login-force-light select,
+.login-force-light textarea {
+  color: #111827 !important;
+  background-color: transparent !important;
+  border-color: #d1d5db !important;
+  caret-color: #111827 !important;
+}
+
+.login-force-light input::placeholder,
+.login-force-light textarea::placeholder {
+  color: #9ca3af !important;
+}
+
+.login-force-light label {
+  color: #6b7280 !important;
+}
+
+/* ─── Modal content: always light form fields ──────────────────────────────── */
+.ng-modal-force-light,
+.dark .ng-modal-force-light {
+  background-color: #ffffff !important;
+  color: #111827 !important;
+  color-scheme: light !important;
+}
+
+.ng-modal-force-light input:not([type="checkbox"]):not([type="radio"]),
+.ng-modal-force-light select,
+.ng-modal-force-light textarea,
+.dark [role="dialog"] .ng-modal-force-light input:not([type="checkbox"]):not([type="radio"]),
+.dark [role="dialog"] .ng-modal-force-light select,
+.dark [role="dialog"] .ng-modal-force-light textarea {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+  border-color: #d1d5db !important;
+  caret-color: #111827 !important;
+}
+
+.ng-modal-force-light input::placeholder,
+.ng-modal-force-light textarea::placeholder {
+  color: #9ca3af !important;
+}
+
 /* ─── Flowbite Table Head Override (keep coffee bg in light mode) ────────────── */
 :not(.dark) table thead tr th {
   background-color: #FFF8F0 !important;
@@ -472,6 +521,24 @@ textarea {
 .dark [role="dialog"] h3 { color: var(--dark-text) !important; }
 .dark [role="dialog"] p  { color: #c9b9b0 !important; }
 .dark [role="dialog"] label { color: #c9b9b0 !important; }
+
+/* Keep modal content in light styling for readability and focus. */
+.dark [role="dialog"] .ng-modal-force-light,
+.dark [role="dialog"] .ng-modal-force-light .border-b,
+.dark [role="dialog"] .ng-modal-force-light .border-t {
+  background: #ffffff !important;
+  border-color: #e5e7eb !important;
+}
+
+.dark [role="dialog"] .ng-modal-force-light h1,
+.dark [role="dialog"] .ng-modal-force-light h2,
+.dark [role="dialog"] .ng-modal-force-light h3,
+.dark [role="dialog"] .ng-modal-force-light h4,
+.dark [role="dialog"] .ng-modal-force-light p,
+.dark [role="dialog"] .ng-modal-force-light span,
+.dark [role="dialog"] .ng-modal-force-light label {
+  color: #111827 !important;
+}
 
 /* ─── Dark mode: overflow-x-auto ───────────────────────────────────────────── */
 .dark .overflow-x-auto { background-color: transparent !important; }

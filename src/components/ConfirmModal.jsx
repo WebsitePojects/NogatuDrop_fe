@@ -1,4 +1,5 @@
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from 'flowbite-react';
+import { Modal, ModalHeader, ModalBody } from '@/components/AnimatedModal';
+import { Button, Spinner } from 'flowbite-react';
 import { HiExclamationCircle } from 'react-icons/hi';
 
 export default function ConfirmModal({
@@ -28,9 +29,15 @@ export default function ConfirmModal({
               color={confirmColor}
               onClick={onConfirm}
               disabled={loading}
-              isProcessing={loading}
             >
-              {confirmLabel}
+              {loading ? (
+                <span className="inline-flex items-center gap-2">
+                  <Spinner size="sm" />
+                  Processing...
+                </span>
+              ) : (
+                confirmLabel
+              )}
             </Button>
             <Button color="gray" onClick={onClose} disabled={loading}>
               Cancel
