@@ -2,7 +2,11 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/Animate
 import { useState, useEffect, useCallback } from 'react';
 import {
   Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Card, TextInput, Select, Label, Tabs, TabItem, Pagination, Badge } from 'flowbite-react';
-import { HiOutlinePlus, HiOutlineArrowRight, HiOutlineSearch, HiOutlineTrash } from 'react-icons/hi';
+import { 
+  HiOutlinePlus, HiOutlineArrowRight, HiOutlineSearch, HiOutlineTrash,
+  HiOutlineLocationMarker, HiOutlineCalendar, HiOutlineX, HiOutlineTruck, HiOutlineCheckCircle
+} from 'react-icons/hi';
+import React from 'react';
 import api from '@/services/api';
 import { STOCK_TRANSFERS, WAREHOUSES, PRODUCTS } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
@@ -201,167 +205,234 @@ export default function StockTransfers() {
       </Card>
 
       {/* Add Modal */}
-      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
-        <ModalHeader>New Stock Transfer</ModalHeader>
-        <ModalBody>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label value="From Warehouse" className="mb-1" />
-                <Select value={form.from_warehouse_id} onChange={fld('from_warehouse_id')} required>
-                  <option value="">Select...</option>
-                  {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
-                </Select>
-              </div>
-              <div>
-                <Label value="To Warehouse" className="mb-1" />
-                <Select value={form.to_warehouse_id} onChange={fld('to_warehouse_id')} required>
-                  <option value="">Select...</option>
-                  {warehouses.filter((w) => w.id !== Number(form.from_warehouse_id)).map((w) => (
-                    <option key={w.id} value={w.id}>{w.name}</option>
-                  ))}
-                </Select>
+      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="2xl" backdropClasses="bg-black/50 backdrop-blur-sm">
+        <ModalHeader className="border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 px-6 py-4">
+          <span className="text-xl font-bold text-gray-900 dark:text-white">New Stock Transfer</span>
+        </ModalHeader>
+        <ModalBody className="px-6 py-6">
+          <div className="space-y-6">
+            <div className="bg-gray-50/50 dark:bg-gray-800/50 p-5 rounded-xl border border-gray-100 dark:border-gray-700">
+              <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-4 tracking-wide">Route Details</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">From Warehouse</label>
+                  <Select value={form.from_warehouse_id} onChange={fld('from_warehouse_id')} required className="w-full">
+                    <option value="">Select origin...</option>
+                    {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+                  </Select>
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">To Warehouse</label>
+                  <Select value={form.to_warehouse_id} onChange={fld('to_warehouse_id')} required className="w-full">
+                    <option value="">Select destination...</option>
+                    {warehouses.filter((w) => w.id !== Number(form.from_warehouse_id)).map((w) => (
+                      <option key={w.id} value={w.id}>{w.name}</option>
+                    ))}
+                  </Select>
+                </div>
               </div>
             </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <Label value="Items" />
-                <Button size="xs" color="light" onClick={addItem}>
-                  <HiOutlinePlus className="w-3 h-3 mr-1" /> Add Item
+
+            <div className="bg-white dark:bg-gray-900 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-800 pb-3">
+                <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 tracking-wide">Transfer Items</h3>
+                <Button size="xs" color="light" onClick={addItem} className="font-semibold shadow-sm">
+                  <HiOutlinePlus className="w-4 h-4 mr-1.5" /> Add Item
                 </Button>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {items.map((item, i) => (
-                  <div key={i} className="flex gap-2 items-center">
-                    <Select
-                      className="flex-1"
-                      value={item.product_id}
-                      onChange={(e) => updateItem(i, 'product_id', e.target.value)}
-                    >
-                      <option value="">Select product...</option>
-                      {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </Select>
-                    <TextInput
-                      type="number"
-                      min="1"
-                      placeholder="Qty"
-                      value={item.quantity}
-                      onChange={(e) => updateItem(i, 'quantity', e.target.value)}
-                      className="w-24"
-                    />
+                  <div key={i} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-gray-50 dark:bg-gray-800/40 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
+                    <div className="flex-1 w-full">
+                      <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 block sm:hidden">Product</label>
+                      <Select
+                        className="w-full"
+                        value={item.product_id}
+                        onChange={(e) => updateItem(i, 'product_id', e.target.value)}
+                      >
+                        <option value="">Select product...</option>
+                        {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                      </Select>
+                    </div>
+                    <div className="w-full sm:w-32">
+                      <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 block sm:hidden">Quantity</label>
+                      <TextInput
+                        type="number"
+                        min="1"
+                        placeholder="Qty"
+                        value={item.quantity}
+                        onChange={(e) => updateItem(i, 'quantity', e.target.value)}
+                        className="w-full font-bold"
+                      />
+                    </div>
                     {items.length > 1 && (
-                      <Button size="xs" color="failure" outline onClick={() => removeItem(i)}>
-                        <HiOutlineTrash className="w-3.5 h-3.5" />
+                      <Button size="sm" color="failure" outline onClick={() => removeItem(i)} className="w-full sm:w-auto mt-2 sm:mt-0">
+                        <HiOutlineTrash className="w-4 h-4" />
                       </Button>
                     )}
                   </div>
                 ))}
               </div>
             </div>
+
             <div>
-              <Label value="Notes (optional)" className="mb-1" />
-              <TextInput value={form.notes} onChange={fld('notes')} placeholder="Any notes..." />
+              <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Additional Notes</label>
+              <TextInput value={form.notes} onChange={fld('notes')} placeholder="Any optional notes regarding this transfer..." />
             </div>
           </div>
         </ModalBody>
-        <ModalFooter>
-          <Button color="warning" onClick={handleAdd} disabled={submitting}>
-            {submitting ? 'Creating...' : 'Create Transfer'}
+        <ModalFooter className="border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 px-6 py-4 flex justify-end gap-3">
+          <Button color="gray" onClick={() => setShowAddModal(false)} className="font-bold shadow-sm">Cancel</Button>
+          <Button color="warning" onClick={handleAdd} disabled={submitting} className="font-bold shadow-sm">
+            {submitting ? 'Processing...' : 'Create Transfer'}
           </Button>
-          <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
         </ModalFooter>
       </Modal>
 
       {/* Detail Modal */}
-      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
-        <ModalHeader>Transfer Detail — {selected?.transfer_number || `TRF-${selected?.id}`}</ModalHeader>
-        <ModalBody>
+      <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="2xl" backdropClasses="bg-black/50 backdrop-blur-sm">
+        <ModalHeader className="border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 px-6 py-4">
+          <div className="flex flex-col">
+            <span className="text-xl font-bold text-gray-900 dark:text-white">
+              Transfer Detail
+            </span>
+            {selected && (
+              <span className="text-sm font-medium text-gray-500 mt-1 dark:text-gray-400 font-mono tracking-wide">
+                {selected.transfer_number || `TRF-${selected.id}`}
+              </span>
+            )}
+          </div>
+        </ModalHeader>
+        <ModalBody className="px-6 py-6 custom-scrollbar">
           {selected && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <div>
-                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">From</p>
-                  <p className="font-semibold dark:text-[var(--dark-text)]">{selected.from_warehouse_name}</p>
+            <div className="space-y-6">
+              {/* Info Cards */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm col-span-2 md:col-span-1">
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
+                    <HiOutlineArrowRight className="w-3 h-3 text-gray-400" /> From
+                  </p>
+                  <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2">
+                    {selected.from_warehouse_name}
+                  </p>
                 </div>
-                <div>
-                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">To</p>
-                  <p className="font-semibold dark:text-[var(--dark-text)]">{selected.to_warehouse_name}</p>
+                <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm col-span-2 md:col-span-1">
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
+                    <HiOutlineLocationMarker className="w-3.5 h-3.5 text-gray-400" /> To
+                  </p>
+                  <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2">
+                    {selected.to_warehouse_name}
+                  </p>
                 </div>
-                <div>
-                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Status</p>
-                  <StatusBadge status={selected.status} />
+                <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5">
+                    Status
+                  </p>
+                  <div className="mt-1">
+                    <StatusBadge status={selected.status} />
+                  </div>
                 </div>
-                <div>
-                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Date</p>
-                  <p className="dark:text-[var(--dark-text)]">{formatDate(selected.created_at)}</p>
+                <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
+                    <HiOutlineCalendar className="w-3.5 h-3.5" /> Date
+                  </p>
+                  <p className="font-bold text-[var(--dark-text)] text-sm">
+                    {formatDate(selected.created_at)}
+                  </p>
                 </div>
               </div>
+
               {/* Status Timeline */}
-              <div className="flex items-center gap-2 py-2">
-                {['pending', 'in_transit', 'completed'].map((s, i) => {
-                  const steps = { pending: 0, in_transit: 1, completed: 2 };
-                  const cur = steps[selected.status] ?? 0;
-                  const stepIdx = i;
-                  const done = cur >= stepIdx;
-                  return (
-                    <div key={s} className="flex items-center gap-2 flex-1">
-                      <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${done ? 'bg-amber-500 text-white' : 'bg-gray-200 dark:bg-[var(--dark-card2)] text-gray-400'}`}>
-                        {stepIdx + 1}
-                      </div>
-                      <span className={`text-xs capitalize ${done ? 'text-gray-900 dark:text-[var(--dark-text)] font-medium' : 'text-gray-400 dark:text-[var(--dark-muted)]'}`}>
-                        {s.replace(/_/g, ' ')}
-                      </span>
-                      {i < 2 && <div className={`flex-1 h-0.5 ${cur > stepIdx ? 'bg-amber-400' : 'bg-gray-200 dark:bg-[var(--dark-border)]'}`} />}
-                    </div>
-                  );
-                })}
+              <div className="bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-700 rounded-xl p-5 shadow-sm overflow-x-auto">
+                <div className="flex items-center min-w-[400px]">
+                  {['pending', 'in_transit', 'completed'].map((s, i) => {
+                    const steps = { pending: 0, in_transit: 1, completed: 2, cancelled: -1 };
+                    const cur = steps[selected.status] ?? 0;
+                    const stepIdx = i;
+                    const done = cur >= stepIdx;
+                    const isCancelled = selected.status === 'cancelled';
+                    
+                    return (
+                      <React.Fragment key={s}>
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-extrabold flex-shrink-0 transition-colors shadow-sm
+                            ${isCancelled ? 'bg-red-100 text-red-500 dark:bg-red-900/30' 
+                            : done 
+                              ? 'bg-amber-500 text-white shadow-amber-200 dark:shadow-none' 
+                              : 'bg-gray-100 dark:bg-gray-800 text-gray-400 border border-gray-200 dark:border-gray-700'}`}>
+                            {isCancelled ? <HiOutlineX className="w-4 h-4" /> : stepIdx + 1}
+                          </div>
+                          <span className={`text-xs font-bold tracking-wide uppercase 
+                            ${isCancelled ? 'text-red-500' 
+                            : done ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'}`}>
+                            {s.replace(/_/g, ' ')}
+                          </span>
+                        </div>
+                        {i < 2 && (
+                          <div className={`flex-1 mx-3 h-0.5 rounded-full transition-colors 
+                            ${isCancelled ? 'bg-red-200 dark:bg-red-900/50' 
+                            : cur > stepIdx ? 'bg-amber-400' : 'bg-gray-100 dark:bg-gray-700'}`} />
+                        )}
+                      </React.Fragment>
+                    );
+                  })}
+                </div>
               </div>
-              {/* Items */}
+
+              {/* Items List */}
               {(selected.items || []).length > 0 && (
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase mb-2">Items</p>
-                  <div className="overflow-x-auto border border-gray-100 dark:border-[var(--dark-border)] rounded-lg">
-                    <Table>
-                      <TableHead>
-                        <TableRow>
-                          <TableHeadCell>Product</TableHeadCell>
-                          <TableHeadCell>Quantity</TableHeadCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody className="divide-y">
+                <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+                  <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
+                    <h3 className="text-sm font-bold tracking-wider text-gray-700 dark:text-gray-300 uppercase">Transfer Items</h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm text-gray-600 dark:text-gray-400 tracking-wide">
+                      <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">
+                        <tr>
+                          <th className="px-5 py-3 rounded-bl-none">Product</th>
+                          <th className="px-5 py-3 text-right">Quantity</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
                         {selected.items.map((it, i) => (
-                          <TableRow key={i}>
-                            <TableCell>{it.product_name}</TableCell>
-                            <TableCell>{it.quantity}</TableCell>
-                          </TableRow>
+                          <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                            <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-200">{it.product_name}</td>
+                            <td className="px-5 py-4 text-right font-black text-gray-900 dark:text-white">{it.quantity}</td>
+                          </tr>
                         ))}
-                      </TableBody>
-                    </Table>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex justify-end items-center">
+                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mr-4 tracking-wider">Total Items</span>
+                    <span className="text-lg font-black text-[var(--dark-text)] dark:text-white tracking-tight">
+                      {selected.items.reduce((sum, it) => sum + Number(it.quantity), 0)}
+                    </span>
                   </div>
                 </div>
               )}
             </div>
           )}
         </ModalBody>
-        <ModalFooter>
-          <div className="flex gap-2 flex-wrap">
+        <ModalFooter className="border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 px-6 py-4 flex flex-wrap justify-between items-center gap-3">
+          <div className="flex gap-2 items-center flex-wrap">
             {selected?.status === 'pending' && (
               <>
-                <Button color="warning" size="sm" onClick={() => setConfirmTarget({ action: 'in_transit', transfer: selected })}>
-                  Mark In Transit
+                <Button color="warning" onClick={() => setConfirmTarget({ action: 'in_transit', transfer: selected })} className="font-bold shadow-sm">
+                  <HiOutlineTruck className="w-5 h-5 mr-1.5" /> Mark In Transit
                 </Button>
-                <Button color="failure" size="sm" outline onClick={() => setConfirmTarget({ action: 'cancel', transfer: selected })}>
+                <Button color="failure" outline onClick={() => setConfirmTarget({ action: 'cancel', transfer: selected })} className="font-bold bg-white dark:bg-transparent">
                   Cancel
                 </Button>
               </>
             )}
             {selected?.status === 'in_transit' && (
-              <Button color="success" size="sm" onClick={() => setConfirmTarget({ action: 'complete', transfer: selected })}>
-                Mark Complete
+              <Button color="success" onClick={() => setConfirmTarget({ action: 'complete', transfer: selected })} className="font-bold shadow-sm">
+                <HiOutlineCheckCircle className="w-5 h-5 mr-1.5" /> Mark Complete
               </Button>
             )}
-            <Button color="gray" size="sm" onClick={() => setShowDetailModal(false)}>Close</Button>
           </div>
+          <Button color="gray" onClick={() => setShowDetailModal(false)} className="font-bold shadow-sm">Close</Button>
         </ModalFooter>
       </Modal>
 

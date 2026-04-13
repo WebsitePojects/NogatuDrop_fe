@@ -43,18 +43,23 @@ const NotificationDrawer = ({ isOpen, open, onClose }) => {
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
-      <div className="fixed right-0 top-0 bottom-0 w-[420px] bg-white shadow-2xl z-50 flex flex-col">
+      <div className="fixed inset-0 z-40 bg-black/10 dark:bg-black/40 backdrop-blur-sm transition-opacity" onClick={onClose} />
+      <div className="fixed right-4 sm:right-6 md:right-8 top-16 w-80 sm:w-96 max-h-[80vh] bg-white dark:bg-gray-800 shadow-2xl rounded-2xl z-50 flex flex-col border border-gray-100 dark:border-gray-700 overflow-hidden transform origin-top-right transition-all">
+        
         {/* Title */}
-        <div className="px-6 pt-8 pb-4">
-          <h2 className="text-3xl font-black text-gray-900 tracking-wide">NOTIFICATIONS</h2>
+        <div className="px-6 pt-6 pb-3 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+          <h2 className="text-xl font-extrabold text-gray-900 dark:text-white tracking-wide">NOTIFICATIONS</h2>
+          <span className="bg-[#5D1A00] text-xs text-white px-2 py-0.5 rounded-full font-bold">
+            {notifications.length}
+          </span>
         </div>
 
         {/* Notification List */}
-        <div className="flex-1 overflow-y-auto px-4 pb-4 space-y-3">
+        <div className="flex-1 overflow-y-auto p-3 space-y-2">
           {notifications.length === 0 ? (
-            <div className="flex items-center justify-center h-32 text-gray-400 text-sm">
-              No notifications
+            <div className="flex flex-col items-center justify-center py-10 text-gray-400 dark:text-gray-500">
+              <FiCheckCircle className="w-10 h-10 mb-3 opacity-20" />
+              <span className="text-sm font-medium">All caught up!</span>
             </div>
           ) : (
             notifications.map((notif) => {
@@ -66,29 +71,29 @@ const NotificationDrawer = ({ isOpen, open, onClose }) => {
                   key={notif.id}
                   onClick={() => handleNotifClick(notif)}
                   className={[
-                    'relative w-full text-left rounded-xl px-4 py-4',
+                    'relative w-full text-left rounded-xl p-3 border border-transparent',
                     'transition-all duration-200 cursor-pointer',
-                    'hover:bg-gray-200 dark:hover:bg-[var(--dark-card2)]',
-                    isFlashing ? 'bg-yellow-100' : notif.is_read ? 'bg-gray-100' : 'bg-gray-100',
+                    'hover:shadow-md hover:-translate-y-0.5',
+                    !notif.is_read ? 'bg-orange-50 dark:bg-gray-700 border-orange-100 dark:border-gray-600' : 'bg-gray-50 dark:bg-gray-800/50',
+                    isFlashing ? 'bg-yellow-100 dark:bg-yellow-900/30' : ''
                   ].join(' ')}
-                  style={isFlashing ? { transition: 'background-color 0.3s ease' } : undefined}
                 >
                   {/* Pulsing unread indicator */}
                   {!notif.is_read && (
-                    <>
-                      <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full animate-ping" />
-                      <span className="absolute top-2 right-2 w-2 h-2 bg-blue-500 rounded-full" />
-                    </>
+                    <span className="absolute top-3 right-3 flex h-2.5 w-2.5">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-orange-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-orange-500"></span>
+                    </span>
                   )}
                   {/* Location row */}
-                  <div className="flex items-center gap-2 mb-1.5">
-                    <FiMapPin className="text-gray-700 text-base flex-shrink-0" />
-                    <span className="text-sm font-bold text-gray-800">{location}</span>
+                  <div className="flex items-center gap-2 mb-1.5 pr-4">
+                    <FiMapPin className="text-gray-700 dark:text-gray-300 text-sm flex-shrink-0" />
+                    <span className="text-sm font-bold text-gray-800 dark:text-gray-200 truncate">{location}</span>
                   </div>
                   {/* Status row */}
                   <div className="flex items-center gap-2">
                     {icon}
-                    <span className="text-sm font-medium" style={{ color: labelColor }}>
+                    <span className="text-xs font-semibold" style={{ color: labelColor }}>
                       {label}
                     </span>
                   </div>
@@ -98,14 +103,14 @@ const NotificationDrawer = ({ isOpen, open, onClose }) => {
           )}
         </div>
 
-        {/* Close Button */}
-        <div className="p-4">
+        {/* Footer Actions */}
+        <div className="p-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
           <button
             onClick={onClose}
-            className="w-full py-4 text-white font-bold text-sm rounded-xl tracking-widest uppercase"
+            className="w-full py-2.5 text-white font-bold text-sm rounded-lg tracking-wider uppercase transition-colors hover:opacity-90"
             style={{ background: '#5D1A00' }}
           >
-            CLOSE
+            Close
           </button>
         </div>
       </div>

@@ -99,7 +99,7 @@ const METRICS = [
   { value: '120k+', label: 'Monthly Orders' },
   { value: '99.4%', label: 'Fulfillment SLA' },
   { value: '48h', label: 'Metro Delivery' },
-  { value: '4.8/5', label: 'Partner Rating' },
+  { value: '4.8/5', label: 'Stockist Rating' },
 ];
 
 const HIGHLIGHTS = [
@@ -116,7 +116,7 @@ const HIGHLIGHTS = [
   {
     icon: <FiClock className="text-xl text-orange-300" />,
     title: '24/7 Support',
-    detail: 'Dedicated service channels for retail customers and wholesale partners.',
+    detail: 'Dedicated service channels for retail customers and wholesale stockists.',
   },
   {
     icon: <FiGlobe className="text-xl text-orange-300" />,
@@ -140,7 +140,7 @@ const TESTIMONIALS = [
   },
   {
     name: 'Elaine R.',
-    role: 'Retail Partner',
+    role: 'Retail Stockist',
     quote:
       'Our repeat orders improved after switching to Nogatu products. Customers love the taste and branding.',
   },
@@ -290,10 +290,10 @@ const LandingPage = () => {
   };
 
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-[#1f1208] text-[#f8efe4]">
+    <div className="landing-shell relative min-h-screen overflow-x-hidden text-[#f8efe4]">
       <div className="page-noise pointer-events-none" />
-      <div className="absolute inset-0 pointer-events-none opacity-80 [background:radial-gradient(circle_at_10%_20%,rgba(245,153,55,0.25),transparent_40%),radial-gradient(circle_at_85%_8%,rgba(255,236,206,0.22),transparent_35%),radial-gradient(circle_at_90%_72%,rgba(150,78,24,0.23),transparent_38%)]" />
-      <div className="absolute inset-0 pointer-events-none [background-image:linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] [background-size:42px_42px]" />
+      <div className="absolute inset-0 pointer-events-none opacity-80 [background:radial-gradient(circle_at_8%_16%,rgba(255,205,129,0.26),transparent_34%),radial-gradient(circle_at_84%_8%,rgba(255,174,82,0.18),transparent_35%),radial-gradient(circle_at_90%_72%,rgba(97,51,21,0.32),transparent_40%)]" />
+      <div className="absolute inset-0 pointer-events-none [background-image:linear-gradient(rgba(255,199,129,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(255,199,129,0.045)_1px,transparent_1px)] [background-size:42px_42px]" />
 
       <header className="fixed inset-x-0 top-0 z-50">
         <div className="mx-auto mt-4 w-[min(1180px,calc(100%-1.5rem))]">
@@ -315,7 +315,7 @@ const LandingPage = () => {
                 <button
                   key={link.id}
                   onClick={() => scrollTo(link.id)}
-                  className="text-sm font-medium text-orange-50/80 transition hover:text-orange-200"
+                  className="nav-link text-sm font-medium"
                 >
                   {link.label}
                 </button>
@@ -325,18 +325,18 @@ const LandingPage = () => {
             <div className="hidden items-center gap-3 md:flex">
               <button
                 onClick={() => navigate('/login')}
-                className="rounded-xl border border-orange-200/30 bg-[#2f1c10]/70 px-4 py-2 text-sm text-orange-50 transition hover:bg-[#3a2414]"
+                className="nav-ghost-btn rounded-xl px-4 py-2 text-sm"
               >
                 Sign In
               </button>
               <button
                 onClick={() => setCartOpen(true)}
-                className="relative inline-flex h-10 items-center gap-2 rounded-xl bg-gradient-to-r from-[#f7a340] to-[#d97622] px-4 text-sm font-semibold text-white transition hover:brightness-110"
+                className="nav-primary-btn relative inline-flex h-10 items-center gap-2 rounded-xl px-4 text-sm font-semibold text-white"
               >
                 <FiShoppingBag />
                 Cart
                 {cartItems.length > 0 && (
-                  <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#2d1709] px-1 text-xs text-orange-100">
+                  <span className="absolute -right-2 -top-2 inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[#2d1709] px-1 text-xs text-orange-100 ring-2 ring-[#f1b86c]/50">
                     {cartItems.length}
                   </span>
                 )}
@@ -359,14 +359,14 @@ const LandingPage = () => {
                   <button
                     key={link.id}
                     onClick={() => scrollTo(link.id)}
-                    className="rounded-lg px-3 py-2 text-left text-sm text-orange-100/85 transition hover:bg-white/10"
+                    className="rounded-lg px-3 py-2 text-left text-sm text-orange-100/85 transition hover:bg-[#533118]"
                   >
                     {link.label}
                   </button>
                 ))}
                 <button
                   onClick={() => navigate('/login')}
-                  className="mt-2 rounded-lg border border-orange-200/35 bg-white/10 px-3 py-2 text-sm text-orange-100"
+                  className="nav-ghost-btn mt-2 rounded-lg px-3 py-2 text-sm"
                 >
                   Sign In
                 </button>
@@ -375,7 +375,7 @@ const LandingPage = () => {
                     setMobileOpen(false);
                     setCartOpen(true);
                   }}
-                  className="rounded-lg bg-gradient-to-r from-[#f7a340] to-[#d97622] px-3 py-2 text-sm font-semibold text-white"
+                  className="nav-primary-btn rounded-lg px-3 py-2 text-sm font-semibold text-white"
                 >
                   Open Cart
                 </button>
@@ -387,13 +387,13 @@ const LandingPage = () => {
 
       <main className="relative z-10">
         <section id="home" className="relative overflow-hidden px-4 pt-32 sm:px-6 lg:px-8">
-          <div className="mx-auto grid w-[min(1180px,100%)] items-center gap-10 py-16 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="mx-auto flex w-[min(1180px,100%)] flex-col items-center gap-10 py-16 lg:grid lg:grid-cols-[1.1fr_0.9fr]">
             <div ref={setRevealRef(0)} className="reveal-block space-y-8">
-              <span className="inline-flex items-center gap-2 rounded-full border border-orange-200/30 bg-white/5 px-4 py-2 text-xs uppercase tracking-[0.24em] text-orange-200/80">
+              <span className="liquid-pill inline-flex items-center gap-2 rounded-full border px-4 py-2 text-xs uppercase tracking-[0.24em] text-orange-200/90">
                 <FiShield />
                 Philippine Wellness Beverages
               </span>
-              <h1 className="text-balance text-4xl font-black leading-tight text-white sm:text-5xl xl:text-6xl">
+              <h1 className="font-heading text-balance text-4xl leading-tight text-white sm:text-5xl xl:text-6xl">
                 Fuel Your Day with
                 <span className="bg-gradient-to-r from-[#ffd79e] via-[#ffaf57] to-[#ff8d32] bg-clip-text text-transparent"> Nogatu Wellness Drinks</span>
               </h1>
@@ -405,14 +405,14 @@ const LandingPage = () => {
               <div className="flex flex-wrap gap-3">
                 <button
                   onClick={() => scrollTo('shop')}
-                  className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#f7a340] to-[#dd7b27] px-6 py-3 text-sm font-semibold text-white transition hover:translate-y-[-1px] hover:brightness-110"
+                  className="btn-amber inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white"
                 >
                   Shop Products
                   <FiArrowRight />
                 </button>
                 <button
                   onClick={() => setCartOpen(true)}
-                  className="inline-flex items-center gap-2 rounded-xl border border-orange-200/35 bg-white/8 px-6 py-3 text-sm font-semibold text-orange-100 transition hover:bg-white/15"
+                  className="btn-liquid inline-flex items-center gap-2 rounded-xl border px-6 py-3 text-sm font-semibold text-orange-100"
                 >
                   View Cart
                   <FiShoppingBag />
@@ -421,9 +421,9 @@ const LandingPage = () => {
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {METRICS.map((metric) => (
-                  <div key={metric.label} className="rounded-xl border border-orange-100/20 bg-white/5 p-3 backdrop-blur">
-                    <p className="text-xl font-bold text-orange-100">{metric.value}</p>
-                    <p className="text-xs uppercase tracking-wide text-orange-200/75">{metric.label}</p>
+                  <div key={metric.label} className="liquid-stat rounded-xl border p-3">
+                    <p className="text-xl font-bold text-orange-200">{metric.value}</p>
+                    <p className="text-xs uppercase tracking-wide text-orange-100/75">{metric.label}</p>
                   </div>
                 ))}
               </div>
@@ -434,7 +434,7 @@ const LandingPage = () => {
                 <div className="pointer-events-none absolute -left-8 top-8 h-32 w-32 rounded-full border-2 border-[#d9771f]/30" />
                 <div className="pointer-events-none absolute bottom-6 right-6 h-24 w-24 rotate-12 rounded-[28%] border border-[#a45317]/30" />
                 <div className="grid gap-4">
-                  <div className="rounded-2xl bg-white/65 p-4 backdrop-blur">
+                  <div className="hero-feature-card rounded-2xl p-4">
                     <p className="text-xs uppercase tracking-[0.22em] text-[#8c5f3f]">Featured Product</p>
                     <h3 className="mt-2 text-2xl font-bold">{selectedProduct.name}</h3>
                     <p className="mt-2 text-sm text-[#6f4f36]">{selectedProduct.shortDescription}</p>
@@ -446,15 +446,15 @@ const LandingPage = () => {
                       </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                     {PRODUCTS.slice(0, 3).map((product) => (
                       <button
                         key={product.id}
                         onClick={() => setSelectedProductId(product.id)}
                         className={`overflow-hidden rounded-xl border p-1 transition ${
                           selectedProduct.id === product.id
-                            ? 'border-[#c96f1f] bg-[#ffe9cb]'
-                            : 'border-[#d8b085]/70 bg-white/60 hover:bg-white/80'
+                            ? 'border-[#c96f1f] bg-[#ffe9cb] shadow-[0_8px_20px_rgba(177,94,28,0.18)]'
+                            : 'border-[#d8b085]/90 bg-[#fff8ea] hover:bg-[#fff2d8]'
                         }`}
                       >
                         <img src={product.image} alt={product.name} className="h-20 w-full rounded-lg object-cover" />
@@ -474,12 +474,12 @@ const LandingPage = () => {
           </div>
         </section>
 
-        <section id="shop" className="relative px-4 py-16 sm:px-6 lg:px-8">
+        <section id="shop" className="relative px-4 py-16 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent to-[#e9a629]">
           <div className="mx-auto w-[min(1180px,100%)]">
             <div ref={setRevealRef(2)} className="reveal-block mb-8 flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-orange-200/80">Catalog</p>
-                <h2 className="mt-2 text-3xl font-black text-white sm:text-4xl">Professional Product Selection</h2>
+                <h2 className="font-heading mt-2 text-3xl text-white sm:text-4xl">Professional Product Selection</h2>
               </div>
               <div className="flex flex-wrap gap-2">
                 {PRODUCT_CATEGORIES.map((category) => (
@@ -488,8 +488,8 @@ const LandingPage = () => {
                     onClick={() => setActiveCategory(category)}
                     className={`rounded-full border px-4 py-2 text-sm transition ${
                       activeCategory === category
-                        ? 'border-orange-200/80 bg-orange-300/20 text-orange-50'
-                        : 'border-orange-100/25 bg-white/5 text-orange-100/80 hover:bg-white/10'
+                        ? 'border-[#ffecd1] bg-[#4f2a13] text-[#fff7ea] shadow-[0_8px_20px_rgba(237,153,71,0.28)]'
+                        : 'border-orange-100/35 bg-[#6b3a1a]/80 text-orange-100 hover:bg-[#834923]'
                     }`}
                   >
                     {category}
@@ -503,15 +503,27 @@ const LandingPage = () => {
                 <article
                   key={product.id}
                   ref={setRevealRef(3 + index)}
-                  className="reveal-block card-float overflow-hidden rounded-2xl border border-orange-100/18 bg-white/6 p-4 backdrop-blur-sm"
+                  className="reveal-block card-float liquid-card flex flex-col overflow-hidden rounded-2xl border p-4"
                 >
                   <div className="relative overflow-hidden rounded-xl">
                     <img src={product.image} alt={product.name} className="h-52 w-full object-cover transition duration-500 hover:scale-105" />
-                    <span className="absolute right-3 top-3 rounded-full bg-[#2e1a0c]/85 px-3 py-1 text-xs font-semibold text-orange-100">
+                    <span
+                      className={`absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-semibold ${
+                        product.badge === 'Best Seller'
+                          ? 'bg-rose-900/90 text-rose-100 ring-1 ring-rose-400/50'
+                          : product.badge === 'Popular'
+                            ? 'bg-amber-900/90 text-amber-100 ring-1 ring-amber-400/50'
+                            : product.badge === 'Wellness'
+                              ? 'bg-emerald-900/90 text-emerald-100 ring-1 ring-emerald-400/50'
+                              : product.badge === 'Organic'
+                                ? 'bg-lime-900/90 text-lime-100 ring-1 ring-lime-400/50'
+                                : 'bg-[#2f1909] text-orange-100 ring-1 ring-orange-500/50'
+                      }`}
+                    >
                       {product.badge}
                     </span>
                   </div>
-                  <div className="mt-4">
+                  <div className="mt-4 flex flex-1 flex-col">
                     <div className="mb-2 flex items-center justify-between">
                       <h3 className="text-lg font-bold text-white">{product.name}</h3>
                       <span className="inline-flex items-center gap-1 text-sm text-orange-300">
@@ -519,8 +531,8 @@ const LandingPage = () => {
                         {product.rating}
                       </span>
                     </div>
-                    <p className="text-sm text-orange-50/75">{product.shortDescription}</p>
-                    <div className="mt-4 flex items-center justify-between">
+                    <p className="text-sm text-orange-50/80">{product.shortDescription}</p>
+                    <div className="mt-auto pt-4 flex items-center justify-between">
                       <p className="text-xl font-black text-orange-100">{formatPeso(product.price)}</p>
                       <button
                         onClick={() => addToCart(product)}
@@ -536,12 +548,13 @@ const LandingPage = () => {
           </div>
         </section>
 
-        <section id="story" className="relative px-4 py-16 sm:px-6 lg:px-8">
-          <div className="mx-auto grid w-[min(1180px,100%)] gap-6 lg:grid-cols-2">
-            <div ref={setRevealRef(20)} className="reveal-block rounded-3xl border border-orange-100/18 bg-gradient-to-br from-[#f7ead7]/95 to-[#efcc9d]/90 p-8 text-[#3d200d]">
+        <section id="story" className="relative px-4 py-16 sm:px-6 lg:px-8 bg-gradient-to-b from-[#e9a629] via-[#cc801b] to-[#7f4f13]">
+          <div className="section-pattern story-pattern pointer-events-none mix-blend-overlay opacity-30" />
+          <div className="relative z-10 mx-auto grid w-[min(1180px,100%)] gap-6 lg:grid-cols-2">
+            <div ref={setRevealRef(20)} className="reveal-block story-card rounded-3xl border p-8 text-[#542d0a]">
               <p className="text-xs uppercase tracking-[0.2em] text-[#8e5f3c]">Brand Story</p>
-              <h3 className="mt-2 text-3xl font-black">From Functional Drinks to Enterprise Commerce</h3>
-              <p className="mt-4 text-sm leading-relaxed text-[#6c4a31]">
+              <h3 className="font-heading mt-2 text-3xl">From Functional Drinks to Enterprise Commerce</h3>
+              <p className="mt-4 text-sm leading-relaxed text-[#542d0a]">
                 NogatuDrop evolved from a product-first distributor into a full digital commerce platform. This landing
                 experience mirrors that growth through strategic merchandising, trust-building signals, and frictionless
                 checkout design.
@@ -552,7 +565,7 @@ const LandingPage = () => {
                   'Order and tracking pipeline integration',
                   'B2B and retail customer journey support',
                 ].map((point) => (
-                  <div key={point} className="flex items-start gap-2 text-sm text-[#4f341f]">
+                  <div key={point} className="flex items-start gap-2 text-sm font-medium text-[#703b0c]">
                     <FiCheck className="mt-0.5 shrink-0 text-[#b9651e]" />
                     {point}
                   </div>
@@ -560,40 +573,41 @@ const LandingPage = () => {
               </div>
             </div>
 
-            <div ref={setRevealRef(21)} className="reveal-block grid gap-4">
+            <div ref={setRevealRef(21)} className="reveal-block grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
               {HIGHLIGHTS.map((item) => (
                 <article
                   key={item.title}
-                  className="rounded-2xl border border-orange-100/16 bg-[#2c190d]/70 p-5 backdrop-blur"
+                  className="feature-card rounded-2xl border p-5 bg-[#3c210e]/95 backdrop-blur shadow-[0_8px_30px_rgba(0,0,0,0.12)]"
                 >
                   <div className="mb-2 flex items-center gap-2">
                     {item.icon}
                     <h4 className="text-lg font-semibold text-orange-50">{item.title}</h4>
                   </div>
-                  <p className="text-sm leading-relaxed text-orange-100/75">{item.detail}</p>
+                  <p className="text-sm leading-relaxed text-orange-100/90">{item.detail}</p>
                 </article>
               ))}
             </div>
           </div>
         </section>
 
-        <section id="reviews" className="relative px-4 py-16 sm:px-6 lg:px-8">
-          <div className="mx-auto w-[min(1180px,100%)]">
+        <section id="reviews" className="relative px-4 py-16 sm:px-6 lg:px-8 bg-gradient-to-b from-[#7f4f13] via-[#a66a1a] to-[#d69527]">
+          <div className="section-pattern reviews-pattern pointer-events-none mix-blend-overlay opacity-30" />
+          <div className="relative z-10 mx-auto w-[min(1180px,100%)]">
             <div ref={setRevealRef(22)} className="reveal-block mb-8 text-center">
-              <p className="text-xs uppercase tracking-[0.22em] text-orange-200/80">Testimonials</p>
-              <h3 className="mt-2 text-3xl font-black text-white sm:text-4xl">Trusted by Partner Brands and Retail Buyers</h3>
+              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#ffdfa0]">Testimonials</p>
+              <h3 className="font-heading mt-2 text-3xl text-[#ffeec9] drop-shadow-md sm:text-4xl">Trusted by Stockists and Retail Buyers</h3>
             </div>
             <div className="grid gap-5 md:grid-cols-3">
               {TESTIMONIALS.map((testimonial, index) => (
                 <article
                   key={testimonial.name}
                   ref={setRevealRef(23 + index)}
-                  className="reveal-block rounded-2xl border border-orange-100/18 bg-white/6 p-6"
+                  className="reveal-block testimonial-card flex flex-col justify-between rounded-2xl border p-6 bg-[#321c0f]/95 backdrop-blur shadow-[0_8px_30px_rgba(0,0,0,0.12)]"
                 >
-                  <p className="text-sm leading-relaxed text-orange-50/80">"{testimonial.quote}"</p>
-                  <div className="mt-5 border-t border-orange-100/15 pt-4">
-                    <p className="font-semibold text-orange-100">{testimonial.name}</p>
-                    <p className="text-xs uppercase tracking-wide text-orange-200/70">{testimonial.role}</p>
+                  <p className="text-sm italic leading-relaxed text-orange-50/90">"{testimonial.quote}"</p>
+                  <div className="mt-5 border-t border-orange-100/20 pt-4">
+                    <p className="font-bold text-orange-100">{testimonial.name}</p>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-orange-200/80">{testimonial.role}</p>
                   </div>
                 </article>
               ))}
@@ -601,12 +615,13 @@ const LandingPage = () => {
           </div>
         </section>
 
-        <section id="contact" className="relative px-4 pb-20 pt-12 sm:px-6 lg:px-8">
-          <div ref={setRevealRef(30)} className="reveal-block mx-auto w-[min(1180px,100%)] rounded-3xl border border-orange-100/18 bg-gradient-to-r from-[#311c0f]/85 via-[#4a2812]/80 to-[#2c180d]/88 p-8 sm:p-10">
+        <section id="contact" className="relative px-4 pb-20 pt-12 sm:px-6 lg:px-8 bg-gradient-to-b from-[#d69527] via-[#2c180d] to-[#120a05]">
+          <div className="section-pattern cta-pattern pointer-events-none mix-blend-overlay opacity-30" />
+          <div ref={setRevealRef(30)} className="reveal-block cta-liquid relative z-10 mx-auto w-[min(1180px,100%)] rounded-3xl border p-8 sm:p-10">
             <div className="grid items-center gap-8 md:grid-cols-[1.1fr_0.9fr]">
               <div>
                 <p className="text-xs uppercase tracking-[0.22em] text-orange-200/75">Ready to Scale</p>
-                <h3 className="mt-2 text-3xl font-black text-orange-50 sm:text-4xl">Launch Your Next High-Converting Product Campaign</h3>
+                <h3 className="font-heading mt-2 text-3xl text-orange-50 sm:text-4xl">Launch Your Next High-Converting Product Campaign</h3>
                 <p className="mt-3 max-w-xl text-sm leading-relaxed text-orange-100/75">
                   Start with our complete catalog, optimize procurement, and check out in minutes using a polished
                   commerce experience tailored for modern businesses.
@@ -615,16 +630,16 @@ const LandingPage = () => {
               <div className="flex flex-col gap-3">
                 <button
                   onClick={() => scrollTo('shop')}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#f7a340] to-[#de7a26] px-5 py-3 text-sm font-semibold text-white transition hover:brightness-110"
+                  className="btn-amber inline-flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white"
                 >
                   Browse Catalog
                   <FiArrowRight />
                 </button>
                 <button
-                  onClick={() => navigate('/login')}
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-orange-200/35 bg-white/10 px-5 py-3 text-sm font-semibold text-orange-50 transition hover:bg-white/15"
+                  onClick={() => navigate('/apply')}
+                  className="btn-liquid inline-flex items-center justify-center gap-2 rounded-xl border px-5 py-3 text-sm font-semibold text-orange-50"
                 >
-                  Become a Partner
+                  Become a Stockist
                   <FiUser />
                 </button>
               </div>
@@ -633,7 +648,7 @@ const LandingPage = () => {
         </section>
       </main>
 
-      <footer className="relative border-t border-orange-100/12 bg-[#1b0f07] px-4 py-8 text-center text-xs text-orange-200/65 sm:px-6 lg:px-8">
+      <footer className="relative border-t border-orange-100/12 bg-[#090503] px-4 py-8 text-center text-xs text-orange-200/65 sm:px-6 lg:px-8">
         <p>NogatuDrop Enterprise Commerce © {new Date().getFullYear()} All rights reserved.</p>
       </footer>
 

@@ -4,17 +4,17 @@ import { Spinner } from 'flowbite-react';
 import { HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
 import { useAuth } from '@/context/AuthContext';
 
-const POSTER   = '/assets/nogatuPoster_login.png';
-const LOGO     = '/assets/dropshipping_nogatu_logo.png';
+const POSTER = '/assets/nogatuPoster_login.png';
+const LOGO = '/assets/dropshipping_nogatu_logo.png';
 
 export default function Login() {
   const navigate = useNavigate();
   const { login } = useAuth();
-  const [email,    setEmail]    = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [showPw,   setShowPw]   = useState(false);
-  const [loading,  setLoading]  = useState(false);
-  const [error,    setError]    = useState('');
+  const [showPw, setShowPw] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -23,9 +23,9 @@ export default function Login() {
     try {
       const userData = await login(email, password);
       const role = userData?.role_slug;
-      if (role === 'super_admin')         navigate('/main/dashboard');
+      if (role === 'super_admin') navigate('/main/dashboard');
       else if (role === 'mobile_stockist') navigate('/mobile/dashboard');
-      else                                navigate('/stockist/dashboard');
+      else navigate('/stockist/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
     } finally {
@@ -34,70 +34,54 @@ export default function Login() {
   };
 
   return (
-    /* Always light — login page never enters dark mode */
-    <div className="login-force-light flex min-h-screen" style={{ colorScheme: 'light', background: '#ffffff' }}>
-
-      {/* ── Left panel: full-height poster ────────────────────────── */}
-      <div className="hidden lg:block lg:w-[52%] xl:w-[55%] relative overflow-hidden flex-shrink-0">
-        <img
+    <div className="flex min-h-screen bg-black" style={{ colorScheme: 'light' }}>
+      {/* LEFT PANEL */}
+      <div className="lg:w-[50%] hidden lg:block relative bg-gray-900 overflow-hidden">
+        <img 
           src={POSTER}
-          alt="Nogatu"
-          className="absolute inset-0 w-full h-full object-cover object-center"
+          alt="Nogatu Login Poster"
+          className="absolute inset-0 h-full w-full object-cover"
         />
-        {/* subtle dark overlay so logo text reads clearly */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent" />
-
-        {/* Brand tag bottom-left */}
-        <div className="absolute bottom-10 left-10 text-white">
-          <div className="flex items-center gap-3 mb-3">
-            <img src={LOGO} alt="Nogatu" className="w-10 h-10 rounded-xl shadow-lg" />
-            <div>
-              <p className="text-xs font-semibold tracking-widest text-amber-300 uppercase">NCDMS</p>
-              <p className="text-lg font-bold leading-tight">Nogatu Centralized<br />Distribution</p>
-            </div>
-          </div>
-          <p className="text-sm text-white/60 max-w-xs leading-relaxed">
-            From province to doorstep — inventory, orders,<br />and deliveries in one place.
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-black/10" />
+        <div className="absolute inset-0 flex flex-col justify-end p-12 lg:p-20 text-white z-10">
+          <h2 className="text-4xl md:text-5xl font-serif font-bold mb-6 text-white text-shadow-sm">
+            Centralized<br />Distribution
+          </h2>
+          <p className="text-lg text-white/80 max-w-md leading-relaxed">
+            Manage your inventory, streamline your drop-shipping operations, and grow your network with the Nogatu platform.
           </p>
         </div>
       </div>
 
-      {/* ── Right panel: clean form ────────────────────────────────── */}
-      <div className="flex-1 flex flex-col items-center justify-center px-8 py-12 bg-white">
+      {/* RIGHT PANEL */}
+      <div className="flex-1 landing-shell relative flex items-center justify-center bg-[#1e1613] text-[#f8efe4]">
+        {/* Background Textures */}
+        <div className="page-noise pointer-events-none absolute inset-0 z-0 opacity-50" />
+        <div className="absolute inset-0 pointer-events-none opacity-80 z-0 [background:radial-gradient(circle_at_8%_16%,rgba(255,205,129,0.26),transparent_34%),radial-gradient(circle_at_84%_8%,rgba(255,174,82,0.18),transparent_35%),radial-gradient(circle_at_90%_72%,rgba(97,51,21,0.32),transparent_40%)]" />
+        <div className="absolute inset-0 pointer-events-none z-0 [background-image:linear-gradient(rgba(255,199,129,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(255,199,129,0.045)_1px,transparent_1px)] [background-size:42px_42px]" />
 
-        {/* Mobile logo (shown below lg) */}
-        <div className="flex items-center gap-3 mb-10 lg:hidden">
-          <img src={LOGO} alt="Nogatu" className="w-10 h-10 rounded-xl" />
-          <div>
-            <p className="font-bold text-gray-900 text-sm">NCDMS</p>
-            <p className="text-xs text-gray-400">Distribution System</p>
+        {/* Form Container */}
+        <div className="z-10 liquid-card bg-[#381f11]/90 rounded-3xl p-8 max-w-[380px] w-full shadow-2xl relative">
+          <div className="mb-8 flex flex-col items-center justify-center text-center">
+            <Link to="/" className="mb-5 focus:outline-none">
+              <img src={LOGO} alt="Nogatu Logo" className="h-16 w-16 rounded-full border border-orange-200/20 object-cover shadow-[0_0_20px_rgba(255,190,100,0.15)] transition-transform hover:scale-105" />
+            </Link>
+            <p className="text-[11px] font-bold uppercase tracking-[0.25em] text-amber-500/80 mb-2">NCDMS</p>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">Welcome Back</h1>
           </div>
-        </div>
 
-        <div className="w-full max-w-[360px]">
-
-          {/* Heading */}
-          <h1 className="text-3xl font-bold text-gray-900 mb-1 tracking-tight">
-            Welcome back.
-          </h1>
-          <p className="text-sm text-gray-400 mb-8">
-            Sign in to your account to continue
-          </p>
-
-          {/* Error */}
           {error && (
-            <div className="mb-5 flex items-start gap-2.5 bg-red-50 border border-red-200 rounded-xl px-4 py-3 text-sm text-red-700">
-              <span className="mt-0.5 shrink-0 text-red-500">⚠</span>
-              {error}
+            <div className="mb-6 flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-950/40 px-4 py-3 text-sm text-red-200 shadow-inner">
+              <span className="shrink-0 text-red-500 mt-0.5">⚠️</span>
+              <p className="leading-relaxed">{error}</p>
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5">
-
-            {/* Email */}
+            {/* Email Input */}
             <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-gray-500 tracking-wide uppercase">
-                Email address
+              <label className="block text-[11px] font-bold uppercase tracking-wider text-amber-500/80">
+                Email Address
               </label>
               <input
                 type="email"
@@ -106,20 +90,19 @@ export default function Login() {
                 placeholder="you@example.com"
                 required
                 autoComplete="email"
-                className="w-full px-0 py-2.5 bg-transparent border-0 border-b-2 border-gray-200 focus:border-amber-500 focus:outline-none text-gray-900 text-sm placeholder-gray-300 transition-colors"
-                style={{ colorScheme: 'light' }}
+                className="w-full bg-[#e9f2ff] text-gray-900 px-4 py-3 rounded-xl border border-transparent focus:ring-4 focus:ring-amber-500/20 focus:outline-none"
               />
             </div>
 
-            {/* Password */}
+            {/* Password Input */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between">
-                <label className="block text-xs font-semibold text-gray-500 tracking-wide uppercase">
+                <label className="block text-[11px] font-bold uppercase tracking-wider text-amber-500/80">
                   Password
                 </label>
                 <Link
                   to="/forgot-password"
-                  className="text-xs text-amber-600 hover:text-amber-700 font-medium transition-colors"
+                  className="text-[11px] font-medium tracking-wide text-amber-400 transition-colors hover:text-amber-300 focus:outline-none focus:underline"
                 >
                   Forgot password?
                 </Link>
@@ -132,46 +115,45 @@ export default function Login() {
                   placeholder="••••••••"
                   required
                   autoComplete="current-password"
-                  className="w-full px-0 py-2.5 pr-8 bg-transparent border-0 border-b-2 border-gray-200 focus:border-amber-500 focus:outline-none text-gray-900 text-sm placeholder-gray-300 transition-colors"
-                  style={{ colorScheme: 'light' }}
+                  className="w-full bg-[#e9f2ff] text-gray-900 px-4 py-3 rounded-xl border border-transparent focus:ring-4 focus:ring-amber-500/20 focus:outline-none pr-11"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
-                  className="absolute right-0 top-1/2 -translate-y-1/2 text-gray-300 hover:text-gray-500 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-gray-800 transition-colors focus:outline-none rounded-md"
                   tabIndex={-1}
                 >
-                  {showPw ? <HiOutlineEyeOff className="w-5 h-5" /> : <HiOutlineEye className="w-5 h-5" />}
+                  {showPw ? <HiOutlineEyeOff className="h-5 w-5" /> : <HiOutlineEye className="h-5 w-5" />}
                 </button>
               </div>
             </div>
 
-            {/* Submit */}
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full mt-2 flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 active:bg-gray-950 text-white font-semibold text-sm py-3.5 rounded-xl transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+              className="mt-6 w-full btn-amber flex justify-center gap-2 items-center px-6 py-3.5 text-sm font-semibold rounded-xl"
             >
               {loading ? (
                 <>
-                  <Spinner size="sm" className="fill-white" />
-                  Signing in…
+                  <Spinner size="sm" light={true} />
+                  <span>Authenticating...</span>
                 </>
-              ) : 'Sign In'}
+              ) : (
+                'Sign In'
+              )}
             </button>
           </form>
 
-          {/* Footer */}
-          <p className="text-center text-sm text-gray-400 mt-8">
-            New Stockist?{' '}
-            <Link to="/apply" className="text-amber-600 hover:text-amber-700 font-semibold transition-colors">
-              Apply here
-            </Link>
-          </p>
-
-          <p className="text-center text-xs text-gray-300 mt-10">
-            Nogatu Alliance · Prince IT Solutions · 2026
-          </p>
+          {/* Footer Link */}
+          <div className="mt-8 text-center pt-6 border-t border-white/5">
+            <p className="text-[13px] text-[#d4bca4]">
+              New Stockist?{' '}
+              <Link to="/apply" className="font-semibold text-amber-500 hover:text-amber-400 focus:outline-none focus:underline transition-colors">
+                Apply here
+              </Link>
+            </p>
+          </div>
         </div>
       </div>
     </div>
