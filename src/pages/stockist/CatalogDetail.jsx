@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Button, Spinner } from 'flowbite-react';
 import { HiArrowLeft, HiShoppingCart, HiLightningBolt } from 'react-icons/hi';
 import { ToastContainer, useToast } from '@/components/Toast';
+import { useCart } from '@/context/CartContext';
 import api from '@/services/api';
-import { PRODUCTS, CART, ORDERS } from '@/services/endpoints';
+import { PRODUCTS } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
 
@@ -12,6 +13,7 @@ export default function CatalogDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toasts, showToast, dismiss } = useToast();
+  const { addToCart } = useCart();
 
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
@@ -47,12 +49,8 @@ export default function CatalogDetail() {
   const handleAddToCart = async () => {
     setAddingCart(true);
     try {
-      await api.post(CART.ADD, {
-        product_id: product.id,
-        warehouse_id: product.warehouse_id || null,
-        quantity: qty,
-      });
-      showToast(`${product.name} added to cart!`, 'success');
+      await addToCart(product.id, product.warehouse_id || null, qty);
+      showToast(`${product.name} added to cart`, 'success');
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to add to cart', 'error');
     } finally {
@@ -63,11 +61,7 @@ export default function CatalogDetail() {
   const handleCheckoutNow = async () => {
     setCheckingOut(true);
     try {
-      await api.post(CART.ADD, {
-        product_id: product.id,
-        warehouse_id: product.warehouse_id || null,
-        quantity: qty,
-      });
+      await addToCart(product.id, product.warehouse_id || null, qty);
       navigate('/stockist/cart');
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to proceed', 'error');
@@ -208,7 +202,11 @@ export default function CatalogDetail() {
                 disabled={addingCart || checkingOut}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white font-semibold text-sm transition-colors"
               >
-                <HiShoppingCart className="w-4 h-4" />
+                {addingCart ? (
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
+                ) : (
+                  <HiShoppingCart className="w-4 h-4" />
+                )}
                 {addingCart ? 'Adding...' : 'Add to Cart'}
               </button>
               <button

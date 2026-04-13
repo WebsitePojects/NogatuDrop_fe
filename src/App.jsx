@@ -35,6 +35,7 @@ import MainBankAccounts from '@/pages/main/BankAccounts';
 import MainCouriers from '@/pages/main/Couriers';
 import MainStockMovements from '@/pages/main/StockMovements';
 import MainStockAdjustments from '@/pages/main/StockAdjustments';
+import MainPhase1Workspace from '@/pages/main/Phase1Workspace';
 
 // Stockist portal pages
 import StockistDashboard from '@/pages/stockist/Dashboard';
@@ -50,12 +51,15 @@ import StockistMobileStockists from '@/pages/stockist/MobileStockists';
 import StockistStockTransfers from '@/pages/stockist/StockTransfers';
 import StockistPurchaseOrders from '@/pages/stockist/PurchaseOrders';
 import StockistWarehouses from '@/pages/stockist/Warehouses';
+import StockistPhase1Workspace from '@/pages/stockist/Phase1Workspace';
 
 // Mobile Stockist portal
 import MobileDashboard from '@/pages/mobile/Dashboard';
 import MobileCatalog from '@/pages/mobile/Catalog';
+import MobileCart from '@/pages/mobile/Cart';
 import MobileOrders from '@/pages/mobile/Orders';
 import MobileProfile from '@/pages/mobile/Profile';
+import MobilePhase1Workspace from '@/pages/mobile/Phase1Workspace';
 
 // ─── Loading screen ─────────────────────────────────────────────────────────
 const LoadingScreen = () => (
@@ -119,6 +123,15 @@ const AppRoutes = () => {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard"         element={<MainDashboard />} />
         <Route path="orders"            element={<MainOrders />} />
+        <Route path="operations/control-tower" element={<MainPhase1Workspace pageKey="operations-control-tower" />} />
+        <Route path="operations/dispatch-board" element={<MainPhase1Workspace pageKey="operations-dispatch-board" />} />
+        <Route path="operations/exceptions" element={<MainPhase1Workspace pageKey="operations-exceptions" />} />
+        <Route path="payments/queue" element={<MainPhase1Workspace pageKey="payments-queue" />} />
+        <Route path="payments/routing" element={<MainPhase1Workspace pageKey="payments-routing" />} />
+        <Route path="payments/settlements" element={<MainPhase1Workspace pageKey="payments-settlements" />} />
+        <Route path="stock/replenishment" element={<MainPhase1Workspace pageKey="stock-replenishment" />} />
+        <Route path="stock/expiry-risk" element={<MainPhase1Workspace pageKey="stock-expiry-risk" />} />
+        <Route path="stock/capacity" element={<MainPhase1Workspace pageKey="stock-capacity" />} />
         <Route path="inventory"         element={<MainInventory />} />
         <Route path="stock-movements"   element={<MainStockMovements />} />
         <Route path="stock-adjustments" element={<MainStockAdjustments />} />
@@ -128,6 +141,9 @@ const AppRoutes = () => {
         <Route path="purchase-orders"   element={<MainPurchaseOrders />} />
         <Route path="partners"          element={<MainPartners />} />
         <Route path="applications"      element={<MainApplications />} />
+        <Route path="applications/pipeline" element={<MainPhase1Workspace pageKey="applications-pipeline" />} />
+        <Route path="applications/review/:id" element={<MainPhase1Workspace pageKey="applications-review" />} />
+        <Route path="applications/analytics" element={<MainPhase1Workspace pageKey="applications-analytics" />} />
         <Route path="bank-accounts"     element={<MainBankAccounts />} />
         <Route path="couriers"          element={<MainCouriers />} />
         <Route path="reports"           element={<MainReports />} />
@@ -156,10 +172,19 @@ const AppRoutes = () => {
         <Route path="catalog/:id"      element={<StockistCatalogDetail />} />
         <Route path="cart"             element={<StockistCart />} />
         <Route path="orders"           element={<StockistOrders />} />
+        <Route path="orders/board"     element={<StockistPhase1Workspace pageKey="orders-board" />} />
+        <Route path="orders/payments"  element={<StockistPhase1Workspace pageKey="orders-payments" />} />
+        <Route path="orders/dispatch"  element={<StockistPhase1Workspace pageKey="orders-dispatch" />} />
         <Route path="orders/:id"       element={<StockistOrders />} />
+        <Route path="delivery/live"    element={<StockistPhase1Workspace pageKey="delivery-live" />} />
+        <Route path="delivery/couriers" element={<StockistPhase1Workspace pageKey="delivery-couriers" />} />
+        <Route path="delivery/pod"     element={<StockistPhase1Workspace pageKey="delivery-pod" />} />
         <Route path="inventory"        element={<StockistInventory />} />
         <Route path="grn"              element={<StockistGRN />} />
         <Route path="mobile-stockists" element={<StockistMobileStockists />} />
+        <Route path="mobile-stockists/segments" element={<StockistPhase1Workspace pageKey="mobile-stockists-segments" />} />
+        <Route path="mobile-stockists/activity" element={<StockistPhase1Workspace pageKey="mobile-stockists-activity" />} />
+        <Route path="mobile-stockists/risk-signals" element={<StockistPhase1Workspace pageKey="mobile-stockists-risk-signals" />} />
         <Route path="stock-transfers"  element={<StockistStockTransfers />} />
         <Route path="purchase-orders"  element={<StockistPurchaseOrders />} />
         <Route path="warehouses"       element={<StockistWarehouses />} />
@@ -188,7 +213,11 @@ const AppRoutes = () => {
         <Route index element={<Navigate to="dashboard" replace />} />
         <Route path="dashboard" element={<MobileDashboard />} />
         <Route path="catalog"   element={<MobileCatalog />} />
+        <Route path="cart"      element={<MobileCart />} />
         <Route path="orders"    element={<MobileOrders />} />
+        <Route path="reorder"   element={<MobilePhase1Workspace pageKey="reorder" />} />
+        <Route path="delivery"  element={<MobilePhase1Workspace pageKey="delivery" />} />
+        <Route path="account"   element={<MobilePhase1Workspace pageKey="account" />} />
         <Route path="profile"   element={<MobileProfile />} />
       </Route>
 

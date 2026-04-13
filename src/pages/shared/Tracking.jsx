@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { HiSearch, HiTruck, HiLocationMarker, HiCalendar, HiCheckCircle } from 'react-icons/hi';
 import { FiArrowLeft } from 'react-icons/fi';
 import { Spinner } from 'flowbite-react';
+import { GoogleMap, MarkerF, useJsApiLoader } from '@react-google-maps/api';
 import StatusBadge from '@/components/StatusBadge';
 import api from '@/services/api';
 import { TRACKING } from '@/services/endpoints';
@@ -22,24 +23,43 @@ const statusIndex = (status) => {
 
 export default function Tracking() {
   const { orderNumber: urlOrderNumber } = useParams();
+  const mapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+  const { isLoaded: mapReady } = useJsApiLoader({
+    id: 'nogatu-live-tracking-map',
+    googleMapsApiKey: mapsApiKey,
+  });
 
   const [query, setQuery] = useState(urlOrderNumber || '');
+  const [activeOrderNumber, setActiveOrderNumber] = useState((urlOrderNumber || '').trim().toUpperCase());
   const [trackingData, setTrackingData] = useState(null);
-  const [gpsPings, setGpsPings] = useState([]);
+  const [latestPing, setLatestPing] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const intervalRef = useRef(null);
 
+  const normalizePing = (ping) => {
+    if (!ping) return null;
+    const latitude = Number(ping.latitude ?? ping.lat);
+    const longitude = Number(ping.longitude ?? ping.lng);
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
+    return { ...ping, latitude, longitude };
+  };
+
   const fetchTracking = useCallback(async (num) => {
     if (!num.trim()) return;
+    const normalizedOrderNumber = num.trim().toUpperCase();
     setLoading(true);
     setError('');
     setTrackingData(null);
     try {
-      const { data } = await api.get(TRACKING.PUBLIC(num.trim()));
-      setTrackingData(data.data);
+      const { data } = await api.get(TRACKING.PUBLIC(normalizedOrderNumber));
+      const payload = data.data || {};
+      setTrackingData(payload);
+      setLatestPing(normalizePing(payload.gps));
+      setActiveOrderNumber(normalizedOrderNumber);
     } catch (err) {
       setError(err?.response?.data?.message || 'Order not found. Please check your order number.');
+      setLatestPing(null);
     } finally {
       setLoading(false);
     }
@@ -50,28 +70,32 @@ export default function Tracking() {
     if (urlOrderNumber) fetchTracking(urlOrderNumber);
   }, [urlOrderNumber, fetchTracking]);
 
-  // Poll GPS if delivering
+  // Poll latest public tracking state if delivering
   useEffect(() => {
-    if (trackingData?.status === 'delivering') {
+    if (trackingData?.status === 'delivering' && activeOrderNumber) {
       const poll = async () => {
         try {
-          const { data } = await api.get(`/tracking/${trackingData.order_id}/pings`);
-          setGpsPings(data.data || []);
+          const { data } = await api.get(TRACKING.PUBLIC(activeOrderNumber));
+          const payload = data.data || {};
+          setTrackingData(payload);
+          setLatestPing(normalizePing(payload.gps));
         } catch { /* silent */ }
       };
       poll();
       intervalRef.current = setInterval(poll, 30000);
     }
     return () => clearInterval(intervalRef.current);
-  }, [trackingData?.status, trackingData?.order_id]);
+  }, [trackingData?.status, activeOrderNumber]);
 
   const handleSearch = (e) => {
     e.preventDefault();
     fetchTracking(query);
   };
 
-  const latestPing = gpsPings[gpsPings.length - 1];
   const currentStep = trackingData ? statusIndex(trackingData.status) : -1;
+  const mapCenter = latestPing && Number.isFinite(latestPing.latitude) && Number.isFinite(latestPing.longitude)
+    ? { lat: latestPing.latitude, lng: latestPing.longitude }
+    : { lat: 14.5995, lng: 120.9842 };
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
@@ -126,7 +150,7 @@ export default function Tracking() {
               <div className="flex items-start justify-between mb-4">
                 <div>
                   <p className="text-xs text-gray-500 mb-0.5">Order Number</p>
-                  <p className="font-mono font-bold text-gray-900">#{trackingData.order_number}</p>
+                  <p className="font-mono font-bold text-gray-900">#{activeOrderNumber || query.trim().toUpperCase()}</p>
                 </div>
                 <StatusBadge status={trackingData.status} />
               </div>
@@ -166,22 +190,22 @@ export default function Tracking() {
                 {
                   icon: HiTruck,
                   label: 'Courier',
-                  value: trackingData.courier_name || 'Not assigned',
+                  value: trackingData.courier || 'Not assigned',
                   color: 'text-blue-500 bg-blue-50',
                 },
                 {
                   icon: HiCalendar,
                   label: 'Est. Delivery',
-                  value: trackingData.estimated_delivery
-                    ? formatDate(trackingData.estimated_delivery)
+                  value: trackingData.eta
+                    ? formatDate(trackingData.eta)
                     : 'TBD',
                   color: 'text-amber-500 bg-amber-50',
                 },
                 {
                   icon: HiLocationMarker,
                   label: 'Last Update',
-                  value: trackingData.updated_at
-                    ? formatDate(trackingData.updated_at, true)
+                  value: latestPing?.pinged_at
+                    ? formatDate(latestPing.pinged_at, true)
                     : 'N/A',
                   color: 'text-emerald-500 bg-emerald-50',
                 },
@@ -213,13 +237,28 @@ export default function Tracking() {
                   style={{ height: '280px' }}
                 >
                   {latestPing ? (
-                    <div className="text-center">
-                      <HiLocationMarker className="w-12 h-12 text-orange-400 mx-auto mb-2" />
-                      <p className="text-sm font-medium text-gray-700">Rider is on the way</p>
-                      <p className="text-xs text-gray-400 mt-0.5 font-mono">
-                        {Number(latestPing.latitude).toFixed(4)}, {Number(latestPing.longitude).toFixed(4)}
-                      </p>
-                    </div>
+                    mapReady && mapsApiKey ? (
+                      <GoogleMap
+                        mapContainerStyle={{ width: '100%', height: '100%' }}
+                        zoom={13}
+                        center={mapCenter}
+                        options={{
+                          streetViewControl: false,
+                          fullscreenControl: false,
+                          mapTypeControl: false,
+                        }}
+                      >
+                        <MarkerF position={mapCenter} />
+                      </GoogleMap>
+                    ) : (
+                      <div className="text-center">
+                        <HiLocationMarker className="w-12 h-12 text-orange-400 mx-auto mb-2" />
+                        <p className="text-sm font-medium text-gray-700">Rider is on the way</p>
+                        <p className="text-xs text-gray-400 mt-0.5 font-mono">
+                          {Number(latestPing.latitude).toFixed(4)}, {Number(latestPing.longitude).toFixed(4)}
+                        </p>
+                      </div>
+                    )
                   ) : (
                     <div className="text-center text-gray-400">
                       <HiTruck className="w-12 h-12 mx-auto mb-2 opacity-30" />
@@ -227,14 +266,6 @@ export default function Tracking() {
                     </div>
                   )}
                 </div>
-              </div>
-            )}
-
-            {/* Courier tracking number */}
-            {trackingData.courier_tracking_number && (
-              <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 text-sm">
-                <p className="font-medium text-blue-800">Courier Tracking:</p>
-                <p className="font-mono text-blue-600 mt-0.5">{trackingData.courier_tracking_number}</p>
               </div>
             )}
           </div>

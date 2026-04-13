@@ -30,6 +30,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import NotificationDrawer from '@/components/NotificationDrawer';
 import FloatingTutorial from '@/components/FloatingTutorial';
+import FloatingCartButton from '@/components/FloatingCartButton';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
@@ -58,7 +59,27 @@ function buildNavGroups(role) {
       items: [
         { path: '/stockist/catalog',  label: 'Product Catalog', icon: HiOutlineViewGrid },
         ...(!isStaff ? [{ path: '/stockist/cart', label: 'Shopping Cart', icon: HiOutlineShoppingCart }] : []),
+      ],
+    },
+
+    // ── Order Center (Phase 1) ───────────────────────────
+    {
+      label: 'Order Center',
+      items: [
         { path: '/stockist/orders', label: 'Orders', icon: HiOutlineClipboardList },
+        { path: '/stockist/orders/board', label: 'Kanban Orders', icon: HiOutlineClipboardList },
+        { path: '/stockist/orders/payments', label: 'Payment Status', icon: HiOutlineShoppingBag },
+        { path: '/stockist/orders/dispatch', label: 'Dispatch Readiness', icon: HiOutlineTruck },
+      ],
+    },
+
+    // ── Delivery (Phase 1) ───────────────────────────────
+    {
+      label: 'Delivery',
+      items: [
+        { path: '/stockist/delivery/live', label: 'Live Deliveries Map', icon: HiOutlineTruck },
+        { path: '/stockist/delivery/couriers', label: 'Courier Performance', icon: HiOutlineTruck },
+        { path: '/stockist/delivery/pod', label: 'Delivery Proofs', icon: HiOutlineDocumentText },
       ],
     },
 
@@ -81,9 +102,17 @@ function buildNavGroups(role) {
     ...(isManager
       ? [
           {
-            label: 'Network',
+            label: 'Mobile Stockists',
             items: [
               { path: '/stockist/mobile-stockists', label: 'Mobile Stockists', icon: HiOutlineUsers },
+              { path: '/stockist/mobile-stockists/segments', label: 'Segments', icon: HiOutlineUsers },
+              { path: '/stockist/mobile-stockists/activity', label: 'Activity and Last Login', icon: HiOutlineRefresh },
+              { path: '/stockist/mobile-stockists/risk-signals', label: 'Risk Signals', icon: HiOutlineCog },
+            ],
+          },
+          {
+            label: 'Network',
+            items: [
               { path: '/stockist/warehouses', label: 'My Warehouses', icon: HiOutlineHome },
             ],
           },
@@ -324,6 +353,7 @@ export default function StockistLayout() {
       </div>
 
       <NotificationDrawer isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
+      <FloatingCartButton />
       <FloatingTutorial />
     </div>
   );

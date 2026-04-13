@@ -4,15 +4,16 @@ import { TextInput, Spinner } from 'flowbite-react';
 import { HiSearch, HiShoppingCart } from 'react-icons/hi';
 import { FiShoppingBag } from 'react-icons/fi';
 import { ToastContainer, useToast } from '@/components/Toast';
+import { useCart } from '@/context/CartContext';
 import api from '@/services/api';
-import { PRODUCTS, CART } from '@/services/endpoints';
+import { PRODUCTS } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
-import { PRODUCT_CATEGORIES } from '@/utils/constants';
 
 export default function StockistCatalog() {
   const navigate = useNavigate();
   const { toasts, showToast, dismiss } = useToast();
+  const { addToCart } = useCart();
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -53,12 +54,8 @@ export default function StockistCatalog() {
   const handleAddToCart = async (product) => {
     setAddingId(product.id);
     try {
-      await api.post(CART.ADD, {
-        product_id: product.id,
-        warehouse_id: product.warehouse_id || null,
-        quantity: quantities[product.id] || 1,
-      });
-      showToast(`${product.name} added to cart!`, 'success');
+      await addToCart(product.id, product.warehouse_id || null, quantities[product.id] || 1);
+      showToast(`${product.name} added to cart`, 'success');
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to add to cart', 'error');
     } finally {
