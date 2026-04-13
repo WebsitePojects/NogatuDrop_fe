@@ -78,7 +78,6 @@ export default function Dashboard() {
     <div className="page-enter">
       <PageHeader
         title="Dashboard"
-        subtitle="System overview and key metrics"
         actions={[
           {
             label: 'Export PDF',
@@ -88,6 +87,14 @@ export default function Dashboard() {
           },
         ]}
       />
+
+      <div className="mb-6 w-full h-32 md:h-48 lg:h-64 bg-gray-200 dark:bg-gray-800 rounded-xl flex items-center justify-center border border-dashed border-gray-300 dark:border-gray-700 overflow-hidden relative shadow-sm">
+        <div className="flex flex-col items-center justify-center text-gray-500 dark:text-gray-400">
+          <svg className="w-10 h-10 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          <span className="text-sm font-medium">Picture Banner Placeholder</span>
+          <span className="text-xs opacity-75">1200 x 300</span>
+        </div>
+      </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">

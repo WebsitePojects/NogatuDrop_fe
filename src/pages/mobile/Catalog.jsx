@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { HiSearch, HiShoppingCart } from 'react-icons/hi';
+import { HiSearch } from 'react-icons/hi';
 import { Spinner } from 'flowbite-react';
 import { ToastContainer, useToast } from '@/components/Toast';
 import { useCart } from '@/context/CartContext';
@@ -10,9 +9,8 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
 
 export default function MobileCatalog() {
-  const navigate = useNavigate();
   const { toasts, showToast, dismiss } = useToast();
-  const { items: cartItems, cartCount, cartTotal, addToCart, updateQty } = useCart();
+  const { items: cartItems, addToCart, updateQty } = useCart();
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -171,25 +169,6 @@ export default function MobileCatalog() {
           </div>
         )}
       </div>
-
-      {/* Floating cart button */}
-      {cartCount > 0 && (
-        <div className="fixed bottom-20 left-0 right-0 px-4 z-20">
-          <button
-            onClick={() => navigate('/mobile/orders')}
-            className="w-full py-4 bg-orange-500 text-white rounded-2xl font-semibold text-sm shadow-lg flex items-center justify-between px-5 hover:bg-orange-600 active:scale-95 transition-all"
-          >
-            <div className="flex items-center gap-2">
-              <HiShoppingCart size={18} />
-              <span>{cartCount} item{cartCount !== 1 ? 's' : ''}</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-bold">{formatCurrency(cartTotal)}</span>
-              <span className="text-white/70">→</span>
-            </div>
-          </button>
-        </div>
-      )}
     </div>
   );
 }

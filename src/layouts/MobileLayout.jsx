@@ -2,7 +2,9 @@ import { useState, Fragment } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Dropdown, DropdownItem, DropdownDivider } from 'flowbite-react';
 import {
-  HiOutlineHome, HiOutlineViewGrid, HiOutlineShoppingBag,
+  HiOutlineHome, HiOutlineViewGrid, HiOutlineRefresh,
+  HiOutlineLocationMarker,
+  HiOutlineShoppingBag,
   HiOutlineUser, HiOutlineBell, HiOutlineLogout,
   HiOutlineMenuAlt2, HiOutlineX, HiOutlineSun, HiOutlineMoon,
   HiChevronDown,
@@ -12,6 +14,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import NotificationDrawer from '@/components/NotificationDrawer';
 import FloatingTutorial from '@/components/FloatingTutorial';
+import FloatingCartButton from '@/components/FloatingCartButton';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
@@ -22,6 +25,9 @@ const NAV_ITEMS = [
   { path: '/mobile/dashboard', label: 'Dashboard',    icon: HiOutlineHome },
   { path: '/mobile/catalog',   label: 'Product Catalog', icon: HiOutlineViewGrid },
   { path: '/mobile/orders',    label: 'My Orders',    icon: HiOutlineShoppingBag },
+  { path: '/mobile/reorder',   label: 'Reorder',      icon: HiOutlineRefresh },
+  { path: '/mobile/delivery',  label: 'Delivery',     icon: HiOutlineLocationMarker },
+  { path: '/mobile/account',   label: 'Account',      icon: HiOutlineUser },
   { path: '/mobile/profile',   label: 'Profile',      icon: HiOutlineUser },
 ];
 
@@ -207,6 +213,7 @@ export default function MobileLayout() {
       </div>
 
       <NotificationDrawer isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
+      <FloatingCartButton />
       <FloatingTutorial />
     </div>
   );

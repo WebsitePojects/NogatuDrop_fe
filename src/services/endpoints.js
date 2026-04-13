@@ -46,6 +46,7 @@ export const STOCK_ADJUSTMENTS = {
   LIST:    '/stock-adjustments',
   CREATE:  '/stock-adjustments',
   APPROVE: (id) => `/stock-adjustments/${id}/approve`,
+  REJECT:  (id) => `/stock-adjustments/${id}/reject`,
 };
 
 export const WAREHOUSES = {

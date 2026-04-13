@@ -6,7 +6,7 @@ import {
 import { FiPackage } from 'react-icons/fi';
 import { Spinner } from 'flowbite-react';
 import api from '@/services/api';
-import { DELIVERY_TOKENS } from '@/services/endpoints';
+import { DELIVERY_TOKENS, TRACKING } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
@@ -26,12 +26,44 @@ export default function Deliver() {
   const [success, setSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
 
+  const postPing = async (coords) => {
+    try {
+      await api.post(TRACKING.PING(token), {
+        lat: coords.latitude,
+        lng: coords.longitude,
+        speed_kmh: coords.speed || null,
+        accuracy_meters: coords.accuracy || null,
+      });
+    } catch {
+      // Keep delivery flow uninterrupted if ping fails.
+    }
+  };
+
   useEffect(() => {
     api.get(DELIVERY_TOKENS.INFO(token))
       .then(res => setInfo(res.data.data))
       .catch(err => setError(err?.response?.data?.message || 'This delivery link is invalid or has expired.'))
       .finally(() => setLoading(false));
   }, [token]);
+
+  useEffect(() => {
+    if (success || !navigator.geolocation) return undefined;
+
+    const sendPing = () => {
+      navigator.geolocation.getCurrentPosition(
+        async (pos) => {
+          setGpsCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+          await postPing(pos.coords);
+        },
+        () => {},
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 10000 }
+      );
+    };
+
+    sendPing();
+    const id = setInterval(sendPing, 30000);
+    return () => clearInterval(id);
+  }, [success, token]);
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -44,8 +76,9 @@ export default function Deliver() {
     if (!navigator.geolocation) return;
     setGpsLoading(true);
     navigator.geolocation.getCurrentPosition(
-      (pos) => {
+      async (pos) => {
         setGpsCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        await postPing(pos.coords);
         setGpsLoading(false);
       },
       () => setGpsLoading(false),

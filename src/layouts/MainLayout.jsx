@@ -28,14 +28,29 @@ const NAV_GROUPS = [
   {
     label: 'Operations',
     items: [
+      { path: '/main/operations/control-tower', label: 'Control Tower', icon: HiOutlineClipboardList },
+      { path: '/main/operations/dispatch-board', label: 'Dispatch Board', icon: HiOutlineTruck },
+      { path: '/main/operations/exceptions', label: 'Delivery Exceptions', icon: HiOutlineTruck },
       { path: '/main/orders',          label: 'Orders',          icon: HiOutlineShoppingCart },
       { path: '/main/stock-transfers', label: 'Stock Transfers', icon: HiOutlineSwitchHorizontal },
       { path: '/main/purchase-orders', label: 'Purchase Orders', icon: HiOutlineClipboardList },
     ],
   },
   {
-    label: 'Inventory',
+    label: 'Payments',
     items: [
+      { path: '/main/payments/queue', label: 'Verification Queue', icon: HiOutlineCurrencyDollar },
+      { path: '/main/payments/routing', label: 'Regional Routing', icon: HiOutlineOfficeBuilding },
+      { path: '/main/payments/settlements', label: 'Settlement Monitor', icon: HiOutlineCurrencyDollar },
+      { path: '/main/bank-accounts', label: 'Bank Accounts', icon: HiOutlineCurrencyDollar },
+    ],
+  },
+  {
+    label: 'Stock Health',
+    items: [
+      { path: '/main/stock/replenishment', label: 'Replenishment Planner', icon: HiOutlineCube },
+      { path: '/main/stock/expiry-risk', label: 'Expiry Risk Board', icon: HiOutlineCollection },
+      { path: '/main/stock/capacity', label: 'Capacity Heatmap', icon: HiOutlineChartBar },
       { path: '/main/inventory',         label: 'Inventory',        icon: HiOutlineCube },
       { path: '/main/stock-movements',   label: 'Stock Movements',  icon: HiOutlineCollection },
       { path: '/main/stock-adjustments', label: 'Adjustments',      icon: HiOutlineAdjustments },
@@ -49,17 +64,23 @@ const NAV_GROUPS = [
     ],
   },
   {
+    label: 'Applications',
+    items: [
+      { path: '/main/applications',  label: 'Applications',  icon: HiOutlineClipboardCheck },
+      { path: '/main/applications/pipeline',  label: 'Pipeline Board',  icon: HiOutlineClipboardCheck },
+      { path: '/main/applications/analytics',  label: 'Conversion Analytics',  icon: HiOutlineChartBar },
+    ],
+  },
+  {
     label: 'People',
     items: [
       { path: '/main/partners',      label: 'Stockists',     icon: HiOutlineUserGroup },
-      { path: '/main/applications',  label: 'Applications',  icon: HiOutlineClipboardCheck },
       { path: '/main/users',         label: 'Users',         icon: HiOutlineUsers },
     ],
   },
   {
-    label: 'Finance & Reports',
+    label: 'Reports',
     items: [
-      { path: '/main/bank-accounts', label: 'Bank Accounts', icon: HiOutlineCurrencyDollar },
       { path: '/main/reports',       label: 'Reports',       icon: HiOutlineChartBar },
     ],
   },

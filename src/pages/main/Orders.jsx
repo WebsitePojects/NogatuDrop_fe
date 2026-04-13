@@ -5,6 +5,8 @@ import {
 import {
   HiOutlineSearch, HiOutlineEye, HiOutlineCheck, HiOutlineX,
   HiOutlineClock, HiOutlinePhotograph, HiOutlineExternalLink,
+  HiOutlineUser, HiOutlineCalendar, HiOutlineXCircle,
+  HiOutlineLink, HiOutlineClipboardCopy, HiOutlineCheckCircle, HiOutlinePaperAirplane
 } from 'react-icons/hi';
 import api from '@/services/api';
 import { DELIVERY_TOKENS, ORDERS } from '@/services/endpoints';
@@ -398,160 +400,240 @@ export default function Orders() {
       </Card>
 
       {/* Detail Modal */}
-      <Modal show={showDetail} onClose={() => setShowDetail(false)} size="2xl" backdropClasses="bg-black/50 backdrop-blur-sm">
-        <ModalHeader>
-          Order Details {selectedOrder ? `— ${selectedOrder.order_number}` : ''}
+      <Modal show={showDetail} onClose={() => setShowDetail(false)} size="3xl" backdropClasses="bg-black/50 backdrop-blur-sm">
+        <ModalHeader className="border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 px-6 py-4">
+          <div className="flex flex-col">
+            <span className="text-xl font-bold text-gray-900 dark:text-white">
+              Order Details
+            </span>
+            {selectedOrder && (
+              <span className="text-sm font-medium text-gray-500 mt-1 dark:text-gray-400 font-mono tracking-wide">
+                {selectedOrder.order_number}
+              </span>
+            )}
+          </div>
         </ModalHeader>
-        <ModalBody>
+        <ModalBody className="px-6 py-6 custom-scrollbar">
           {detailLoading ? (
-            <div className="flex justify-center py-10">
-              <Spinner size="lg" />
+            <div className="flex justify-center items-center py-20">
+              <Spinner size="xl" color="warning" />
             </div>
           ) : selectedOrder ? (
-            <div className="space-y-5">
-              {/* Header info */}
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs mb-0.5">Stockist</p>
-                  <p className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{selectedOrder.partner_name || selectedOrder.business_name || 'N/A'}</p>
+            <div className="space-y-8">
+              {/* Order Info Summary Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5 whitespace-nowrap">
+                    <HiOutlineUser className="w-3.5 h-3.5" /> Stockist
+                  </p>
+                  <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2">
+                    {selectedOrder.partner_name || selectedOrder.business_name || 'N/A'}
+                  </p>
                 </div>
-                <div>
-                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs mb-0.5">Date Ordered</p>
-                  <p className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{formatDateTime(selectedOrder.created_at)}</p>
+                <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5 whitespace-nowrap">
+                    <HiOutlineCalendar className="w-3.5 h-3.5" /> Date Ordered
+                  </p>
+                  <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2">
+                    {formatDateTime(selectedOrder.created_at)}
+                  </p>
                 </div>
-                <div>
-                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs mb-0.5">Order Status</p>
-                  <StatusBadge status={selectedOrder.status} />
+                <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 whitespace-nowrap">
+                    Order Status
+                  </p>
+                  <div className="mt-1">
+                    <StatusBadge status={selectedOrder.status} />
+                  </div>
                 </div>
-                <div>
-                  <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs mb-0.5">Payment Status</p>
-                  <StatusBadge status={selectedOrder.payment_status || 'unpaid'} />
+                <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 whitespace-nowrap">
+                    Payment Status
+                  </p>
+                  <div className="mt-1">
+                    <StatusBadge status={selectedOrder.payment_status || 'unpaid'} />
+                  </div>
                 </div>
-                {selectedOrder.payment_deadline && (
-                  <div>
-                    <p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs mb-0.5">Payment Deadline</p>
-                    <p className="font-semibold text-amber-700 flex items-center gap-1">
-                      <HiOutlineClock className="w-3.5 h-3.5" />
-                      {formatDateTime(selectedOrder.payment_deadline)}
-                    </p>
+              </div>
+
+              {/* Items Section */}
+              <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
+                <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
+                  <h3 className="text-sm font-bold tracking-wider text-gray-700 dark:text-gray-300 uppercase">Order Items</h3>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-sm text-gray-600 dark:text-gray-400 tracking-wide">
+                    <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">
+                      <tr>
+                        <th className="px-5 py-3 rounded-bl-none">Product</th>
+                        <th className="px-5 py-3 text-center">Qty</th>
+                        <th className="px-5 py-3 text-right">Unit Price</th>
+                        <th className="px-5 py-3 text-right tracking-widest rounded-br-none">Subtotal</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+                      {(selectedOrder.items || []).map((item, i) => (
+                        <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
+                          <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-200">{item.product_name}</td>
+                          <td className="px-5 py-4 text-center font-bold">{item.quantity}</td>
+                          <td className="px-5 py-4 text-right">{formatCurrency(item.unit_price)}</td>
+                          <td className="px-5 py-4 text-right font-black text-gray-900 dark:text-white">
+                            {formatCurrency(item.subtotal || item.quantity * item.unit_price)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex justify-end items-center">
+                  <span className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase mr-4 tracking-wider">Total Amount</span>
+                  <span className="text-2xl font-black text-[var(--dark-text)] dark:text-white tracking-tight">
+                    {formatCurrency(selectedOrder.total_amount)}
+                  </span>
+                </div>
+              </div>
+
+              {/* Extra Details Row: Proof + Deadline */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {selectedOrder.payment_proof_url && (
+                  <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 p-4 rounded-xl flex items-center justify-between shadow-sm transition-all hover:bg-blue-50 dark:hover:bg-blue-900/20">
+                    <div className="flex items-center gap-3">
+                      <div className="p-2 bg-blue-100 dark:bg-blue-800/50 rounded-lg">
+                        <HiOutlinePhotograph className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wider mb-0.5">Payment Proof</p>
+                        <p className="text-xs text-blue-600/80 dark:text-blue-400/80">Attached document</p>
+                      </div>
+                    </div>
+                    <a href={selectedOrder.payment_proof_url} target="_blank" rel="noopener noreferrer"
+                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow transition-colors inline-flex items-center gap-1.5 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800">
+                      View File
+                      <HiOutlineExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  </div>
+                )}
+
+                {selectedOrder.payment_deadline && selectedStatusKey !== 'cancelled' && selectedStatusKey !== 'rejected' && selectedPaymentStatusKey === 'unpaid' && (
+                  <div className="bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800 p-4 rounded-xl flex items-center gap-3 shadow-sm">
+                    <div className="p-2 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
+                      <HiOutlineClock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider mb-0.5">Deadline</p>
+                      <p className="text-xs font-bold text-amber-700 dark:text-amber-400">
+                        {formatDateTime(selectedOrder.payment_deadline)}
+                      </p>
+                    </div>
                   </div>
                 )}
               </div>
 
-              {/* Items table */}
-              <div>
-                <p className="text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase mb-2">Order Items</p>
-                <div className="overflow-x-auto border border-gray-100 dark:border-[var(--dark-border)] rounded-lg">
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableHeadCell>Product</TableHeadCell>
-                        <TableHeadCell>Qty</TableHeadCell>
-                        <TableHeadCell>Unit Price</TableHeadCell>
-                        <TableHeadCell>Subtotal</TableHeadCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody className="divide-y">
-                      {(selectedOrder.items || []).map((item, i) => (
-                        <TableRow key={i}>
-                          <TableCell>{item.product_name}</TableCell>
-                          <TableCell>{item.quantity}</TableCell>
-                          <TableCell>{formatCurrency(item.unit_price)}</TableCell>
-                          <TableCell className="font-semibold">{formatCurrency(item.subtotal || item.quantity * item.unit_price)}</TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                <div className="flex justify-end mt-2">
-                  <p className="text-base font-bold text-gray-900 dark:text-[var(--dark-text)]">
-                    Total: {formatCurrency(selectedOrder.total_amount)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Payment proof */}
-              {selectedOrder.payment_proof_url && (
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase mb-2">Payment Proof</p>
-                  <a href={selectedOrder.payment_proof_url} target="_blank" rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-sm text-blue-600 hover:underline">
-                    <HiOutlinePhotograph className="w-4 h-4" />
-                    View Payment Proof
-                    <HiOutlineExternalLink className="w-3.5 h-3.5" />
-                  </a>
-                </div>
-              )}
-
+              {/* Delivery Link Area */}
               {isActiveOrderLink && deliveryLinkInfo?.magicLink && (
-                <div className="p-3 bg-purple-50 border border-purple-100 rounded-lg">
-                  <p className="text-xs font-semibold text-purple-700 uppercase mb-2">Delivery Magic Link</p>
-                  <p className="text-xs text-purple-700 mb-2">
-                    Copy and send this link to the order Stockist chat: {selectedOrder.partner_name || selectedOrder.business_name || 'Stockist'}
-                  </p>
-                  <div className="flex flex-col gap-2 md:flex-row md:items-center">
-                    <TextInput value={deliveryLinkInfo.magicLink} readOnly sizing="sm" className="flex-1" />
-                    <Button color="purple" size="sm" onClick={handleCopyDeliveryLink}>
-                      {String(copiedOrderId) === String(selectedOrder.id) ? 'Copied' : 'Copy Link'}
-                    </Button>
+                <div className="bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800 p-5 rounded-xl shadow-sm relative overflow-hidden">
+                  <div className="absolute top-0 right-0 w-24 h-24 bg-purple-100 dark:bg-purple-800/20 rounded-bl-full -mr-4 -mt-4 z-0"></div>
+                  <div className="relative z-10">
+                    <div className="flex items-start gap-3 flex-col sm:flex-row sm:items-center justify-between mb-4">
+                      <div>
+                        <p className="text-sm font-bold text-purple-900 dark:text-purple-300 uppercase tracking-wider mb-1 flex items-center gap-1.5">
+                          <HiOutlineLink className="w-4 h-4" /> Delivery Magic Link
+                        </p>
+                        <p className="text-sm text-purple-700/80 dark:text-purple-400/80">
+                          Copy and send this link to the Stockist for tracking
+                        </p>
+                      </div>
+                      {deliveryLinkInfo.expiresAt && (
+                        <span className="text-xs font-bold bg-purple-100 dark:bg-purple-800/40 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full whitespace-nowrap border border-purple-200 dark:border-purple-800/50">
+                          Expires: {formatDateTime(deliveryLinkInfo.expiresAt)}
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-3 md:flex-row md:items-stretch">
+                      <TextInput 
+                        value={deliveryLinkInfo.magicLink} 
+                        readOnly 
+                        className="flex-1 font-mono text-xs shadow-inner"
+                        color="purple"
+                      />
+                      <Button color="purple" onClick={handleCopyDeliveryLink} className="flex-shrink-0 font-bold whitespace-nowrap shadow-sm hover:shadow">
+                        {String(copiedOrderId) === String(selectedOrder.id) ? (
+                          <><HiOutlineCheck className="w-4 h-4 mr-2" /> Copied</>
+                        ) : (
+                          <><HiOutlineClipboardCopy className="w-4 h-4 mr-2" /> Copy Link</>
+                        )}
+                      </Button>
+                    </div>
                   </div>
-                  {deliveryLinkInfo.expiresAt && (
-                    <p className="text-xs text-purple-700 mt-2">
-                      Expires: {formatDateTime(deliveryLinkInfo.expiresAt)}
-                    </p>
-                  )}
                 </div>
               )}
 
-              {/* Cancellation reason */}
+              {/* Cancellation string */}
               {selectedOrder.cancellation_reason && (
-                <div className="p-3 bg-red-50 border border-red-100 rounded-lg text-sm">
-                  <p className="font-semibold text-red-700 mb-1">Cancellation/Rejection Reason</p>
-                  <p className="text-red-600">{selectedOrder.cancellation_reason}</p>
+                <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 p-4 rounded-xl shadow-sm flex gap-3">
+                  <div className="mt-0.5">
+                    <HiOutlineXCircle className="w-5 h-5 text-red-500 dark:text-red-400" />
+                  </div>
+                  <div>
+                    <h4 className="text-sm font-bold text-red-800 dark:text-red-300 uppercase tracking-wide mb-1">
+                      Cancellation Note
+                    </h4>
+                    <p className="text-sm text-red-700 dark:text-red-400 font-medium">
+                      {selectedOrder.cancellation_reason}
+                    </p>
+                  </div>
                 </div>
               )}
             </div>
           ) : null}
         </ModalBody>
         {selectedOrder && isSuperAdmin && (
-          <ModalFooter>
-            <div className="flex flex-wrap gap-2">
+          <ModalFooter className="border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 px-6 py-4 justify-between items-center flex-wrap gap-y-3">
+            <div className="flex gap-2 items-center flex-wrap">
               {selectedStatusKey === 'pending' && (
                 <>
-                  <Button color="success" size="sm" onClick={() => { setShowDetail(false); handleApprove(selectedOrder); }}>
-                    <HiOutlineCheck className="w-4 h-4 mr-1" /> Approve
+                  <Button color="success" onClick={() => { setShowDetail(false); handleApprove(selectedOrder); }} className="font-bold shadow-sm">
+                    <HiOutlineCheck className="w-4 h-4 mr-1.5" /> Approve
                   </Button>
-                  <Button color="failure" size="sm" onClick={() => { setShowDetail(false); handleReject(selectedOrder); }}>
-                    <HiOutlineX className="w-4 h-4 mr-1" /> Reject
+                  <Button color="failure" outline onClick={() => { setShowDetail(false); handleReject(selectedOrder); }} className="font-bold bg-white dark:bg-transparent">
+                    <HiOutlineX className="w-4 h-4 mr-1.5" /> Reject
                   </Button>
                 </>
               )}
-              <Button
-                color="purple"
-                size="sm"
-                disabled={!canGenerateDeliveryLink || actionLoading}
-                onClick={() => handleGenerateDelivery(selectedOrder)}
-              >
-                {deliveryLinkLabel}
-              </Button>
               {selectedStatusKey === 'approved' && selectedPaymentStatusKey !== 'paid' && (
-                <Button
-                  color="success"
-                  size="sm"
-                  disabled={!selectedOrder.payment_proof_url || actionLoading}
-                  onClick={() => handleVerifyPayment(selectedOrder)}
+                 <Button
+                 color={selectedOrder.payment_proof_url ? "success" : "light"}
+                 disabled={!selectedOrder.payment_proof_url || actionLoading}
+                 onClick={() => handleVerifyPayment(selectedOrder)}
+                 className="font-bold shadow-sm"
+               >
+                 <HiOutlineCheckCircle className="w-4 h-4 mr-1.5" />
+                 {selectedOrder.payment_proof_url
+                   ? (actionLoading ? 'Processing...' : 'Verify Payment')
+                   : 'Waiting for Proof'}
+               </Button>
+              )}
+            </div>
+            
+            <div className="flex items-center gap-2 flex-wrap justify-end">
+               <Button
+                  color="purple"
+                  disabled={!canGenerateDeliveryLink || actionLoading}
+                  onClick={() => handleGenerateDelivery(selectedOrder)}
+                  className="font-bold shadow-sm"
                 >
-                  {selectedOrder.payment_proof_url
-                    ? (actionLoading ? 'Marking as Paid...' : 'Mark as Paid')
-                    : 'Payment Proof Required'}
+                  <HiOutlinePaperAirplane className="w-4 h-4 mr-1.5 rotate-45 -mt-0.5" />
+                  {isTerminalStatus ? 'Link unavailable' : isPaymentVerified ? (actionLoading ? 'Working...' : 'Send Delivery Link') : 'Payment required'}
                 </Button>
-              )}
-              {!['delivered', 'cancelled', 'rejected'].includes(selectedStatusKey) && (
-                <Button color="failure" outline size="sm" onClick={() => { setShowDetail(false); handleCancel(selectedOrder); }}>
-                  Cancel Order
+
+                {!['delivered', 'cancelled', 'rejected'].includes(selectedStatusKey) && (
+                  <Button color="failure" outline onClick={() => { setShowDetail(false); handleCancel(selectedOrder); }} className="font-bold bg-white dark:bg-transparent">
+                    Cancel Task
+                  </Button>
+                )}
+                <Button color="gray" onClick={() => setShowDetail(false)} className="font-bold shadow-sm">
+                  Close
                 </Button>
-              )}
-              <Button color="gray" size="sm" onClick={() => setShowDetail(false)}>Close</Button>
             </div>
           </ModalFooter>
         )}

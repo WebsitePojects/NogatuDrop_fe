@@ -200,60 +200,81 @@ export default function PurchaseOrders() {
       </Card>
 
       {/* Add Modal */}
-      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
-        <ModalHeader>Create Purchase Order</ModalHeader>
-        <ModalBody>
-          <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label value="Supplier" className="mb-1" />
-                <TextInput value={form.supplier} onChange={fld('supplier')} placeholder="Goldenstar Inc." required />
-              </div>
-              <div>
-                <Label value="Destination Warehouse" className="mb-1" />
-                <Select value={form.warehouse_id} onChange={fld('warehouse_id')}>
-                  <option value="">Select warehouse...</option>
-                  {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
-                </Select>
+      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="2xl" backdropClasses="bg-black/50 backdrop-blur-sm">
+        <ModalHeader className="border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 px-6 py-4">
+          <span className="text-xl font-bold text-gray-900 dark:text-white">Create Purchase Order</span>
+        </ModalHeader>
+        <ModalBody className="px-6 py-6">
+          <div className="space-y-6">
+            <div className="bg-gray-50/50 dark:bg-gray-800/50 p-5 rounded-xl border border-gray-100 dark:border-gray-700">
+              <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-4 tracking-wide">General Info</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Supplier</label>
+                  <TextInput value={form.supplier} onChange={fld('supplier')} placeholder="Goldenstar Inc." required className="w-full" />
+                </div>
+                <div>
+                  <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Destination Warehouse</label>
+                  <Select value={form.warehouse_id} onChange={fld('warehouse_id')} className="w-full">
+                    <option value="">Select destination...</option>
+                    {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+                  </Select>
+                </div>
               </div>
             </div>
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <Label value="Items" />
-                <Button size="xs" color="light" onClick={addItem}>
-                  <HiOutlinePlus className="w-3 h-3 mr-1" /> Add Item
+
+            <div className="bg-white dark:bg-gray-900 p-5 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="flex items-center justify-between mb-4 border-b border-gray-100 dark:border-gray-800 pb-3">
+                <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 tracking-wide">Order Items</h3>
+                <Button size="xs" color="light" onClick={addItem} className="font-semibold shadow-sm">
+                  <HiOutlinePlus className="w-4 h-4 mr-1.5" /> Add Item
                 </Button>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {items.map((item, i) => (
-                  <div key={i} className="flex gap-2 items-center">
-                    <Select className="flex-1" value={item.product_id} onChange={(e) => updateItem(i, 'product_id', e.target.value)}>
-                      <option value="">Product...</option>
-                      {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
-                    </Select>
-                    <TextInput type="number" min="1" placeholder="Qty" value={item.quantity} onChange={(e) => updateItem(i, 'quantity', e.target.value)} className="w-20" />
-                    <TextInput type="number" min="0" step="0.01" placeholder="Unit ₱" value={item.unit_price} onChange={(e) => updateItem(i, 'unit_price', e.target.value)} className="w-24" />
+                  <div key={i} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-gray-50 dark:bg-gray-800/40 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
+                    <div className="flex-1 w-full">
+                      <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 block sm:hidden">Product</label>
+                      <Select className="w-full" value={item.product_id} onChange={(e) => updateItem(i, 'product_id', e.target.value)}>
+                        <option value="">Select product...</option>
+                        {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+                      </Select>
+                    </div>
+                    <div className="w-full sm:w-24">
+                      <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 block sm:hidden">Quantity</label>
+                      <TextInput type="number" min="1" placeholder="Qty" value={item.quantity} onChange={(e) => updateItem(i, 'quantity', e.target.value)} className="w-full font-bold" />
+                    </div>
+                    <div className="w-full sm:w-28 flex items-center gap-2">
+                       <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 block sm:hidden">Price (₱)</label>
+                      <TextInput type="number" min="0" step="0.01" placeholder="Unit ₱" value={item.unit_price} onChange={(e) => updateItem(i, 'unit_price', e.target.value)} className="w-full font-bold text-gray-900 dark:text-white" />
+                    </div>
                     {items.length > 1 && (
-                      <Button size="xs" color="failure" outline onClick={() => removeItem(i)}>
-                        <HiOutlineTrash className="w-3.5 h-3.5" />
+                      <Button size="sm" color="failure" outline onClick={() => removeItem(i)} className="w-full sm:w-auto mt-2 sm:mt-0">
+                        <HiOutlineTrash className="w-4 h-4" />
                       </Button>
                     )}
                   </div>
                 ))}
               </div>
-              <div className="flex justify-end mt-2">
-                <p className="text-sm font-bold text-gray-900 dark:text-[var(--dark-text)]">Total: {formatCurrency(itemsTotal)}</p>
+              <div className="flex justify-end mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
+                <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mr-4 tracking-wider self-center">Order Total</span>
+                <span className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
+                  {formatCurrency(itemsTotal)}
+                </span>
               </div>
             </div>
+
             <div>
-              <Label value="Notes" className="mb-1" />
-              <TextInput value={form.notes} onChange={fld('notes')} placeholder="Notes..." />
+              <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Notes</label>
+              <TextInput value={form.notes} onChange={fld('notes')} placeholder="Optional remarks or references..." />
             </div>
           </div>
         </ModalBody>
-        <ModalFooter>
-          <Button color="warning" onClick={handleAdd} disabled={submitting}>Create PO</Button>
-          <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
+        <ModalFooter className="border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 px-6 py-4 flex justify-end gap-3">
+          <Button color="gray" onClick={() => setShowAddModal(false)} className="font-bold shadow-sm">Cancel</Button>
+          <Button color="warning" onClick={handleAdd} disabled={submitting} className="font-bold shadow-sm">
+            {submitting ? 'Processing...' : 'Create PO'}
+          </Button>
         </ModalFooter>
       </Modal>
 
