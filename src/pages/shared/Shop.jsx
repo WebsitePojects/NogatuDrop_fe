@@ -13,9 +13,30 @@ import { getProductImageSrc, attachProductImageFallback } from '@/utils/productI
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
+const NEW_SAMPLE_PRODUCTS = [
+  {
+    id: 'sample_vitamin_c',
+    name: 'Vitamin C',
+    description: 'Premium vitamin C supplement for immune support and wellness',
+  },
+  {
+    id: 'sample_nogatu_black_coffee',
+    name: 'Nogatu Black Coffee',
+    description: 'Rich and smooth black coffee blend crafted for daily performance',
+  },
+  {
+    id: 'sample_nogatu_max_fuel',
+    name: 'Nogatu Max Fuel Coffee Drink Mix',
+    description: 'Energy-packed coffee drink mix for maximum endurance and focus',
+  },
+  {
+    id: 'sample_berry_nad',
+    name: 'Berry NAD+',
+    description: 'Natural berry-infused NAD+ supplement for cellular vitality',
+  },
+];
+
 export default function Shop() {
-  const [products, setProducts] = useState([]);
-  const [productsLoading, setProductsLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [cart, setCart] = useState([]); // { product_id, name, quantity, unit_price, image_url }
   const [cartOpen, setCartOpen] = useState(false);
@@ -226,6 +247,36 @@ export default function Shop() {
                     </div>
                   );
                 })}
+                {NEW_SAMPLE_PRODUCTS.map((product) => (
+                  <div
+                    key={product.id}
+                    className="bg-white rounded-2xl border border-amber-200 overflow-hidden shadow-sm hover:shadow-md transition-all"
+                  >
+                    <div className="aspect-square bg-gradient-to-br from-amber-50 to-orange-50 overflow-hidden flex items-center justify-center">
+                      <div className="text-center">
+                        <FiPackage size={32} className="mx-auto mb-2 text-amber-300" />
+                        <p className="text-xs font-semibold text-amber-600 tracking-wider">COMING SOON</p>
+                      </div>
+                    </div>
+                    <div className="p-3">
+                      <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 mb-1 min-h-[2.5rem]">
+                        {product.name}
+                      </h3>
+                      <p className="text-xs text-gray-500 mb-3 line-clamp-2">
+                        {product.description}
+                      </p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-amber-500 font-bold text-sm">TBD</span>
+                        <button
+                          disabled
+                          className="px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-xs font-semibold cursor-not-allowed"
+                        >
+                          TBD
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             )}
 

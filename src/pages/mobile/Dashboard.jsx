@@ -59,6 +59,14 @@ export default function MobileDashboard() {
         </p>
       </div>
 
+      <div className="mb-6 w-full h-28 sm:h-36 rounded-2xl overflow-hidden border border-gray-100 shadow-sm bg-gray-100">
+        <img
+          src="/assets/picture_banner.png"
+          alt="Nogatu picture banner"
+          className="w-full h-full object-cover"
+        />
+      </div>
+
       {/* KPI Grid */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         {[
