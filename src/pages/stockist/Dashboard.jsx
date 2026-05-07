@@ -107,6 +107,14 @@ export default function StockistDashboard() {
         </p>
       </div>
 
+      <div className="mb-6 w-full h-32 md:h-44 lg:h-56 rounded-xl overflow-hidden border border-amber-100 bg-white shadow-sm">
+        <img
+          src="/assets/picture_banner.png"
+          alt="Nogatu picture banner"
+          className="w-full h-full object-cover"
+        />
+      </div>
+
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <KpiCard title="My Orders" value={kpis.totalOrders} icon={HiShoppingCart} iconBg="bg-blue-100" />
