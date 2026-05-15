@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Spinner } from 'flowbite-react';
 import { HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
 import { useAuth } from '@/context/AuthContext';
@@ -148,10 +148,7 @@ export default function Login() {
           {/* Footer Link */}
           <div className="mt-8 text-center pt-6 border-t border-white/5">
             <p className="text-[13px] text-[#d4bca4]">
-              New Stockist?{' '}
-              <Link to="/apply" className="font-semibold text-amber-500 hover:text-amber-400 focus:outline-none focus:underline transition-colors">
-                Apply here
-              </Link>
+              Stockist applications now start through the Nogatu MLM portal first.
             </p>
           </div>
         </div>

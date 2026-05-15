@@ -15,7 +15,6 @@ import Login from '@/pages/shared/Login';
 import LandingPage from '@/pages/shared/LandingPage';
 import NotFound from '@/pages/shared/NotFound';
 import Tracking from '@/pages/shared/Tracking';
-import Apply from '@/pages/shared/Apply';
 import Deliver from '@/pages/shared/Deliver';
 import Shop from '@/pages/shared/Shop';
 
@@ -106,7 +105,6 @@ const AppRoutes = () => {
       {/* Public */}
       <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/apply" element={<Apply />} />
       <Route path="/shop" element={<Shop />} />
       <Route path="/track/:orderNumber" element={<Tracking />} />
       <Route path="/deliver/:token" element={<Deliver />} />

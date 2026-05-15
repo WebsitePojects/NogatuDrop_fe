@@ -636,10 +636,10 @@ const LandingPage = () => {
                   <FiArrowRight />
                 </button>
                 <button
-                  onClick={() => navigate('/apply')}
+                  onClick={() => navigate('/login')}
                   className="btn-liquid inline-flex items-center justify-center gap-2 rounded-xl border px-5 py-3 text-sm font-semibold text-orange-50"
                 >
-                  Become a Stockist
+                  Stockist Login
                   <FiUser />
                 </button>
               </div>
