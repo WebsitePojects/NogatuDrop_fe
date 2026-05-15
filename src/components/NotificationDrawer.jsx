@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { FiMapPin, FiAlertTriangle, FiCheckCircle } from 'react-icons/fi';
 import { useNotifications } from '@/context/NotificationContext';
 
