@@ -31,7 +31,7 @@ import KpiCard from '@/components/KpiCard';
 import EmptyState from '@/components/EmptyState';
 import StatusBadge from '@/components/StatusBadge';
 import api from '@/services/api';
-import { MOBILE_STOCKISTS, ORDERS, REPORTS, TRACKING } from '@/services/endpoints';
+import { DELIVERY_TOKENS, MOBILE_STOCKISTS, ORDERS, REPORTS, TRACKING } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate, formatRelative } from '@/utils/formatDate';
 
@@ -198,27 +198,27 @@ async function loadStockistData(pageKey) {
 
   let tracking = [];
   if (String(pageKey || '').startsWith('delivery-')) {
-    const trackingCandidateOrders = orders
-      .filter((row) => ['delivering', 'delivered'].includes(lower(row.status)))
-      .slice(0, 12);
-
-    const trackingRes = await Promise.allSettled(
-      trackingCandidateOrders.map((row) => api.get(TRACKING.BY_ORDER(row.id))),
-    );
-
-    tracking = trackingRes
-      .filter((row) => row.status === 'fulfilled')
-      .map((row) => row.value?.data?.data)
-      .filter(Boolean);
+    const [trackingRes] = await Promise.allSettled([api.get(TRACKING.ACTIVE)]);
+    tracking = toList(settledData(trackingRes));
   }
 
-  return { orders, mobileStockists, movements, tracking };
+  let proofs = [];
+  if (pageKey === 'delivery-pod') {
+    const [proofsRes] = await Promise.allSettled([
+      api.get(DELIVERY_TOKENS.PODS, { params: { limit: 100 } }),
+    ]);
+    proofs = toList(settledData(proofsRes));
+  }
+
+  return { orders, mobileStockists, movements, tracking, proofs };
 }
 
 function buildView(pageKey, payload) {
   const orders = payload.orders || [];
   const mobileStockists = payload.mobileStockists || [];
   const tracking = payload.tracking || [];
+  const proofs = payload.proofs || [];
+  const orderById = new Map(orders.map((row) => [Number(row.id), row]));
 
   const pending = orders.filter((row) => lower(row.status) === 'pending');
   const approved = orders.filter((row) => lower(row.status) === 'approved');
@@ -322,13 +322,15 @@ function buildView(pageKey, payload) {
   }
 
   if (pageKey === 'delivery-live') {
-    const rows = delivering.map((order) => {
-      const tr = trackingByOrder.get(Number(order.id));
+    const rows = tracking.map((trackingRow) => {
+      const order = orderById.get(Number(trackingRow.order_id)) || {};
       return {
         ...order,
-        courier_name: tr?.courier_name || tr?.rider_name || 'Not assigned',
-        latest_ping: tr?.latest_ping?.pinged_at || null,
-        tracking_status: tr?.status || null,
+        ...trackingRow,
+        status: trackingRow.order_status || order.status || null,
+        courier_name: trackingRow.courier_name || trackingRow.rider_name || 'Not assigned',
+        latest_ping: trackingRow.latest_ping?.pinged_at || null,
+        tracking_status: trackingRow.tracking_status || null,
       };
     });
     const stale = rows.filter((row) => !row.latest_ping || ((Date.now() - new Date(row.latest_ping).getTime()) / 60000) > 45);
@@ -367,8 +369,8 @@ function buildView(pageKey, payload) {
       }
       const entry = courierMap.get(name);
       entry.total += 1;
-      if (['out_for_delivery', 'in_progress'].includes(lower(row.status))) entry.active += 1;
-      if (row.delivered_at || lower(row.status) === 'delivered') entry.delivered += 1;
+      if (['out_for_delivery', 'in_progress'].includes(lower(row.tracking_status || row.status))) entry.active += 1;
+      if (row.delivered_at || lower(row.tracking_status || row.status) === 'delivered') entry.delivered += 1;
       if (!row.latest_ping?.pinged_at || ((Date.now() - new Date(row.latest_ping.pinged_at).getTime()) / 60000) > 45) entry.stale += 1;
     });
 
@@ -399,42 +401,68 @@ function buildView(pageKey, payload) {
   }
 
   if (pageKey === 'delivery-pod') {
-    const rows = delivered
-      .map((order) => {
-        const tr = trackingByOrder.get(Number(order.id));
+    const rows = proofs
+      .map((proof) => {
+        const order = orderById.get(Number(proof.order_id)) || {};
         return {
           ...order,
-          delivered_at_tracking: tr?.delivered_at || null,
-          courier_name: tr?.courier_name || tr?.rider_name || 'Not recorded',
-          pod_status: tr?.delivered_at || lower(order.status) === 'delivered' ? 'completed' : 'pending',
+          ...proof,
+          courier_name: proof.courier_name || proof.rider_name || 'Not recorded',
+          pod_status: proof.photo_url ? 'completed' : 'pending',
+          proof_recorded_at: proof.signed_at || proof.pod_created_at || null,
         };
       })
-      .sort((a, b) => byDateDesc(a, b, 'delivered_at'))
-      .slice(0, 15);
+      .sort((a, b) => byDateDesc(a, b, 'proof_recorded_at'))
+      .slice(0, 20);
 
-    const completePods = rows.filter((row) => row.pod_status === 'completed').length;
+    const completePods = rows.length;
+    const gpsCaptured = rows.filter((row) => row.gps_lat !== null && row.gps_lat !== undefined && row.gps_lng !== null && row.gps_lng !== undefined).length;
+    const sourceVisible = rows.filter((row) => row.source_warehouse_name).length;
 
     return {
-      intro: 'Delivery completion audit board for proof-of-delivery monitoring.',
+      intro: 'Delivery completion audit board with rider photo, signature, GPS, and warehouse route visibility.',
       kpis: [
         { title: 'Delivered Orders', value: delivered.length, icon: HiOutlineShieldCheck, iconBg: 'bg-green-100' },
         { title: 'POD Completed', value: completePods, icon: HiOutlineCheckCircle, iconBg: 'bg-blue-100' },
-        { title: 'Pending Validation', value: Math.max(0, delivered.length - completePods), icon: HiOutlineClock, iconBg: 'bg-amber-100' },
-        { title: 'Delivery Exceptions', value: cancelled.length, icon: HiOutlineExclamationCircle, iconBg: 'bg-red-100' },
+        { title: 'GPS Captured', value: gpsCaptured, icon: HiOutlineLocationMarker, iconBg: 'bg-emerald-100' },
+        { title: 'Source Visible', value: sourceVisible, icon: HiOutlineTruck, iconBg: 'bg-amber-100' },
       ],
       tableTitle: 'Delivery Completion Board',
       rows,
       columns: [
         { label: 'Order', render: (row) => <span className="font-mono text-xs font-semibold">#{row.order_number}</span> },
         { label: 'Courier', render: (row) => row.courier_name },
-        { label: 'Order Status', render: (row) => <StatusBadge status={row.status} /> },
+        { label: 'Route', render: (row) => <span className="text-xs">{`${row.source_warehouse_name || 'Source pending'} -> ${row.target_warehouse_name || row.partner_name || 'Destination pending'}`}</span> },
         { label: 'POD', render: (row) => <StatusBadge status={row.pod_status} /> },
-        { label: 'Delivered', render: (row) => <span className="text-xs text-gray-500">{formatDate(row.delivered_at || row.delivered_at_tracking, true)}</span> },
-        { label: 'Total', render: (row) => <span className="font-semibold">{formatCurrency(row.total_amount)}</span> },
+        {
+          label: 'Recipient',
+          render: (row) => (
+            <div className="text-xs">
+              <div className="font-medium text-gray-800">{row.recipient_name || 'Not recorded'}</div>
+              <div className="text-gray-500">{row.proof_recorded_at ? formatDate(row.proof_recorded_at, true) : 'Time pending'}</div>
+            </div>
+          ),
+        },
+        {
+          label: 'Photo',
+          render: (row) => (
+            row.photo_url
+              ? <a href={row.photo_url} target="_blank" rel="noreferrer" className="text-xs text-blue-600 hover:underline">Open proof</a>
+              : <span className="text-xs text-gray-400">No file</span>
+          ),
+        },
+        {
+          label: 'GPS',
+          render: (row) => (
+            row.gps_lat !== null && row.gps_lat !== undefined && row.gps_lng !== null && row.gps_lng !== undefined
+              ? <span className="font-mono text-xs text-gray-500">{Number(row.gps_lat).toFixed(4)}, {Number(row.gps_lng).toFixed(4)}</span>
+              : <span className="text-xs text-gray-400">No GPS</span>
+          ),
+        },
       ],
       insights: [
-        `${Math.max(0, delivered.length - completePods)} delivered orders still need final completion validation.`,
-        `${cancelled.length} orders are in cancelled or rejected state and should be excluded from POD metrics.`,
+        `${Math.max(0, delivered.length - completePods)} delivered orders still do not have completed rider-submitted POD evidence.`,
+        `${sourceVisible} proof records expose the source warehouse, so affiliated source offices can audit city and provincial handoffs from this page.`,
       ],
     };
   }
@@ -565,7 +593,7 @@ function getStockistRowAction(pageKey, row) {
   }
 
   if (pageKey === 'delivery-live' && row?.order_number) {
-    return { to: `/track/${row.order_number}`, label: 'Track' };
+    return { to: '/stockist/delivery/live', label: 'Track' };
   }
 
   if (String(pageKey || '').startsWith('delivery-')) {

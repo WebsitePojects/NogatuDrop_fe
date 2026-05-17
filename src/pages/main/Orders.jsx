@@ -16,6 +16,7 @@ import { useAuth } from '@/context/AuthContext';
 import StatusBadge from '@/components/StatusBadge';
 import ConfirmModal from '@/components/ConfirmModal';
 import PageHeader from '@/components/PageHeader';
+import ProofOfDeliveryPanel from '@/components/ProofOfDeliveryPanel';
 import { ToastContainer, useToast } from '@/components/Toast';
 
 const STATUSES = ['all', 'pending', 'approved', 'delivering', 'delivered', 'cancelled'];
@@ -36,6 +37,8 @@ export default function Orders() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [showDetail, setShowDetail] = useState(false);
+  const [deliveryProof, setDeliveryProof] = useState(null);
+  const [deliveryProofLoading, setDeliveryProofLoading] = useState(false);
 
   const [confirmAction, setConfirmAction] = useState(null); // { type, order }
   const [actionLoading, setActionLoading] = useState(false);
@@ -66,6 +69,8 @@ export default function Orders() {
 
   const openDetail = async (order) => {
     setCopiedOrderId(null);
+    setDeliveryProof(null);
+    setDeliveryProofLoading(false);
     setDeliveryLinkInfo((prev) => {
       if (!prev) return null;
       return String(prev.orderId) === String(order.id) ? prev : null;
@@ -77,6 +82,17 @@ export default function Orders() {
       const { data } = await api.get(ORDERS.BY_ID(order.id));
       setSelectedOrder(data.data);
       await hydrateDeliveryLinkForOrder(data.data);
+      if (['delivering', 'delivered'].includes(toStatusKey(data.data?.status))) {
+        setDeliveryProofLoading(true);
+        try {
+          const pod = await api.get(DELIVERY_TOKENS.POD_BY_ORDER(order.id));
+          setDeliveryProof(pod.data?.data || null);
+        } catch {
+          setDeliveryProof(null);
+        } finally {
+          setDeliveryProofLoading(false);
+        }
+      }
     } catch {
       setSelectedOrder(order);
       await hydrateDeliveryLinkForOrder(order);
@@ -583,6 +599,15 @@ export default function Orders() {
                     </p>
                   </div>
                 </div>
+              )}
+
+              {(deliveryProofLoading || deliveryProof || ['delivering', 'delivered'].includes(selectedStatusKey)) && (
+                <ProofOfDeliveryPanel
+                  proof={deliveryProof}
+                  loading={deliveryProofLoading}
+                  title="Proof of Delivery Review"
+                  emptyMessage="The rider has not submitted proof of delivery yet. The office can review the photo, signature, and GPS here as soon as the delivery magic link is completed."
+                />
               )}
             </div>
           ) : null}

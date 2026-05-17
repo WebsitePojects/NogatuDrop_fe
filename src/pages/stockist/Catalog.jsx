@@ -5,15 +5,19 @@ import { HiSearch, HiShoppingCart } from 'react-icons/hi';
 import { FiShoppingBag } from 'react-icons/fi';
 import { ToastContainer, useToast } from '@/components/Toast';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import api from '@/services/api';
 import { PRODUCTS } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
+import { PERMISSIONS, can } from '@/utils/permissions';
 
 export default function StockistCatalog() {
   const navigate = useNavigate();
   const { toasts, showToast, dismiss } = useToast();
   const { addToCart } = useCart();
+  const { user } = useAuth();
+  const canUseCart = can(user?.role_slug, PERMISSIONS.CART_USE);
 
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -52,6 +56,7 @@ export default function StockistCatalog() {
   const setQty = (id, val) => setQuantities(prev => ({ ...prev, [id]: Math.max(1, val) }));
 
   const handleAddToCart = async (product) => {
+    if (!canUseCart) return;
     setAddingId(product.id);
     try {
       await addToCart(product.id, product.warehouse_id || null, quantities[product.id] || 1);
@@ -181,7 +186,7 @@ export default function StockistCatalog() {
                   </div>
 
                   {/* Qty stepper — visible on hover/focus */}
-                  <div className={`flex items-center gap-1 mb-2 transition-opacity duration-150 ${isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                  {canUseCart && <div className={`flex items-center gap-1 mb-2 transition-opacity duration-150 ${isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                     <button
                       onClick={() => setQty(product.id, (quantities[product.id] || 1) - 1)}
                       className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold text-base"
@@ -201,10 +206,10 @@ export default function StockistCatalog() {
                     >
                       +
                     </button>
-                  </div>
+                  </div>}
 
                   {/* Add to cart */}
-                  <button
+                  {canUseCart && <button
                     onClick={() => handleAddToCart(product)}
                     disabled={isAdding}
                     className="mt-auto w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60 bg-amber-500 hover:bg-amber-600 text-white"
@@ -215,7 +220,7 @@ export default function StockistCatalog() {
                       <HiShoppingCart className="w-4 h-4" />
                     )}
                     {isAdding ? 'Adding…' : 'Add to Cart'}
-                  </button>
+                  </button>}
                 </div>
               </div>
             );

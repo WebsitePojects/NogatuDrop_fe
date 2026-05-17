@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button, Spinner, Textarea } from 'flowbite-react';
+import { Button, Select, Spinner, Textarea } from 'flowbite-react';
 import { HiArrowLeft, HiMinus, HiPlus, HiShoppingCart, HiTrash } from 'react-icons/hi';
 import { FiShoppingBag } from 'react-icons/fi';
 import { ToastContainer, useToast } from '@/components/Toast';
@@ -17,6 +17,16 @@ export default function MobileCart() {
 
   const [notes, setNotes] = useState('');
   const [checkingOut, setCheckingOut] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('cod');
+
+  useEffect(() => {
+    if (cartTotal > 5000 && paymentMethod === 'cod') {
+      setPaymentMethod('bank_transfer');
+    }
+    if (cartTotal <= 5000 && items.length > 0 && !paymentMethod) {
+      setPaymentMethod('cod');
+    }
+  }, [cartTotal, items.length, paymentMethod]);
 
   const handleUpdateQty = async (itemId, quantity) => {
     try {
@@ -42,6 +52,7 @@ export default function MobileCart() {
     try {
       await api.post(ORDERS.CREATE, {
         notes,
+        payment_method: paymentMethod,
         items: items.map((item) => ({
           product_id: item.product_id,
           warehouse_id: item.warehouse_id,
@@ -164,8 +175,23 @@ export default function MobileCart() {
                 onChange={(e) => setNotes(e.target.value)}
               />
 
+              <div className="mt-3">
+                <label className="text-xs font-semibold uppercase text-gray-500">Payment Method</label>
+                <Select
+                  className="mt-1"
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  disabled={cartTotal > 5000}
+                >
+                  {cartTotal <= 5000 && <option value="cod">Cash on Delivery</option>}
+                  <option value="bank_transfer">Bank Transfer</option>
+                </Select>
+              </div>
+
               <div className="mt-3 rounded-xl bg-orange-50 px-3 py-2 text-xs text-orange-700">
-                Payment details will appear after order approval.
+                {paymentMethod === 'cod'
+                  ? 'This order will be collected as cash on delivery and settled after proof of delivery.'
+                  : 'Payment details will appear after order approval.'}
               </div>
 
               <div className="mt-3 flex items-center justify-between">

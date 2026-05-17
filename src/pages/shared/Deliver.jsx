@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import {
-  HiLocationMarker, HiPhone, HiCheckCircle, HiCamera, HiExclamationCircle,
+  HiLocationMarker, HiPhone, HiCheckCircle, HiCamera, HiExclamationCircle, HiPencilAlt, HiX,
 } from 'react-icons/hi';
 import { FiPackage } from 'react-icons/fi';
 import { Spinner } from 'flowbite-react';
@@ -13,6 +13,9 @@ const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
 export default function Deliver() {
   const { token } = useParams();
+  const canvasRef = useRef(null);
+  const signatureWrapperRef = useRef(null);
+  const drawingRef = useRef(false);
 
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -25,6 +28,7 @@ export default function Deliver() {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
+  const [signatureDirty, setSignatureDirty] = useState(false);
 
   const postPing = async (coords) => {
     try {
@@ -39,10 +43,40 @@ export default function Deliver() {
     }
   };
 
+  const resizeSignatureCanvas = () => {
+    const canvas = canvasRef.current;
+    const wrapper = signatureWrapperRef.current;
+    if (!canvas || !wrapper) return;
+
+    const context = canvas.getContext('2d');
+    const ratio = window.devicePixelRatio || 1;
+    const width = wrapper.clientWidth;
+    const height = 160;
+    const existing = signatureDirty ? canvas.toDataURL('image/png') : null;
+
+    canvas.width = width * ratio;
+    canvas.height = height * ratio;
+    canvas.style.width = `${width}px`;
+    canvas.style.height = `${height}px`;
+    context.setTransform(ratio, 0, 0, ratio, 0, 0);
+    context.lineWidth = 2;
+    context.lineCap = 'round';
+    context.lineJoin = 'round';
+    context.strokeStyle = '#111827';
+    context.fillStyle = '#ffffff';
+    context.fillRect(0, 0, width, height);
+
+    if (existing) {
+      const image = new Image();
+      image.onload = () => context.drawImage(image, 0, 0, width, height);
+      image.src = existing;
+    }
+  };
+
   useEffect(() => {
     api.get(DELIVERY_TOKENS.INFO(token))
-      .then(res => setInfo(res.data.data))
-      .catch(err => setError(err?.response?.data?.message || 'This delivery link is invalid or has expired.'))
+      .then((res) => setInfo(res.data.data))
+      .catch((err) => setError(err?.response?.data?.message || 'This delivery link is invalid or has expired.'))
       .finally(() => setLoading(false));
   }, [token]);
 
@@ -64,6 +98,63 @@ export default function Deliver() {
     const id = setInterval(sendPing, 30000);
     return () => clearInterval(id);
   }, [success, token]);
+
+  useEffect(() => {
+    if (loading || error || success) return undefined;
+    resizeSignatureCanvas();
+    const onResize = () => resizeSignatureCanvas();
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, [loading, error, success, signatureDirty]);
+
+  const getCanvasPoint = (event) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return null;
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: event.clientX - rect.left,
+      y: event.clientY - rect.top,
+    };
+  };
+
+  const startSignature = (event) => {
+    const point = getCanvasPoint(event);
+    const canvas = canvasRef.current;
+    if (!point || !canvas) return;
+
+    const context = canvas.getContext('2d');
+    drawingRef.current = true;
+    context.beginPath();
+    context.moveTo(point.x, point.y);
+    event.preventDefault();
+  };
+
+  const drawSignature = (event) => {
+    if (!drawingRef.current) return;
+    const point = getCanvasPoint(event);
+    const canvas = canvasRef.current;
+    if (!point || !canvas) return;
+
+    const context = canvas.getContext('2d');
+    context.lineTo(point.x, point.y);
+    context.stroke();
+    setSignatureDirty(true);
+    event.preventDefault();
+  };
+
+  const endSignature = () => {
+    drawingRef.current = false;
+  };
+
+  const clearSignature = () => {
+    setSignatureDirty(false);
+    resizeSignatureCanvas();
+  };
+
+  const getSignatureData = () => {
+    if (!canvasRef.current || !signatureDirty) return null;
+    return canvasRef.current.toDataURL('image/png');
+  };
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
@@ -92,14 +183,25 @@ export default function Deliver() {
       setSubmitError('Please take a proof of delivery photo.');
       return;
     }
+    if (!recipientName.trim()) {
+      setSubmitError('Recipient name is required.');
+      return;
+    }
+    if (!signatureDirty) {
+      setSubmitError('Recipient signature is required.');
+      return;
+    }
+
     setSubmitting(true);
     const formData = new FormData();
     formData.append('photo', photo);
-    if (recipientName.trim()) formData.append('recipient_name', recipientName.trim());
+    formData.append('recipient_name', recipientName.trim());
+    formData.append('recipient_signature', getSignatureData());
     if (gpsCoords) {
       formData.append('latitude', gpsCoords.lat);
       formData.append('longitude', gpsCoords.lng);
     }
+
     try {
       await api.post(DELIVERY_TOKENS.COMPLETE(token), formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
@@ -114,7 +216,7 @@ export default function Deliver() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="flex min-h-screen items-center justify-center bg-gray-50">
         <Spinner size="xl" color="warning" />
       </div>
     );
@@ -122,13 +224,13 @@ export default function Deliver() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-sm w-full text-center">
-          <div className="w-14 h-14 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <HiExclamationCircle className="w-8 h-8 text-red-400" />
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-sm rounded-2xl border border-gray-100 bg-white p-8 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100">
+            <HiExclamationCircle className="h-8 w-8 text-red-400" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900 mb-2">Link Unavailable</h2>
-          <p className="text-gray-500 text-sm">{error}</p>
+          <h2 className="mb-2 text-xl font-bold text-gray-900">Link Unavailable</h2>
+          <p className="text-sm text-gray-500">{error}</p>
         </div>
       </div>
     );
@@ -136,81 +238,74 @@ export default function Deliver() {
 
   if (success) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
-        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-sm w-full text-center">
-          <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <HiCheckCircle className="w-9 h-9 text-emerald-500" />
+      <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
+        <div className="w-full max-w-sm rounded-2xl border border-gray-100 bg-white p-8 text-center shadow-sm">
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
+            <HiCheckCircle className="h-9 w-9 text-emerald-500" />
           </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-2">Delivery Confirmed!</h2>
-          <p className="text-gray-500 text-sm">
+          <h2 className="mb-2 text-2xl font-bold text-gray-900">Delivery Confirmed!</h2>
+          <p className="text-sm text-gray-500">
             The delivery has been recorded successfully. The stockist has been notified.
           </p>
-          <p className="text-xs text-gray-400 mt-4">You may close this page.</p>
+          <p className="mt-4 text-xs text-gray-400">You may close this page.</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4">
-      <div className="max-w-sm mx-auto">
-        {/* Logo */}
-        <div className="text-center mb-6">
-          <img src={BRAND_LOGO} alt="Nogatu" className="w-12 h-12 rounded-2xl mx-auto mb-3 shadow-sm" />
+    <div className="min-h-screen bg-gray-50 px-4 py-8">
+      <div className="mx-auto max-w-sm">
+        <div className="mb-6 text-center">
+          <img src={BRAND_LOGO} alt="Nogatu" className="mx-auto mb-3 h-12 w-12 rounded-2xl shadow-sm" />
           <h1 className="text-xl font-bold text-gray-900">Delivery Confirmation</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
-            Order #{info?.order_number || '—'}
+          <p className="mt-0.5 text-sm text-gray-500">
+            Order #{info?.order_number || '-'}
           </p>
         </div>
 
-        {/* Delivery Info */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 mb-4 space-y-4">
-          {/* Deliver to */}
+        <div className="mb-4 space-y-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <div className="flex items-start gap-3">
-            <div className="w-9 h-9 bg-orange-100 rounded-xl flex items-center justify-center flex-shrink-0">
-              <HiLocationMarker className="w-4 h-4 text-orange-500" />
+            <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-orange-100">
+              <HiLocationMarker className="h-4 w-4 text-orange-500" />
             </div>
             <div>
-              <p className="text-xs text-gray-400 mb-0.5">Deliver to</p>
-              <p className="font-semibold text-gray-900 text-sm">{info?.customer_name}</p>
-              <p className="text-sm text-gray-600 mt-0.5">{info?.customer_address}</p>
+              <p className="mb-0.5 text-xs text-gray-400">Deliver to</p>
+              <p className="text-sm font-semibold text-gray-900">{info?.customer_name}</p>
+              <p className="mt-0.5 text-sm text-gray-600">{info?.customer_address}</p>
             </div>
           </div>
 
           {info?.customer_phone && (
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 bg-blue-50 rounded-xl flex items-center justify-center flex-shrink-0">
-                <HiPhone className="w-4 h-4 text-blue-500" />
+              <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-xl bg-blue-50">
+                <HiPhone className="h-4 w-4 text-blue-500" />
               </div>
               <div>
-                <p className="text-xs text-gray-400 mb-0.5">Contact</p>
-                <a
-                  href={`tel:${info.customer_phone}`}
-                  className="text-sm font-medium text-blue-600"
-                >
+                <p className="mb-0.5 text-xs text-gray-400">Contact</p>
+                <a href={`tel:${info.customer_phone}`} className="text-sm font-medium text-blue-600">
                   {info.customer_phone}
                 </a>
               </div>
             </div>
           )}
 
-          {/* Items */}
           {info?.items && info.items.length > 0 && (
             <div className="border-t border-gray-100 pt-4">
-              <div className="flex items-center gap-1.5 text-xs text-gray-500 font-medium mb-2">
+              <div className="mb-2 flex items-center gap-1.5 text-xs font-medium text-gray-500">
                 <FiPackage size={13} />
                 ITEMS
               </div>
               <div className="space-y-1">
-                {info.items.map((item, i) => (
-                  <div key={i} className="flex justify-between text-sm">
-                    <span className="text-gray-700">{item.product_name} × {item.quantity}</span>
+                {info.items.map((item, index) => (
+                  <div key={index} className="flex justify-between text-sm">
+                    <span className="text-gray-700">{item.product_name} x {item.quantity}</span>
                     <span className="text-gray-500">
                       {formatCurrency((item.unit_price || 0) * (item.quantity || 1))}
                     </span>
                   </div>
                 ))}
-                <div className="flex justify-between font-bold text-sm mt-2 pt-2 border-t border-gray-100">
+                <div className="mt-2 flex justify-between border-t border-gray-100 pt-2 text-sm font-bold">
                   <span>Total</span>
                   <span className="text-orange-500">{formatCurrency(info.total_amount)}</span>
                 </div>
@@ -219,22 +314,20 @@ export default function Deliver() {
           )}
         </div>
 
-        {/* Confirm Delivery */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5 space-y-4">
-          <h3 className="font-semibold text-gray-900 text-sm">Confirm Delivery</h3>
+        <div className="space-y-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+          <h3 className="text-sm font-semibold text-gray-900">Confirm Delivery</h3>
 
-          {/* Photo upload */}
           <div>
-            <label className={`flex flex-col items-center justify-center w-full border-2 border-dashed rounded-xl cursor-pointer transition-colors p-4 ${
+            <label className={`flex w-full cursor-pointer flex-col items-center justify-center rounded-xl border-2 border-dashed p-4 transition-colors ${
               photoPreview ? 'border-emerald-400' : 'border-gray-200 hover:border-orange-400'
             }`}>
               {photoPreview ? (
-                <img src={photoPreview} alt="POD" className="w-full h-40 object-cover rounded-xl" />
+                <img src={photoPreview} alt="POD" className="h-40 w-full rounded-xl object-cover" />
               ) : (
                 <>
-                  <HiCamera className="w-8 h-8 text-gray-400 mb-2" />
-                  <p className="text-sm text-gray-600 font-medium">Take Delivery Photo</p>
-                  <p className="text-xs text-gray-400 mt-0.5">Tap to capture with camera</p>
+                  <HiCamera className="mb-2 h-8 w-8 text-gray-400" />
+                  <p className="text-sm font-medium text-gray-600">Take Delivery Photo</p>
+                  <p className="mt-0.5 text-xs text-gray-400">Tap to capture with camera</p>
                 </>
               )}
               <input
@@ -248,28 +341,59 @@ export default function Deliver() {
             {photoPreview && (
               <button
                 onClick={() => { setPhoto(null); setPhotoPreview(null); }}
-                className="text-xs text-red-400 hover:text-red-600 mt-1"
+                className="mt-1 text-xs text-red-400 hover:text-red-600"
               >
                 Remove photo
               </button>
             )}
           </div>
 
-          {/* Recipient name */}
           <div>
-            <label className="block text-xs font-medium text-gray-700 mb-1.5">
-              Recipient Name (optional)
+            <label className="mb-1.5 block text-xs font-medium text-gray-700">
+              Recipient Name
             </label>
             <input
               type="text"
               value={recipientName}
-              onChange={e => setRecipientName(e.target.value)}
+              onChange={(e) => setRecipientName(e.target.value)}
               placeholder="Name of person who received the package"
-              className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-xl focus:outline-none focus:border-orange-400"
+              className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm focus:border-orange-400 focus:outline-none"
             />
           </div>
 
-          {/* GPS */}
+          <div>
+            <div className="mb-1.5 flex items-center justify-between">
+              <label className="block text-xs font-medium text-gray-700">Recipient Signature</label>
+              <button
+                type="button"
+                onClick={clearSignature}
+                className="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700"
+              >
+                <HiX className="h-3.5 w-3.5" />
+                Clear
+              </button>
+            </div>
+            <div
+              ref={signatureWrapperRef}
+              className="overflow-hidden rounded-xl border border-gray-200 bg-white"
+            >
+              <canvas
+                ref={canvasRef}
+                className="block w-full touch-none"
+                onPointerDown={startSignature}
+                onPointerMove={drawSignature}
+                onPointerUp={endSignature}
+                onPointerLeave={endSignature}
+              />
+            </div>
+            {!signatureDirty && (
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-400">
+                <HiPencilAlt className="h-3.5 w-3.5" />
+                Sign with your finger or stylus.
+              </div>
+            )}
+          </div>
+
           <div>
             <button
               type="button"
@@ -280,52 +404,51 @@ export default function Deliver() {
               {gpsLoading ? (
                 <>
                   <Spinner size="xs" color="info" />
-                  Getting location…
+                  Getting location...
                 </>
               ) : gpsCoords ? (
                 <>
-                  <HiCheckCircle className="w-4 h-4 text-emerald-500" />
+                  <HiCheckCircle className="h-4 w-4 text-emerald-500" />
                   <span className="text-emerald-600">
                     Location captured ({gpsCoords.lat.toFixed(4)}, {gpsCoords.lng.toFixed(4)})
                   </span>
                 </>
               ) : (
                 <>
-                  <HiLocationMarker className="w-4 h-4" />
+                  <HiLocationMarker className="h-4 w-4" />
                   Capture GPS Location (optional)
                 </>
               )}
             </button>
           </div>
 
-          {/* Submit */}
           <button
             onClick={handleSubmit}
-            disabled={submitting || !photo}
-            className="w-full py-3.5 bg-emerald-500 text-white rounded-xl font-semibold text-sm hover:bg-emerald-600 active:scale-95 transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+            disabled={submitting || !photo || !signatureDirty}
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-white transition-all hover:bg-emerald-600 active:scale-95 disabled:opacity-60"
           >
             {submitting ? (
               <>
                 <Spinner size="sm" color="white" />
-                Confirming…
+                Confirming...
               </>
             ) : (
               <>
-                <HiCheckCircle className="w-5 h-5" />
+                <HiCheckCircle className="h-5 w-5" />
                 Confirm Delivery
               </>
             )}
           </button>
 
           {submitError && (
-            <div className="flex items-center gap-2 text-red-600 text-xs bg-red-50 rounded-xl p-2.5">
-              <HiExclamationCircle className="w-4 h-4 flex-shrink-0" />
+            <div className="flex items-center gap-2 rounded-xl bg-red-50 p-2.5 text-xs text-red-600">
+              <HiExclamationCircle className="h-4 w-4 flex-shrink-0" />
               {submitError}
             </div>
           )}
-          {!photo && !submitError && (
-            <p className="text-xs text-center text-amber-600">
-              A delivery photo is required to confirm delivery.
+          {(!photo || !signatureDirty) && !submitError && (
+            <p className="text-center text-xs text-amber-600">
+              A delivery photo and recipient signature are required to confirm delivery.
             </p>
           )}
         </div>

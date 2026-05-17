@@ -10,9 +10,10 @@ import ConfirmModal from '@/components/ConfirmModal';
 import StatusBadge from '@/components/StatusBadge';
 import StatusProgressBar from '@/components/StatusProgressBar';
 import PaymentCountdownTimer from '@/components/PaymentCountdownTimer';
+import ProofOfDeliveryPanel from '@/components/ProofOfDeliveryPanel';
 import { ToastContainer, useToast } from '@/components/Toast';
 import api from '@/services/api';
-import { ORDERS, BANK_ACCOUNTS } from '@/services/endpoints';
+import { ORDERS, BANK_ACCOUNTS, DELIVERY_TOKENS } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate, formatDateTime } from '@/utils/formatDate';
 
@@ -36,6 +37,8 @@ export default function StockistOrders() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderDetail, setOrderDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [deliveryProof, setDeliveryProof] = useState(null);
+  const [deliveryProofLoading, setDeliveryProofLoading] = useState(false);
   const [bankAccount, setBankAccount] = useState(null);
   const [confirmCancel, setConfirmCancel] = useState(null);
   const [cancelling, setCancelling] = useState(false);
@@ -60,17 +63,31 @@ export default function StockistOrders() {
     setSelectedOrder(order);
     setDetailLoading(true);
     setBankAccount(null);
+    setDeliveryProof(null);
+    setDeliveryProofLoading(false);
     try {
       const { data } = await api.get(ORDERS.BY_ID(order.id));
       setOrderDetail(data.data);
 
       // Fetch bank account if approved and unpaid
-      if (data.data?.status === 'approved' && data.data?.payment_status !== 'paid') {
+      if (data.data?.status === 'approved' && data.data?.payment_status !== 'paid' && Number(data.data?.cod_amount || 0) <= 0) {
         try {
           const ba = await api.get(BANK_ACCOUNTS.FOR_ORDER(order.id));
           setBankAccount(ba.data.data);
         } catch {
           // no bank account available
+        }
+      }
+
+      if (['delivering', 'delivered'].includes(String(data.data?.status || '').toLowerCase())) {
+        setDeliveryProofLoading(true);
+        try {
+          const pod = await api.get(DELIVERY_TOKENS.POD_BY_ORDER(order.id));
+          setDeliveryProof(pod.data?.data || null);
+        } catch {
+          setDeliveryProof(null);
+        } finally {
+          setDeliveryProofLoading(false);
         }
       }
     } catch {
@@ -83,6 +100,8 @@ export default function StockistOrders() {
   const closeDetail = () => {
     setSelectedOrder(null);
     setOrderDetail(null);
+    setDeliveryProof(null);
+    setDeliveryProofLoading(false);
   };
 
   const handleCancel = async () => {
@@ -322,20 +341,34 @@ export default function StockistOrders() {
               {detail.status === 'approved' && (
                 <div>
                   <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-2">Payment</h3>
-                  <PaymentCountdownTimer
-                    deadline={detail.payment_deadline}
-                    bankAccount={bankAccount}
-                    onUpload={handleUploadProof}
-                    uploading={uploading}
-                    paymentProofUrl={detail.payment_proof_url}
-                  />
-                  {detail.payment_status === 'paid' && (
+                  {Number(detail.cod_amount || 0) > 0 ? (
+                    <div className="rounded-xl bg-orange-50 px-4 py-3 text-sm text-orange-700">
+                      Cash on delivery approved for {formatCurrency(detail.cod_amount)}. Settlement will be tracked after delivery proof is recorded.
+                    </div>
+                  ) : (
+                    <PaymentCountdownTimer
+                      deadline={detail.payment_deadline}
+                      bankAccount={bankAccount}
+                      onUpload={handleUploadProof}
+                      uploading={uploading}
+                      paymentProofUrl={detail.payment_proof_url}
+                    />
+                  )}
+                  {detail.payment_status === 'paid' && Number(detail.cod_amount || 0) <= 0 && (
                     <div className="mt-2 flex items-center gap-2 text-emerald-600 text-sm font-medium">
                       <HiCheckCircle className="w-4 h-4" />
                       Payment verified
                     </div>
                   )}
                 </div>
+              )}
+
+              {(deliveryProofLoading || deliveryProof || ['delivering', 'delivered'].includes(String(detail.status || '').toLowerCase())) && (
+                <ProofOfDeliveryPanel
+                  proof={deliveryProof}
+                  loading={deliveryProofLoading}
+                  emptyMessage="The rider has not submitted proof of delivery yet. The map will only become live after the courier opens the magic link and starts sending GPS pings."
+                />
               )}
 
               {/* Cancel button */}

@@ -28,8 +28,8 @@ import {
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
+import { PERMISSIONS, can, normalizeRoleSlug } from '@/utils/permissions';
 import NotificationDrawer from '@/components/NotificationDrawer';
-import FloatingTutorial from '@/components/FloatingTutorial';
 import FloatingCartButton from '@/components/FloatingCartButton';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
@@ -38,10 +38,11 @@ const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 // Each group has: label, items[]
 // Each item: path, label, icon, roles (if undefined = all stockist roles can see)
 function buildNavGroups(role) {
-  const isStaff = role === 'staff';
+  const normalizedRole = normalizeRoleSlug(role);
+  const isStaff = normalizedRole === 'staff';
   const isAdmin = role === 'admin'; // legacy — treat same as city
-  const isCity = role === 'city_stockist' || isAdmin;
-  const isProvincial = role === 'provincial_stockist';
+  const isCity = normalizedRole === 'city_stockist' || isAdmin;
+  const isProvincial = normalizedRole === 'provincial_stockist';
   const isManager = isProvincial || isCity; // can manage things
 
   return [
@@ -58,7 +59,7 @@ function buildNavGroups(role) {
       label: 'Selling',
       items: [
         { path: '/stockist/catalog',  label: 'Product Catalog', icon: HiOutlineViewGrid },
-        ...(!isStaff ? [{ path: '/stockist/cart', label: 'Shopping Cart', icon: HiOutlineShoppingCart }] : []),
+        ...(can(normalizedRole, PERMISSIONS.CART_USE) ? [{ path: '/stockist/cart', label: 'Shopping Cart', icon: HiOutlineShoppingCart }] : []),
       ],
     },
 
@@ -88,6 +89,9 @@ function buildNavGroups(role) {
       label: 'Inventory',
       items: [
         { path: '/stockist/inventory', label: 'Inventory', icon: HiOutlineCube },
+        ...(can(normalizedRole, PERMISSIONS.CYCLE_COUNTS_CREATE)
+          ? [{ path: '/stockist/cycle-counts', label: 'Cycle Counts', icon: HiOutlineClipboardList }]
+          : []),
         { path: '/stockist/grn', label: 'Goods Receipt (GRN)', icon: HiOutlineArchive },
         ...(isManager
           ? [
@@ -123,6 +127,9 @@ function buildNavGroups(role) {
     {
       label: 'Analytics',
       items: [
+        ...(can(normalizedRole, PERMISSIONS.SETTLEMENTS_VIEW)
+          ? [{ path: '/stockist/settlements', label: 'Settlements', icon: HiOutlineDocumentText }]
+          : []),
         { path: '/stockist/reports', label: 'Reports', icon: HiOutlineChartBar },
       ],
     },
@@ -150,7 +157,7 @@ export default function StockistLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [notifOpen, setNotifOpen] = useState(false);
 
-  const role = user?.role_slug || 'city_stockist';
+  const role = normalizeRoleSlug(user?.role_slug || 'city_stockist');
   const navGroups = buildNavGroups(role);
 
   const handleLogout = async () => {
@@ -354,7 +361,6 @@ export default function StockistLayout() {
 
       <NotificationDrawer isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
       <FloatingCartButton />
-      <FloatingTutorial />
     </div>
   );
 }

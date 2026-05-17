@@ -42,6 +42,28 @@ export const STOCK_MOVEMENTS = {
   LIST: '/stock-movements',
 };
 
+export const CYCLE_COUNTS = {
+  LIST: '/cycle-counts',
+  CREATE: '/cycle-counts',
+  BY_ID: (id) => `/cycle-counts/${id}`,
+  UPDATE_ITEMS: (id) => `/cycle-counts/${id}/items`,
+  SUBMIT: (id) => `/cycle-counts/${id}/submit`,
+  APPROVE: (id) => `/cycle-counts/${id}/approve`,
+  REJECT: (id) => `/cycle-counts/${id}/reject`,
+};
+
+export const SETTLEMENTS = {
+  LIST: '/settlements',
+  CREATE: '/settlements',
+  RECONCILE: (id) => `/settlements/${id}/reconcile`,
+};
+
+export const EXPORTS = {
+  LIST: '/exports',
+  STOCK_MOVEMENTS: '/exports/stock-movements',
+  SETTLEMENTS: '/exports/settlements',
+};
+
 export const STOCK_ADJUSTMENTS = {
   LIST:    '/stock-adjustments',
   CREATE:  '/stock-adjustments',
@@ -116,6 +138,8 @@ export const COURIERS = {
 export const DELIVERY_TOKENS = {
   GENERATE:  '/delivery-tokens',
   BY_ORDER:  (orderId) => `/delivery-tokens/by-order/${orderId}`,
+  PODS:      '/delivery-tokens/pods',
+  POD_BY_ORDER: (orderId) => `/delivery-tokens/pods/by-order/${orderId}`,
   INFO:      (token) => `/delivery-tokens/deliver/${token}`,
   COMPLETE:  (token) => `/delivery-tokens/deliver/${token}/complete`,
 };
@@ -129,7 +153,6 @@ export const MOBILE_STOCKISTS = {
 export const APPLICATIONS = {
   LIST:    '/applications',
   BY_ID:   (id) => `/applications/${id}`,
-  SUBMIT:  '/applications/dta',
   APPROVE: (id) => `/applications/${id}/approve`,
   REJECT:  (id) => `/applications/${id}/reject`,
 };

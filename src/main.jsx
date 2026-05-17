@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from 'flowbite-react';
 import App from './App';
 import './index.css';
+import 'leaflet/dist/leaflet.css';
 
 // Coffee-toned Flowbite custom theme — forced light mode
 const flowbiteTheme = {

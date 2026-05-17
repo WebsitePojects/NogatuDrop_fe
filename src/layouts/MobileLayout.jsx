@@ -13,7 +13,6 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import NotificationDrawer from '@/components/NotificationDrawer';
-import FloatingTutorial from '@/components/FloatingTutorial';
 import FloatingCartButton from '@/components/FloatingCartButton';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
@@ -214,7 +213,6 @@ export default function MobileLayout() {
 
       <NotificationDrawer isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
       <FloatingCartButton />
-      <FloatingTutorial />
     </div>
   );
 }

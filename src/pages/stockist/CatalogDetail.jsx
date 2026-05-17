@@ -4,16 +4,20 @@ import { Button, Spinner } from 'flowbite-react';
 import { HiArrowLeft, HiShoppingCart, HiLightningBolt } from 'react-icons/hi';
 import { ToastContainer, useToast } from '@/components/Toast';
 import { useCart } from '@/context/CartContext';
+import { useAuth } from '@/context/AuthContext';
 import api from '@/services/api';
 import { PRODUCTS } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
+import { PERMISSIONS, can } from '@/utils/permissions';
 
 export default function CatalogDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toasts, showToast, dismiss } = useToast();
   const { addToCart } = useCart();
+  const { user } = useAuth();
+  const canUseCart = can(user?.role_slug, PERMISSIONS.CART_USE);
 
   const [product, setProduct] = useState(null);
   const [related, setRelated] = useState([]);
@@ -47,6 +51,7 @@ export default function CatalogDetail() {
   };
 
   const handleAddToCart = async () => {
+    if (!canUseCart) return;
     setAddingCart(true);
     try {
       await addToCart(product.id, product.warehouse_id || null, qty);
@@ -59,6 +64,7 @@ export default function CatalogDetail() {
   };
 
   const handleCheckoutNow = async () => {
+    if (!canUseCart) return;
     setCheckingOut(true);
     try {
       await addToCart(product.id, product.warehouse_id || null, qty);
@@ -170,7 +176,7 @@ export default function CatalogDetail() {
             )}
 
             {/* Quantity Selector */}
-            <div className="flex items-center gap-3 mb-6">
+            {canUseCart && <div className="flex items-center gap-3 mb-6">
               <span className="text-sm font-medium text-gray-700">Quantity:</span>
               <div className="flex items-center gap-2">
                 <button
@@ -193,10 +199,10 @@ export default function CatalogDetail() {
                   +
                 </button>
               </div>
-            </div>
+            </div>}
 
             {/* CTAs */}
-            <div className="flex gap-3 mt-auto">
+            {canUseCart && <div className="flex gap-3 mt-auto">
               <button
                 onClick={handleAddToCart}
                 disabled={addingCart || checkingOut}
@@ -217,7 +223,7 @@ export default function CatalogDetail() {
                 <HiLightningBolt className="w-4 h-4" />
                 {checkingOut ? 'Processing...' : 'Checkout Now'}
               </button>
-            </div>
+            </div>}
           </div>
         </div>
       </div>

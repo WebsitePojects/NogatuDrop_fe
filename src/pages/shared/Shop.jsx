@@ -43,6 +43,7 @@ export default function Shop() {
   const [step, setStep] = useState('browse'); // browse | checkout | success
   const [orderNumber, setOrderNumber] = useState('');
   const [customer, setCustomer] = useState({ name: '', phone: '', email: '', address: '' });
+  const [paymentMethod, setPaymentMethod] = useState('cod');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -66,6 +67,15 @@ export default function Shop() {
 
   const cartTotal = cart.reduce((s, i) => s + i.quantity * i.unit_price, 0);
   const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
+
+  useEffect(() => {
+    if (cartTotal > 5000 && paymentMethod === 'cod') {
+      setPaymentMethod('bank_transfer');
+    }
+    if (cartTotal <= 5000 && !paymentMethod) {
+      setPaymentMethod('cod');
+    }
+  }, [cartTotal, paymentMethod]);
 
   const addToCart = (product) => {
     setCart(prev => {
@@ -105,6 +115,7 @@ export default function Shop() {
         customer_phone: customer.phone,
         customer_email: customer.email,
         customer_address: customer.address,
+        payment_method: paymentMethod,
         items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
       });
       setOrderNumber(res.data.data?.order_number || 'N/A');

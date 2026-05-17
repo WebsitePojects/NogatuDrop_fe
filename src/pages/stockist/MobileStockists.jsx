@@ -2,9 +2,8 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/Animate
 import { useState, useEffect, useCallback } from 'react';
 import {
   Button, TextInput, Label, Select, Spinner } from 'flowbite-react';
-import { HiPlus, HiPencil, HiTrash, HiSearch } from 'react-icons/hi';
+import { HiPlus, HiPencil, HiSearch } from 'react-icons/hi';
 import { FiUser } from 'react-icons/fi';
-import ConfirmModal from '@/components/ConfirmModal';
 import StatusBadge from '@/components/StatusBadge';
 import { ToastContainer, useToast } from '@/components/Toast';
 import api from '@/services/api';
@@ -33,8 +32,6 @@ export default function StockistMobileStockists() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [submitting, setSubmitting] = useState(false);
-  const [deleteTarget, setDeleteTarget] = useState(null);
-  const [deleting, setDeleting] = useState(false);
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -106,21 +103,6 @@ export default function StockistMobileStockists() {
       showToast(err?.response?.data?.message || 'Failed to save', 'error');
     } finally {
       setSubmitting(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!deleteTarget) return;
-    setDeleting(true);
-    try {
-      await api.delete(`/mobile-stockists/${deleteTarget.id}`);
-      showToast('Mobile Stockist removed', 'info');
-      setDeleteTarget(null);
-      fetchItems();
-    } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to delete', 'error');
-    } finally {
-      setDeleting(false);
     }
   };
 
@@ -207,12 +189,6 @@ export default function StockistMobileStockists() {
                           >
                             <HiPencil className="w-4 h-4" />
                           </button>
-                          <button
-                            onClick={() => setDeleteTarget(item)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                          >
-                            <HiTrash className="w-4 h-4" />
-                          </button>
                         </div>
                       </td>
                     </tr>
@@ -262,17 +238,6 @@ export default function StockistMobileStockists() {
         </ModalFooter>
       </Modal>
 
-      {/* Delete Confirm */}
-      <ConfirmModal
-        show={!!deleteTarget}
-        title="Remove Mobile Stockist"
-        message={`Remove ${deleteTarget?.name} from your territory? This action cannot be undone.`}
-        confirmLabel="Remove"
-        confirmColor="failure"
-        loading={deleting}
-        onConfirm={handleDelete}
-        onClose={() => setDeleteTarget(null)}
-      />
     </div>
   );
 }

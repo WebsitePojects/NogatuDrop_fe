@@ -1,92 +1,92 @@
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import { NotificationProvider } from '@/context/NotificationContext';
 import { ThemeProvider } from '@/context/ThemeContext';
 import { ROLE_SLUGS } from '@/utils/constants';
+import { PERMISSIONS, can, normalizeRoleSlug } from '@/utils/permissions';
 
-import MainLayout from '@/layouts/MainLayout';
-import StockistLayout from '@/layouts/StockistLayout';
-import MobileLayout from '@/layouts/MobileLayout';
+const MainLayout = lazy(() => import('./layouts/MainLayout.jsx'));
+const StockistLayout = lazy(() => import('./layouts/StockistLayout.jsx'));
+const MobileLayout = lazy(() => import('./layouts/MobileLayout.jsx'));
 
-// Shared pages
-import Login from '@/pages/shared/Login';
-import LandingPage from '@/pages/shared/LandingPage';
-import NotFound from '@/pages/shared/NotFound';
-import Tracking from '@/pages/shared/Tracking';
-import Deliver from '@/pages/shared/Deliver';
-import Shop from '@/pages/shared/Shop';
+const Login = lazy(() => import('./pages/shared/Login.jsx'));
+const LandingPage = lazy(() => import('./pages/shared/LandingPage.jsx'));
+const NotFound = lazy(() => import('./pages/shared/NotFound.jsx'));
+const Tracking = lazy(() => import('./pages/shared/Tracking.jsx'));
+const Deliver = lazy(() => import('./pages/shared/Deliver.jsx'));
+const Shop = lazy(() => import('./pages/shared/Shop.jsx'));
 
-// Main portal pages
-import MainDashboard from '@/pages/main/Dashboard';
-import MainInventory from '@/pages/main/Inventory';
-import MainWarehouses from '@/pages/main/Warehouses';
-import MainOrders from '@/pages/main/Orders';
-import MainPartners from '@/pages/main/Partners';
-import MainProducts from '@/pages/main/Products';
-import MainStockTransfers from '@/pages/main/StockTransfers';
-import MainPurchaseOrders from '@/pages/main/PurchaseOrders';
-import MainReports from '@/pages/main/Reports';
-import MainUsers from '@/pages/main/Users';
-import MainApplications from '@/pages/main/Applications';
-import MainBankAccounts from '@/pages/main/BankAccounts';
-import MainCouriers from '@/pages/main/Couriers';
-import MainStockMovements from '@/pages/main/StockMovements';
-import MainStockAdjustments from '@/pages/main/StockAdjustments';
-import MainPhase1Workspace from '@/pages/main/Phase1Workspace';
+const MainDashboard = lazy(() => import('./pages/main/Dashboard.jsx'));
+const MainInventory = lazy(() => import('./pages/main/Inventory.jsx'));
+const MainWarehouses = lazy(() => import('./pages/main/Warehouses.jsx'));
+const MainOrders = lazy(() => import('./pages/main/Orders.jsx'));
+const MainPartners = lazy(() => import('./pages/main/Partners.jsx'));
+const MainProducts = lazy(() => import('./pages/main/Products.jsx'));
+const MainStockTransfers = lazy(() => import('./pages/main/StockTransfers.jsx'));
+const MainPurchaseOrders = lazy(() => import('./pages/main/PurchaseOrders.jsx'));
+const MainReports = lazy(() => import('./pages/main/Reports.jsx'));
+const MainUsers = lazy(() => import('./pages/main/Users.jsx'));
+const MainBankAccounts = lazy(() => import('./pages/main/BankAccounts.jsx'));
+const MainCouriers = lazy(() => import('./pages/main/Couriers.jsx'));
+const MainStockMovements = lazy(() => import('./pages/main/StockMovements.jsx'));
+const MainStockAdjustments = lazy(() => import('./pages/main/StockAdjustments.jsx'));
+const MainCycleCounts = lazy(() => import('./pages/main/CycleCounts.jsx'));
+const MainSettlements = lazy(() => import('./pages/main/Settlements.jsx'));
+const MainDeliveryLive = lazy(() => import('./pages/main/DeliveryLive.jsx'));
+const MainPhase1Workspace = lazy(() => import('./pages/main/Phase1Workspace.jsx'));
 
-// Stockist portal pages
-import StockistDashboard from '@/pages/stockist/Dashboard';
-import StockistCatalog from '@/pages/stockist/Catalog';
-import StockistCatalogDetail from '@/pages/stockist/CatalogDetail';
-import StockistCart from '@/pages/stockist/Cart';
-import StockistOrders from '@/pages/stockist/Orders';
-import StockistReports from '@/pages/stockist/Reports';
-import StockistUsers from '@/pages/stockist/Users';
-import StockistInventory from '@/pages/stockist/Inventory';
-import StockistGRN from '@/pages/stockist/GRN';
-import StockistMobileStockists from '@/pages/stockist/MobileStockists';
-import StockistStockTransfers from '@/pages/stockist/StockTransfers';
-import StockistPurchaseOrders from '@/pages/stockist/PurchaseOrders';
-import StockistWarehouses from '@/pages/stockist/Warehouses';
-import StockistPhase1Workspace from '@/pages/stockist/Phase1Workspace';
+const StockistDashboard = lazy(() => import('./pages/stockist/Dashboard.jsx'));
+const StockistCatalog = lazy(() => import('./pages/stockist/Catalog.jsx'));
+const StockistCatalogDetail = lazy(() => import('./pages/stockist/CatalogDetail.jsx'));
+const StockistCart = lazy(() => import('./pages/stockist/Cart.jsx'));
+const StockistOrders = lazy(() => import('./pages/stockist/Orders.jsx'));
+const StockistReports = lazy(() => import('./pages/stockist/Reports.jsx'));
+const StockistUsers = lazy(() => import('./pages/stockist/Users.jsx'));
+const StockistInventory = lazy(() => import('./pages/stockist/Inventory.jsx'));
+const StockistGRN = lazy(() => import('./pages/stockist/GRN.jsx'));
+const StockistMobileStockists = lazy(() => import('./pages/stockist/MobileStockists.jsx'));
+const StockistStockTransfers = lazy(() => import('./pages/stockist/StockTransfers.jsx'));
+const StockistPurchaseOrders = lazy(() => import('./pages/stockist/PurchaseOrders.jsx'));
+const StockistWarehouses = lazy(() => import('./pages/stockist/Warehouses.jsx'));
+const StockistCycleCounts = lazy(() => import('./pages/stockist/CycleCounts.jsx'));
+const StockistSettlements = lazy(() => import('./pages/stockist/Settlements.jsx'));
+const StockistDeliveryLive = lazy(() => import('./pages/stockist/DeliveryLive.jsx'));
+const StockistPhase1Workspace = lazy(() => import('./pages/stockist/Phase1Workspace.jsx'));
 
-// Mobile Stockist portal
-import MobileDashboard from '@/pages/mobile/Dashboard';
-import MobileCatalog from '@/pages/mobile/Catalog';
-import MobileCart from '@/pages/mobile/Cart';
-import MobileOrders from '@/pages/mobile/Orders';
-import MobileProfile from '@/pages/mobile/Profile';
-import MobilePhase1Workspace from '@/pages/mobile/Phase1Workspace';
+const MobileDashboard = lazy(() => import('./pages/mobile/Dashboard.jsx'));
+const MobileCatalog = lazy(() => import('./pages/mobile/Catalog.jsx'));
+const MobileCart = lazy(() => import('./pages/mobile/Cart.jsx'));
+const MobileOrders = lazy(() => import('./pages/mobile/Orders.jsx'));
+const MobileProfile = lazy(() => import('./pages/mobile/Profile.jsx'));
+const MobileDeliveryLive = lazy(() => import('./pages/mobile/DeliveryLive.jsx'));
+const MobilePhase1Workspace = lazy(() => import('./pages/mobile/Phase1Workspace.jsx'));
 
-// ─── Loading screen ─────────────────────────────────────────────────────────
 const LoadingScreen = () => (
-  <div className="flex items-center justify-center min-h-screen bg-gray-50">
+  <div className="flex min-h-screen items-center justify-center bg-gray-50">
     <div className="flex flex-col items-center gap-3">
-      <div className="w-8 h-8 border-3 border-t-transparent border-orange-500 rounded-full animate-spin" />
-      <p className="text-sm text-gray-500">Loading…</p>
+      <div className="h-8 w-8 animate-spin rounded-full border-3 border-orange-500 border-t-transparent" />
+      <p className="text-sm text-gray-500">Loading...</p>
     </div>
   </div>
 );
 
-const normalizeRoleSlug = (roleSlug) => {
-  if (roleSlug === 'admin') return ROLE_SLUGS.PROVINCIAL_STOCKIST;
-  return roleSlug;
-};
-
-// ─── Protected route ─────────────────────────────────────────────────────────
-const ProtectedRoute = ({ children, allowedRoles }) => {
+const ProtectedRoute = ({ children, allowedRoles, requiredPermission }) => {
   const { user, loading } = useAuth();
 
   if (loading) return <LoadingScreen />;
-
   if (!user) return <Navigate to="/login" replace />;
 
   const normalizedRole = normalizeRoleSlug(user.role_slug);
 
   if (allowedRoles && !allowedRoles.includes(normalizedRole)) {
-    // Redirect to correct portal
+    if (normalizedRole === ROLE_SLUGS.SUPER_ADMIN) return <Navigate to="/main/dashboard" replace />;
+    if (normalizedRole === ROLE_SLUGS.MOBILE_STOCKIST) return <Navigate to="/mobile/dashboard" replace />;
+    return <Navigate to="/stockist/dashboard" replace />;
+  }
+
+  if (requiredPermission && !can(normalizedRole, requiredPermission)) {
     if (normalizedRole === ROLE_SLUGS.SUPER_ADMIN) return <Navigate to="/main/dashboard" replace />;
     if (normalizedRole === ROLE_SLUGS.MOBILE_STOCKIST) return <Navigate to="/mobile/dashboard" replace />;
     return <Navigate to="/stockist/dashboard" replace />;
@@ -95,144 +95,218 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   return children;
 };
 
-// ─── Routes ──────────────────────────────────────────────────────────────────
 const AppRoutes = () => {
   const { user } = useAuth();
   const normalizedRole = normalizeRoleSlug(user?.role_slug);
 
   return (
-    <Routes>
-      {/* Public */}
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/shop" element={<Shop />} />
-      <Route path="/track/:orderNumber" element={<Tracking />} />
-      <Route path="/deliver/:token" element={<Deliver />} />
+    <Suspense fallback={<LoadingScreen />}>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/shop" element={<Shop />} />
+        <Route path="/track/:orderNumber" element={<Tracking />} />
+        <Route path="/deliver/:token" element={<Deliver />} />
 
-      {/* ── Super Admin (Main portal) ─────────────────────────── */}
-      <Route
-        path="/main/*"
-        element={
-          <ProtectedRoute allowedRoles={[ROLE_SLUGS.SUPER_ADMIN]}>
-            <MainLayout />
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard"         element={<MainDashboard />} />
-        <Route path="orders"            element={<MainOrders />} />
-        <Route path="operations/control-tower" element={<MainPhase1Workspace pageKey="operations-control-tower" />} />
-        <Route path="operations/dispatch-board" element={<MainPhase1Workspace pageKey="operations-dispatch-board" />} />
-        <Route path="operations/exceptions" element={<MainPhase1Workspace pageKey="operations-exceptions" />} />
-        <Route path="payments/queue" element={<MainPhase1Workspace pageKey="payments-queue" />} />
-        <Route path="payments/routing" element={<MainPhase1Workspace pageKey="payments-routing" />} />
-        <Route path="payments/settlements" element={<MainPhase1Workspace pageKey="payments-settlements" />} />
-        <Route path="stock/replenishment" element={<MainPhase1Workspace pageKey="stock-replenishment" />} />
-        <Route path="stock/expiry-risk" element={<MainPhase1Workspace pageKey="stock-expiry-risk" />} />
-        <Route path="stock/capacity" element={<MainPhase1Workspace pageKey="stock-capacity" />} />
-        <Route path="inventory"         element={<MainInventory />} />
-        <Route path="stock-movements"   element={<MainStockMovements />} />
-        <Route path="stock-adjustments" element={<MainStockAdjustments />} />
-        <Route path="warehouses"        element={<MainWarehouses />} />
-        <Route path="products"          element={<MainProducts />} />
-        <Route path="stock-transfers"   element={<MainStockTransfers />} />
-        <Route path="purchase-orders"   element={<MainPurchaseOrders />} />
-        <Route path="partners"          element={<MainPartners />} />
-        <Route path="applications"      element={<MainApplications />} />
-        <Route path="applications/pipeline" element={<MainPhase1Workspace pageKey="applications-pipeline" />} />
-        <Route path="applications/review/:id" element={<MainPhase1Workspace pageKey="applications-review" />} />
-        <Route path="applications/analytics" element={<MainPhase1Workspace pageKey="applications-analytics" />} />
-        <Route path="bank-accounts"     element={<MainBankAccounts />} />
-        <Route path="couriers"          element={<MainCouriers />} />
-        <Route path="reports"           element={<MainReports />} />
-        <Route path="users"             element={<MainUsers />} />
-      </Route>
-
-      {/* ── Stockist portal (Provincial, City, Staff) ────────── */}
-      <Route
-        path="/stockist/*"
-        element={
-          <ProtectedRoute allowedRoles={[
-            ROLE_SLUGS.PROVINCIAL_STOCKIST,
-            ROLE_SLUGS.CITY_STOCKIST,
-            ROLE_SLUGS.STAFF,
-            ROLE_SLUGS.ADMIN, // legacy slug until DB migration applied
-          ]}>
-            <CartProvider>
-              <StockistLayout />
-            </CartProvider>
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard"        element={<StockistDashboard />} />
-        <Route path="catalog"          element={<StockistCatalog />} />
-        <Route path="catalog/:id"      element={<StockistCatalogDetail />} />
-        <Route path="cart"             element={<StockistCart />} />
-        <Route path="orders"           element={<StockistOrders />} />
-        <Route path="orders/board"     element={<StockistPhase1Workspace pageKey="orders-board" />} />
-        <Route path="orders/payments"  element={<StockistPhase1Workspace pageKey="orders-payments" />} />
-        <Route path="orders/dispatch"  element={<StockistPhase1Workspace pageKey="orders-dispatch" />} />
-        <Route path="orders/:id"       element={<StockistOrders />} />
-        <Route path="delivery/live"    element={<StockistPhase1Workspace pageKey="delivery-live" />} />
-        <Route path="delivery/couriers" element={<StockistPhase1Workspace pageKey="delivery-couriers" />} />
-        <Route path="delivery/pod"     element={<StockistPhase1Workspace pageKey="delivery-pod" />} />
-        <Route path="inventory"        element={<StockistInventory />} />
-        <Route path="grn"              element={<StockistGRN />} />
-        <Route path="mobile-stockists" element={<StockistMobileStockists />} />
-        <Route path="mobile-stockists/segments" element={<StockistPhase1Workspace pageKey="mobile-stockists-segments" />} />
-        <Route path="mobile-stockists/activity" element={<StockistPhase1Workspace pageKey="mobile-stockists-activity" />} />
-        <Route path="mobile-stockists/risk-signals" element={<StockistPhase1Workspace pageKey="mobile-stockists-risk-signals" />} />
-        <Route path="stock-transfers"  element={<StockistStockTransfers />} />
-        <Route path="purchase-orders"  element={<StockistPurchaseOrders />} />
-        <Route path="warehouses"       element={<StockistWarehouses />} />
-        <Route path="reports"          element={<StockistReports />} />
         <Route
-          path="users"
+          path="/main/*"
           element={
-            <ProtectedRoute allowedRoles={[ROLE_SLUGS.PROVINCIAL_STOCKIST, ROLE_SLUGS.CITY_STOCKIST]}>
-              <StockistUsers />
+            <ProtectedRoute allowedRoles={[ROLE_SLUGS.SUPER_ADMIN]}>
+              <MainLayout />
             </ProtectedRoute>
           }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<MainDashboard />} />
+          <Route path="orders" element={<MainOrders />} />
+          <Route path="operations/control-tower" element={<MainPhase1Workspace pageKey="operations-control-tower" />} />
+          <Route path="operations/dispatch-board" element={<MainPhase1Workspace pageKey="operations-dispatch-board" />} />
+          <Route path="operations/exceptions" element={<MainPhase1Workspace pageKey="operations-exceptions" />} />
+          <Route path="delivery/live" element={<MainDeliveryLive />} />
+          <Route path="payments/queue" element={<MainPhase1Workspace pageKey="payments-queue" />} />
+          <Route path="payments/routing" element={<MainPhase1Workspace pageKey="payments-routing" />} />
+          <Route path="payments/settlements" element={<MainSettlements />} />
+          <Route path="stock/replenishment" element={<MainPhase1Workspace pageKey="stock-replenishment" />} />
+          <Route path="stock/expiry-risk" element={<MainPhase1Workspace pageKey="stock-expiry-risk" />} />
+          <Route path="stock/capacity" element={<MainPhase1Workspace pageKey="stock-capacity" />} />
+          <Route path="cycle-counts" element={<MainCycleCounts />} />
+          <Route path="inventory" element={<MainInventory />} />
+          <Route path="stock-movements" element={<MainStockMovements />} />
+          <Route path="stock-adjustments" element={<MainStockAdjustments />} />
+          <Route path="warehouses" element={<MainWarehouses />} />
+          <Route path="products" element={<MainProducts />} />
+          <Route path="stock-transfers" element={<MainStockTransfers />} />
+          <Route path="purchase-orders" element={<MainPurchaseOrders />} />
+          <Route path="partners" element={<MainPartners />} />
+          <Route path="bank-accounts" element={<MainBankAccounts />} />
+          <Route path="couriers" element={<MainCouriers />} />
+          <Route path="reports" element={<MainReports />} />
+          <Route path="users" element={<MainUsers />} />
+        </Route>
+
+        <Route
+          path="/stockist/*"
+          element={
+            <ProtectedRoute allowedRoles={[
+              ROLE_SLUGS.PROVINCIAL_STOCKIST,
+              ROLE_SLUGS.CITY_STOCKIST,
+              ROLE_SLUGS.STAFF,
+              ROLE_SLUGS.ADMIN,
+            ]}>
+              <CartProvider>
+                <StockistLayout />
+              </CartProvider>
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<StockistDashboard />} />
+          <Route path="catalog" element={<StockistCatalog />} />
+          <Route path="catalog/:id" element={<StockistCatalogDetail />} />
+          <Route
+            path="cart"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS.CART_USE}>
+                <StockistCart />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="orders" element={<StockistOrders />} />
+          <Route path="orders/board" element={<StockistPhase1Workspace pageKey="orders-board" />} />
+          <Route path="orders/payments" element={<StockistPhase1Workspace pageKey="orders-payments" />} />
+          <Route path="orders/dispatch" element={<StockistPhase1Workspace pageKey="orders-dispatch" />} />
+          <Route path="orders/:id" element={<StockistOrders />} />
+          <Route path="delivery/live" element={<StockistDeliveryLive />} />
+          <Route path="delivery/couriers" element={<StockistPhase1Workspace pageKey="delivery-couriers" />} />
+          <Route path="delivery/pod" element={<StockistPhase1Workspace pageKey="delivery-pod" />} />
+          <Route path="inventory" element={<StockistInventory />} />
+          <Route
+            path="cycle-counts"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS.CYCLE_COUNTS_CREATE}>
+                <StockistCycleCounts />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="settlements"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS.SETTLEMENTS_VIEW}>
+                <StockistSettlements />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="grn" element={<StockistGRN />} />
+          <Route
+            path="mobile-stockists"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS.MOBILE_STOCKISTS_MANAGE}>
+                <StockistMobileStockists />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="mobile-stockists/segments"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS.MOBILE_STOCKISTS_MANAGE}>
+                <StockistPhase1Workspace pageKey="mobile-stockists-segments" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="mobile-stockists/activity"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS.MOBILE_STOCKISTS_MANAGE}>
+                <StockistPhase1Workspace pageKey="mobile-stockists-activity" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="mobile-stockists/risk-signals"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS.MOBILE_STOCKISTS_MANAGE}>
+                <StockistPhase1Workspace pageKey="mobile-stockists-risk-signals" />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="stock-transfers"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS.STOCK_TRANSFERS_CREATE}>
+                <StockistStockTransfers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="purchase-orders"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS.PURCHASE_ORDERS_CREATE}>
+                <StockistPurchaseOrders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="warehouses"
+            element={
+              <ProtectedRoute allowedRoles={[ROLE_SLUGS.PROVINCIAL_STOCKIST, ROLE_SLUGS.CITY_STOCKIST]}>
+                <StockistWarehouses />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="reports"
+            element={
+              <ProtectedRoute requiredPermission={PERMISSIONS.REPORTS_VIEW}>
+                <StockistReports />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="users"
+            element={
+              <ProtectedRoute allowedRoles={[ROLE_SLUGS.PROVINCIAL_STOCKIST, ROLE_SLUGS.CITY_STOCKIST]}>
+                <StockistUsers />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
+        <Route
+          path="/mobile/*"
+          element={
+            <ProtectedRoute allowedRoles={[ROLE_SLUGS.MOBILE_STOCKIST]}>
+              <CartProvider>
+                <MobileLayout />
+              </CartProvider>
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="dashboard" replace />} />
+          <Route path="dashboard" element={<MobileDashboard />} />
+          <Route path="catalog" element={<MobileCatalog />} />
+          <Route path="cart" element={<MobileCart />} />
+          <Route path="orders" element={<MobileOrders />} />
+          <Route path="reorder" element={<MobilePhase1Workspace pageKey="reorder" />} />
+          <Route path="delivery" element={<MobileDeliveryLive />} />
+          <Route path="account" element={<MobilePhase1Workspace pageKey="account" />} />
+          <Route path="profile" element={<MobileProfile />} />
+        </Route>
+
+        <Route
+          path="/dashboard"
+          element={
+            normalizedRole === ROLE_SLUGS.SUPER_ADMIN
+              ? <Navigate to="/main/dashboard" replace />
+              : normalizedRole === ROLE_SLUGS.MOBILE_STOCKIST
+                ? <Navigate to="/mobile/dashboard" replace />
+                : <Navigate to="/stockist/dashboard" replace />
+          }
         />
-      </Route>
 
-      {/* ── Mobile Stockist portal ───────────────────────────── */}
-      <Route
-        path="/mobile/*"
-        element={
-          <ProtectedRoute allowedRoles={[ROLE_SLUGS.MOBILE_STOCKIST]}>
-            <CartProvider>
-              <MobileLayout />
-            </CartProvider>
-          </ProtectedRoute>
-        }
-      >
-        <Route index element={<Navigate to="dashboard" replace />} />
-        <Route path="dashboard" element={<MobileDashboard />} />
-        <Route path="catalog"   element={<MobileCatalog />} />
-        <Route path="cart"      element={<MobileCart />} />
-        <Route path="orders"    element={<MobileOrders />} />
-        <Route path="reorder"   element={<MobilePhase1Workspace pageKey="reorder" />} />
-        <Route path="delivery"  element={<MobilePhase1Workspace pageKey="delivery" />} />
-        <Route path="account"   element={<MobilePhase1Workspace pageKey="account" />} />
-        <Route path="profile"   element={<MobileProfile />} />
-      </Route>
-
-      {/* Redirect root based on role */}
-      <Route path="/dashboard" element={
-        normalizedRole === ROLE_SLUGS.SUPER_ADMIN
-          ? <Navigate to="/main/dashboard" replace />
-          : normalizedRole === ROLE_SLUGS.MOBILE_STOCKIST
-          ? <Navigate to="/mobile/dashboard" replace />
-          : <Navigate to="/stockist/dashboard" replace />
-      } />
-
-      {/* Legacy /partner/* redirect to /stockist/* */}
-      <Route path="/partner/*" element={<Navigate to="/stockist/dashboard" replace />} />
-
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+        <Route path="/partner/*" element={<Navigate to="/stockist/dashboard" replace />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 };
 

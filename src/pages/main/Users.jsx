@@ -20,6 +20,8 @@ const ROLES = [
   { value: 'mobile_stockist', label: 'Mobile Stockist' },
 ];
 
+const FORM_ROLES = ROLES.filter((role) => role.value !== 'mobile_stockist');
+
 const EMPTY_FORM = {
   name: '', email: '', phone: '', role_slug: '', partner_id: '', status: 'active', password: '',
 };
@@ -143,6 +145,12 @@ export default function Users() {
 
   const needsPartner = (role) => ['provincial_stockist', 'city_stockist', 'staff', 'mobile_stockist'].includes(role);
 
+  const formRoles = (
+    selected?.role_slug === 'mobile_stockist' && !FORM_ROLES.some((role) => role.value === 'mobile_stockist')
+  )
+    ? [...FORM_ROLES, ROLES.find((role) => role.value === 'mobile_stockist')]
+    : FORM_ROLES;
+
   const UserFormFields = () => (
     <div className="grid grid-cols-2 gap-4">
       <div className="col-span-2">
@@ -161,8 +169,11 @@ export default function Users() {
         <Label value="Role" className="mb-1" />
         <Select value={form.role_slug} onChange={fld('role_slug')} required>
           <option value="">Select role...</option>
-          {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+          {formRoles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
         </Select>
+        <p className="mt-1 text-xs text-gray-500">
+          Mobile Stockist accounts are provisioned from the Mobile Stockists module so their user and field profile stay linked.
+        </p>
       </div>
       <div>
         <Label value="Status" className="mb-1" />

@@ -11,7 +11,6 @@ import {
   HiChevronDown,
 } from 'react-icons/hi';
 import NotificationDrawer from '@/components/NotificationDrawer';
-import FloatingTutorial from '@/components/FloatingTutorial';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -51,6 +50,7 @@ const NAV_GROUPS = [
       { path: '/main/stock/replenishment', label: 'Replenishment Planner', icon: HiOutlineCube },
       { path: '/main/stock/expiry-risk', label: 'Expiry Risk Board', icon: HiOutlineCollection },
       { path: '/main/stock/capacity', label: 'Capacity Heatmap', icon: HiOutlineChartBar },
+      { path: '/main/cycle-counts', label: 'Cycle Counts', icon: HiOutlineClipboardCheck },
       { path: '/main/inventory',         label: 'Inventory',        icon: HiOutlineCube },
       { path: '/main/stock-movements',   label: 'Stock Movements',  icon: HiOutlineCollection },
       { path: '/main/stock-adjustments', label: 'Adjustments',      icon: HiOutlineAdjustments },
@@ -61,14 +61,6 @@ const NAV_GROUPS = [
     label: 'Catalog',
     items: [
       { path: '/main/products', label: 'Products', icon: HiOutlineTag },
-    ],
-  },
-  {
-    label: 'Applications',
-    items: [
-      { path: '/main/applications',  label: 'Applications',  icon: HiOutlineClipboardCheck },
-      { path: '/main/applications/pipeline',  label: 'Pipeline Board',  icon: HiOutlineClipboardCheck },
-      { path: '/main/applications/analytics',  label: 'Conversion Analytics',  icon: HiOutlineChartBar },
     ],
   },
   {
@@ -87,6 +79,7 @@ const NAV_GROUPS = [
   {
     label: 'Logistics',
     items: [
+      { path: '/main/delivery/live', label: 'Live Delivery Map', icon: HiOutlineTruck },
       { path: '/main/couriers', label: 'Couriers', icon: HiOutlineTruck },
     ],
   },
@@ -291,7 +284,6 @@ export default function MainLayout() {
       </div>
 
       <NotificationDrawer isOpen={notifOpen} onClose={() => setNotifOpen(false)} />
-      <FloatingTutorial />
     </div>
   );
 }
