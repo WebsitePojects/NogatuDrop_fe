@@ -4,7 +4,6 @@ import { HiUpload, HiCheckCircle } from 'react-icons/hi';
 import { FiPackage } from 'react-icons/fi';
 import StatusBadge from '@/components/StatusBadge';
 import StatusProgressBar from '@/components/StatusProgressBar';
-import PaymentCountdownTimer from '@/components/PaymentCountdownTimer';
 import { ToastContainer, useToast } from '@/components/Toast';
 import api from '@/services/api';
 import { ORDERS } from '@/services/endpoints';
@@ -29,7 +28,7 @@ export default function MobileOrders() {
       const list = Array.isArray(data.data) ? data.data : (data.data?.items || []);
       setOrders(list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
     } catch {
-      // silently fail
+      // Keep the mobile surface resilient; detailed errors are surfaced on action flows.
     } finally {
       setLoading(false);
     }
@@ -37,11 +36,11 @@ export default function MobileOrders() {
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
 
-  const filtered = orders.filter(o =>
+  const filtered = orders.filter((o) => (
     tab === 'active'
       ? ['pending', 'approved', 'delivering'].includes(o.status)
       : ['delivered', 'cancelled', 'rejected'].includes(o.status)
-  );
+  ));
 
   const handleUploadProof = async (orderId, file) => {
     setUploading(orderId);
@@ -64,7 +63,6 @@ export default function MobileOrders() {
     <div className="bg-white min-h-screen">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
-      {/* Tabs */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4">
         <div className="flex">
           {[{ v: 'active', l: 'Active' }, { v: 'history', l: 'History' }].map(({ v, l }) => (
@@ -94,13 +92,12 @@ export default function MobileOrders() {
             <p className="text-sm">No orders found</p>
           </div>
         ) : (
-          filtered.map(order => {
+          filtered.map((order) => {
             const isExpanded = expandedId === order.id;
             const isActive = ['pending', 'approved', 'delivering'].includes(order.status);
 
             return (
               <div key={order.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-                {/* Order header — always visible */}
                 <div
                   className="p-4 cursor-pointer"
                   onClick={() => setExpandedId(isExpanded ? null : order.id)}
@@ -127,17 +124,15 @@ export default function MobileOrders() {
                   )}
                 </div>
 
-                {/* Expanded detail */}
                 {isExpanded && (
                   <div className="border-t border-gray-100 px-4 py-4 space-y-3 bg-gray-50/50">
-                    {/* Items */}
                     {order.items && order.items.length > 0 && (
                       <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase mb-1.5">Items</p>
                         <div className="space-y-1">
                           {order.items.map((item, i) => (
                             <div key={i} className="flex justify-between text-sm">
-                              <span className="text-gray-700">{item.product_name} × {item.quantity}</span>
+                              <span className="text-gray-700">{item.product_name} x {item.quantity}</span>
                               <span className="font-medium text-gray-900">
                                 {formatCurrency((item.subtotal || item.quantity * item.unit_price) || 0)}
                               </span>
@@ -147,7 +142,6 @@ export default function MobileOrders() {
                       </div>
                     )}
 
-                    {/* Payment section */}
                     {order.status === 'approved' && (
                       <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase mb-1.5">Payment</p>
@@ -156,19 +150,39 @@ export default function MobileOrders() {
                             Cash on delivery approved for {formatCurrency(order.cod_amount)}.
                           </div>
                         ) : order.payment_status === 'paid' ? (
-                          <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-medium">
-                            <HiCheckCircle className="w-4 h-4" />
-                            Payment verified
+                          <div className="space-y-1.5">
+                            <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-medium">
+                              <HiCheckCircle className="w-4 h-4" />
+                              Payment verified
+                            </div>
+                            {order.payment_proof_url && (
+                              <a
+                                href={order.payment_proof_url}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="inline-block text-xs text-blue-600 hover:underline"
+                              >
+                                View uploaded proof
+                              </a>
+                            )}
                           </div>
                         ) : order.payment_proof_url ? (
                           <div className="text-sm text-blue-600">
-                            ✓ Proof uploaded — awaiting verification
+                            <div>Proof uploaded - awaiting verification</div>
+                            <a
+                              href={order.payment_proof_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="inline-block text-xs text-blue-600 hover:underline mt-1"
+                            >
+                              View uploaded proof
+                            </a>
                           </div>
                         ) : (
                           <div className="mt-1">
                             {uploading === order.id ? (
                               <div className="flex items-center gap-2 text-sm text-gray-500">
-                                <Spinner size="sm" color="warning" /> Uploading…
+                                <Spinner size="sm" color="warning" /> Uploading...
                               </div>
                             ) : (
                               <label className="flex items-center gap-2 text-sm text-blue-600 font-medium cursor-pointer hover:text-blue-700">
@@ -178,7 +192,7 @@ export default function MobileOrders() {
                                   type="file"
                                   accept="image/*,application/pdf"
                                   className="hidden"
-                                  onChange={e => {
+                                  onChange={(e) => {
                                     const file = e.target.files[0];
                                     if (file) handleUploadProof(order.id, file);
                                   }}

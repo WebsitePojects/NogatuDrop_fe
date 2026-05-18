@@ -25,6 +25,10 @@ export function resolveImageUrl(imageUrl) {
     return `https:${imageUrl}`;
   }
 
+  if (imageUrl.startsWith('/legacy-img/') || imageUrl.startsWith('/assets/')) {
+    return imageUrl;
+  }
+
   const baseOrigin = getApiOrigin();
   if (imageUrl.startsWith('/')) {
     return `${baseOrigin}${imageUrl}`;

@@ -21,6 +21,15 @@ import { ToastContainer, useToast } from '@/components/Toast';
 
 const STATUSES = ['all', 'pending', 'approved', 'delivering', 'delivered', 'cancelled'];
 const toStatusKey = (value) => String(value || '').trim().toLowerCase();
+const roleLabel = (roleSlug) => {
+  const normalized = String(roleSlug || '').trim().toLowerCase();
+  if (normalized === 'mobile_stockist') return 'Mobile Stockist';
+  if (normalized === 'city_stockist') return 'City Stockist';
+  if (normalized === 'provincial_stockist') return 'Provincial Stockist';
+  if (normalized === 'staff') return 'Staff';
+  if (normalized === 'super_admin') return 'Super Admin';
+  return normalized ? normalized.replace(/_/g, ' ') : 'Unknown';
+};
 
 export default function Orders() {
   const { user } = useAuth();
@@ -470,6 +479,19 @@ export default function Orders() {
                     <StatusBadge status={selectedOrder.payment_status || 'unpaid'} />
                   </div>
                 </div>
+              </div>
+
+              <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5">
+                  Placed By
+                </p>
+                <p className="font-bold text-gray-900 dark:text-white text-sm">
+                  {selectedOrder.placed_by_name || selectedOrder.customer_name || 'Unknown'}
+                </p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  {roleLabel(selectedOrder.placed_by_role_slug)}
+                  {selectedOrder.placed_by_email ? ` - ${selectedOrder.placed_by_email}` : ''}
+                </p>
               </div>
 
               {/* Items Section */}
