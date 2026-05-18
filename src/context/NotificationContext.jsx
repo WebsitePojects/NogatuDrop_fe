@@ -26,6 +26,11 @@ export const NotificationProvider = ({ children }) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
+  const announceNotificationPopup = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    window.dispatchEvent(new CustomEvent('nogatu:notifications:show'));
+  }, []);
+
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
     try {
@@ -52,11 +57,12 @@ export const NotificationProvider = ({ children }) => {
           });
           notifiedIdsRef.current.add(n.id);
         });
+        if (newNotifs.length > 0) announceNotificationPopup();
       }
     } catch {
       // silently fail
     }
-  }, [user, addToast]);
+  }, [user, addToast, announceNotificationPopup]);
 
   const triggerLatestToast = useCallback((opts = {}) => {
     if (!notifications || notifications.length === 0) return null;
@@ -120,6 +126,20 @@ export const NotificationProvider = ({ children }) => {
     }
   };
 
+  const markAsUnread = async (notificationId) => {
+    let increment = 0;
+    setNotifications((prev) =>
+      prev.map((n) => {
+        if (n.id !== notificationId) return n;
+        if (n.is_read) increment = 1;
+        return { ...n, is_read: false };
+      })
+    );
+    if (increment) {
+      setUnreadCount((prev) => prev + 1);
+    }
+  };
+
   const markAllRead = async () => {
     try {
       await api.patch(NOTIFICATIONS.MARK_ALL_READ);
@@ -137,6 +157,7 @@ export const NotificationProvider = ({ children }) => {
         unreadCount,
         count: unreadCount, // alias used by new layouts
         markAsRead,
+        markAsUnread,
         markAllRead,
         refetch: fetchNotifications,
         // toast helpers

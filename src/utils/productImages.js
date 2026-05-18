@@ -1,3 +1,5 @@
+import { NOGATU_PRODUCT_IMAGE_MAP } from './nogatuCatalog';
+
 const DEFAULT_API_BASE = 'http://localhost:5000/api/v1';
 
 function getApiOrigin() {
@@ -40,10 +42,11 @@ export function resolveImageUrl(imageUrl) {
 export function getDesignatedProductImage(productName = '', sku = '') {
   const key = `${productName} ${sku}`.toLowerCase();
 
-  if (key.includes('barley')) return '/assets/productsCatalog-NogatuBarleyPureDrink.jpg';
-  if (key.includes('mangosteen')) return '/assets/productsCatalog-NohgatuMangosteenCoffee.jpg';
-  if (key.includes('chocolate')) return '/assets/productsCatalog-nogatuChocolateDrink.jpg';
-  if (key.includes('coffee')) return '/assets/productsCatalog-NogatuCoffeeMix.jpg';
+  const match = NOGATU_PRODUCT_IMAGE_MAP.find((entry) =>
+    entry.match.some((token) => key.includes(token))
+  );
+
+  if (match) return match.image;
 
   return '/assets/products_removedBG.png';
 }

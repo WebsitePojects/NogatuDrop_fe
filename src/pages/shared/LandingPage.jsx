@@ -19,81 +19,23 @@ import {
   FiUser,
   FiX,
 } from 'react-icons/fi';
+import { NOGATU_PRODUCT_CATALOG } from '@/utils/nogatuCatalog';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
+const ABOUT_IMAGE = '/assets/about_nogatu.jpg';
+const CERTIFICATIONS_PDF = '/assets/nogatu-certifications.pdf';
 
 const NAV_LINKS = [
   { id: 'home', label: 'Home' },
   { id: 'shop', label: 'Shop' },
   { id: 'story', label: 'Story' },
+  { id: 'certifications', label: 'Certifications' },
   { id: 'reviews', label: 'Reviews' },
   { id: 'contact', label: 'Contact' },
 ];
 
-const PRODUCT_CATEGORIES = ['All', 'Coffee', 'Chocolate', 'Wellness'];
-
-const PRODUCTS = [
-  {
-    id: 'nogatu-mangosteen',
-    name: 'Mangosteen Coffee Blend',
-    category: 'Coffee',
-    image: '/assets/productsCatalog-NohgatuMangosteenCoffee.jpg',
-    shortDescription: 'Smooth roast with mangosteen and functional botanicals.',
-    price: 399,
-    rating: 4.9,
-    badge: 'Best Seller',
-  },
-  {
-    id: 'nogatu-classic',
-    name: 'Classic Coffee Mix',
-    category: 'Coffee',
-    image: '/assets/productsCatalog-NogatuCoffeeMix.jpg',
-    shortDescription: 'Balanced body and aroma crafted for daily performance.',
-    price: 299,
-    rating: 4.8,
-    badge: 'Popular',
-  },
-  {
-    id: 'nogatu-barley',
-    name: 'Pure Barley Drink',
-    category: 'Wellness',
-    image: '/assets/productsCatalog-NogatuBarleyPureDrink.jpg',
-    shortDescription: 'Naturally nourishing barley drink with clean finish.',
-    price: 329,
-    rating: 4.7,
-    badge: 'Wellness',
-  },
-  {
-    id: 'nogatu-choco',
-    name: 'Organic Chocolate Mix',
-    category: 'Chocolate',
-    image: '/assets/productsCatalog-nogatuChocolateDrink.jpg',
-    shortDescription: 'Creamy cocoa with low bitterness and rich mouthfeel.',
-    price: 349,
-    rating: 4.8,
-    badge: 'Organic',
-  },
-  {
-    id: 'nogatu-barley-lite',
-    name: 'Barley Lite Refill',
-    category: 'Wellness',
-    image: '/assets/1-product-BarleyDrink.png',
-    shortDescription: 'Light-body barley refill for frequent wellness routines.',
-    price: 269,
-    rating: 4.6,
-    badge: 'Refill',
-  },
-  {
-    id: 'nogatu-coffee-premium',
-    name: 'Premium Organic Drink Mix',
-    category: 'Coffee',
-    image: '/assets/2-OrganicDrinkMix.png',
-    shortDescription: 'House blend for premium cafes and business bundles.',
-    price: 459,
-    rating: 4.9,
-    badge: 'Enterprise',
-  },
-];
+const PRODUCT_CATEGORIES = ['All', 'Coffee', 'Chocolate', 'Wellness', 'Supplements'];
+const PRODUCTS = NOGATU_PRODUCT_CATALOG;
 
 const METRICS = [
   { value: '120k+', label: 'Monthly Orders' },
@@ -435,29 +377,56 @@ const LandingPage = () => {
                 <div className="pointer-events-none absolute bottom-6 right-6 h-24 w-24 rotate-12 rounded-[28%] border border-[#a45317]/30" />
                 <div className="grid gap-4">
                   <div className="hero-feature-card rounded-2xl p-4">
-                    <p className="text-xs uppercase tracking-[0.22em] text-[#8c5f3f]">Featured Product</p>
-                    <h3 className="mt-2 text-2xl font-bold">{selectedProduct.name}</h3>
-                    <p className="mt-2 text-sm text-[#6f4f36]">{selectedProduct.shortDescription}</p>
-                    <div className="mt-3 flex items-center justify-between">
-                      <p className="text-xl font-black">{formatPeso(selectedProduct.price)}</p>
-                      <div className="inline-flex items-center gap-1 text-sm text-[#bd6f21]">
-                        <FiStar className="fill-current" />
-                        {selectedProduct.rating}
+                    <div className="featured-product-shell">
+                      <div className="featured-copy">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-xs uppercase tracking-[0.22em] text-[#8c5f3f]">Featured Product</p>
+                          <span className="featured-badge">{selectedProduct.badge}</span>
+                        </div>
+                        <h3 className="featured-title mt-3 text-2xl font-bold">{selectedProduct.name}</h3>
+                        <p className="featured-description mt-2 text-sm text-[#6f4f36]">{selectedProduct.shortDescription}</p>
+                        <div className="mt-4 flex items-end justify-between gap-4">
+                          <div>
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#a27143]">
+                              Wellness Price
+                            </p>
+                            <p className="mt-1 text-2xl font-black">{formatPeso(selectedProduct.price)}</p>
+                          </div>
+                          <div className="inline-flex items-center gap-1 rounded-full bg-[#fff7eb] px-3 py-1.5 text-sm text-[#bd6f21] shadow-[inset_0_0_0_1px_rgba(189,111,33,0.14)]">
+                            <FiStar className="fill-current" />
+                            {selectedProduct.rating}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="featured-image-frame">
+                        <img
+                          src={selectedProduct.image}
+                          alt={selectedProduct.name}
+                          className="featured-image"
+                          style={{ '--featured-scale': selectedProduct.featuredScale || 1 }}
+                        />
                       </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-                    {PRODUCTS.slice(0, 3).map((product) => (
+                  <div className="grid grid-cols-4 gap-3">
+                    {PRODUCTS.slice(0, 4).map((product) => (
                       <button
                         key={product.id}
                         onClick={() => setSelectedProductId(product.id)}
-                        className={`overflow-hidden rounded-xl border p-1 transition ${
+                        className={`featured-thumb overflow-hidden rounded-xl border p-1 transition ${
                           selectedProduct.id === product.id
                             ? 'border-[#c96f1f] bg-[#ffe9cb] shadow-[0_8px_20px_rgba(177,94,28,0.18)]'
                             : 'border-[#d8b085]/90 bg-[#fff8ea] hover:bg-[#fff2d8]'
                         }`}
                       >
-                        <img src={product.image} alt={product.name} className="h-20 w-full rounded-lg object-cover" />
+                        <div className="featured-thumb-frame">
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="featured-thumb-image"
+                            style={{ '--thumb-scale': product.thumbScale || 1 }}
+                          />
+                        </div>
                       </button>
                     ))}
                   </div>
@@ -479,7 +448,10 @@ const LandingPage = () => {
             <div ref={setRevealRef(2)} className="reveal-block mb-8 flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-orange-200/80">Catalog</p>
-                <h2 className="font-heading mt-2 text-3xl text-white sm:text-4xl">Professional Product Selection</h2>
+                <h2 className="font-heading mt-2 text-3xl text-white sm:text-4xl">Nine Signature Wellness Products</h2>
+                <p className="mt-3 max-w-2xl text-sm text-orange-50/78">
+                  A tighter storefront lineup with updated product visuals, clearer pricing, and a more premium product frame that stays consistent as featured items switch.
+                </p>
               </div>
               <div className="flex flex-wrap gap-2">
                 {PRODUCT_CATEGORIES.map((category) => (
@@ -503,19 +475,19 @@ const LandingPage = () => {
                 <article
                   key={product.id}
                   ref={setRevealRef(3 + index)}
-                  className="reveal-block card-float liquid-card flex flex-col overflow-hidden rounded-2xl border p-4"
+                  className="reveal-block card-float liquid-card flex flex-col overflow-hidden rounded-[1.75rem] border p-4"
                 >
-                  <div className="relative overflow-hidden rounded-xl">
-                    <img src={product.image} alt={product.name} className="h-52 w-full object-cover transition duration-500 hover:scale-105" />
+                  <div className="product-showcase-frame relative overflow-hidden rounded-[1.4rem]">
+                    <img src={product.image} alt={product.name} className="product-showcase-image transition duration-500 hover:scale-105" />
                     <span
-                      className={`absolute right-3 top-3 rounded-full px-3 py-1 text-xs font-semibold ${
+                      className={`absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-semibold ${
                         product.badge === 'Best Seller'
                           ? 'bg-rose-900/90 text-rose-100 ring-1 ring-rose-400/50'
-                          : product.badge === 'Popular'
+                          : product.badge === 'Featured'
                             ? 'bg-amber-900/90 text-amber-100 ring-1 ring-amber-400/50'
-                            : product.badge === 'Wellness'
+                            : product.badge === 'Wellness Pick'
                               ? 'bg-emerald-900/90 text-emerald-100 ring-1 ring-emerald-400/50'
-                              : product.badge === 'Organic'
+                              : product.badge === 'Glow Care'
                                 ? 'bg-lime-900/90 text-lime-100 ring-1 ring-lime-400/50'
                                 : 'bg-[#2f1909] text-orange-100 ring-1 ring-orange-500/50'
                       }`}
@@ -524,14 +496,17 @@ const LandingPage = () => {
                     </span>
                   </div>
                   <div className="mt-4 flex flex-1 flex-col">
-                    <div className="mb-2 flex items-center justify-between">
-                      <h3 className="text-lg font-bold text-white">{product.name}</h3>
-                      <span className="inline-flex items-center gap-1 text-sm text-orange-300">
+                    <div className="mb-2 flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-orange-200/55">{product.category}</p>
+                        <h3 className="mt-1 text-lg font-bold text-white">{product.name}</h3>
+                      </div>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-white/6 px-2.5 py-1 text-sm text-orange-300">
                         <FiStar className="fill-current" />
                         {product.rating}
                       </span>
                     </div>
-                    <p className="text-sm text-orange-50/80">{product.shortDescription}</p>
+                    <p className="min-h-[3.25rem] text-sm leading-6 text-orange-50/80">{product.shortDescription}</p>
                     <div className="mt-auto pt-4 flex items-center justify-between">
                       <p className="text-xl font-black text-orange-100">{formatPeso(product.price)}</p>
                       <button
@@ -550,7 +525,7 @@ const LandingPage = () => {
 
         <section id="story" className="relative px-4 py-16 sm:px-6 lg:px-8 bg-gradient-to-b from-[#e9a629] via-[#cc801b] to-[#7f4f13]">
           <div className="section-pattern story-pattern pointer-events-none mix-blend-overlay opacity-30" />
-          <div className="relative z-10 mx-auto grid w-[min(1180px,100%)] gap-6 lg:grid-cols-2">
+          <div className="relative z-10 mx-auto grid w-[min(1180px,100%)] gap-6 lg:grid-cols-[0.9fr_1.1fr]">
             <div ref={setRevealRef(20)} className="reveal-block story-card rounded-3xl border p-8 text-[#542d0a]">
               <p className="text-xs uppercase tracking-[0.2em] text-[#8e5f3c]">Brand Story</p>
               <h3 className="font-heading mt-2 text-3xl">From Functional Drinks to Enterprise Commerce</h3>
@@ -573,7 +548,21 @@ const LandingPage = () => {
               </div>
             </div>
 
-            <div ref={setRevealRef(21)} className="reveal-block grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+            <div ref={setRevealRef(21)} className="reveal-block grid gap-4">
+              <article className="about-visual-card overflow-hidden rounded-[2rem] border p-4">
+                <div className="grid items-center gap-4 md:grid-cols-[1.1fr_0.9fr]">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.22em] text-orange-200/80">Inside Nogatu</p>
+                    <h4 className="font-heading mt-2 text-2xl text-white">Built for repeat buying, quick trust, and clean presentation.</h4>
+                    <p className="mt-3 text-sm leading-relaxed text-orange-100/80">
+                      The landing page now balances premium warmth with clearer product merchandising, stronger conversion cues, and richer visual rhythm inspired by the references you shared.
+                    </p>
+                  </div>
+                  <div className="about-visual-frame">
+                    <img src={ABOUT_IMAGE} alt="Nogatu beverages" className="h-full w-full object-cover" />
+                  </div>
+                </div>
+              </article>
               {HIGHLIGHTS.map((item) => (
                 <article
                   key={item.title}
@@ -615,6 +604,48 @@ const LandingPage = () => {
           </div>
         </section>
 
+        <section id="certifications" className="relative overflow-hidden bg-gradient-to-b from-[#5f3816] via-[#3a2111] to-[#1b1009] px-4 py-16 text-[#f7e6cf] sm:px-6 lg:px-8">
+          <div className="pointer-events-none absolute inset-0 opacity-55 [background-image:linear-gradient(rgba(255,205,141,0.06)_1px,transparent_1px),linear-gradient(90deg,rgba(255,205,141,0.06)_1px,transparent_1px)] [background-size:44px_44px]" />
+          <div className="pointer-events-none absolute inset-0 opacity-45 [background:radial-gradient(circle_at_top_left,rgba(255,194,108,0.22),transparent_28%),radial-gradient(circle_at_bottom_right,rgba(116,62,22,0.22),transparent_34%)]" />
+          <div className="relative z-10 mx-auto w-[min(1180px,100%)]">
+            <div ref={setRevealRef(29)} className="reveal-block">
+              <div className="mx-auto max-w-4xl text-left">
+                <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#f0bf79]">Certifications</p>
+                <h3 className="font-heading mt-2 text-3xl text-[#fff1dc] sm:text-4xl">Review Nogatu certificates directly on the page.</h3>
+                <p className="mt-3 max-w-3xl text-sm leading-7 text-[#efd7bb]/82 sm:text-base">
+                  View the uploaded Nogatu CPR and Halal certificate pack without leaving the storefront. The viewer below is intentionally simple and document-first so buyers, Stockists, and internal teams can read the file quickly.
+                </p>
+              </div>
+
+              <div className="certification-shell mt-8 overflow-hidden rounded-[2rem] border border-orange-100/12 bg-[linear-gradient(140deg,rgba(44,26,14,0.96),rgba(60,34,17,0.96))] p-4 shadow-[0_30px_90px_-44px_rgba(0,0,0,0.72)] sm:p-5">
+                <div className="mb-4 flex flex-col gap-3 rounded-[1.6rem] border border-orange-100/10 bg-[linear-gradient(135deg,rgba(255,246,234,0.08),rgba(255,235,210,0.04))] px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div>
+                    <h4 className="text-lg font-bold text-[#fff0d6]">NOGATU Products CPR and Halal Certificates</h4>
+                    <p className="mt-1 text-sm text-[#edcfac]/78">Scroll, zoom, and review the full PDF below.</p>
+                  </div>
+                  <a
+                    href={CERTIFICATIONS_PDF}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center justify-center gap-2 self-start rounded-full bg-[#d4a72c] px-5 py-3 text-sm font-semibold text-white transition hover:brightness-105 sm:self-auto"
+                  >
+                    Open PDF
+                    <FiArrowRight />
+                  </a>
+                </div>
+                <div className="certification-viewer-frame overflow-hidden rounded-[1.5rem] border border-orange-100/12 bg-[#f7ead5] shadow-[inset_0_0_0_1px_rgba(219,193,157,0.26)]">
+                  <iframe
+                    src={CERTIFICATIONS_PDF}
+                    title="Nogatu Certifications PDF"
+                    className="certification-viewer"
+                    loading="lazy"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <section id="contact" className="relative px-4 pb-20 pt-12 sm:px-6 lg:px-8 bg-gradient-to-b from-[#d69527] via-[#2c180d] to-[#120a05]">
           <div className="section-pattern cta-pattern pointer-events-none mix-blend-overlay opacity-30" />
           <div ref={setRevealRef(30)} className="reveal-block cta-liquid relative z-10 mx-auto w-[min(1180px,100%)] rounded-3xl border p-8 sm:p-10">
@@ -642,20 +673,82 @@ const LandingPage = () => {
                   Stockist Login
                   <FiUser />
                 </button>
+                <a
+                  href="https://nogatualliance.vercel.app/"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-orange-200/20 bg-white/5 px-5 py-3 text-sm font-semibold text-orange-100 transition hover:bg-white/10"
+                >
+                  Stockist Application
+                  <FiArrowRight />
+                </a>
               </div>
             </div>
           </div>
         </section>
       </main>
 
-      <footer className="relative border-t border-orange-100/12 bg-[#090503] px-4 py-8 text-center text-xs text-orange-200/65 sm:px-6 lg:px-8">
-        <p>NogatuDrop Enterprise Commerce © {new Date().getFullYear()} All rights reserved.</p>
+      <footer className="relative overflow-hidden border-t border-orange-100/12 bg-[#220f07] px-4 pb-5 pt-10 text-orange-100 sm:px-6 lg:px-8">
+        <div className="pointer-events-none absolute inset-0 opacity-40 [background-image:radial-gradient(rgba(255,190,120,0.16)_1px,transparent_1px)] [background-size:18px_18px]" />
+        <div className="relative mx-auto grid w-[min(1180px,100%)] gap-8 lg:grid-cols-[1.1fr_0.8fr_0.8fr_1fr]">
+          <div>
+            <div className="flex items-center gap-3">
+              <img src={BRAND_LOGO} alt="NogatuDrop" className="h-12 w-12 rounded-2xl object-cover" />
+              <div>
+                <p className="text-lg font-bold text-white">Nogatu Alliance</p>
+                <p className="text-xs uppercase tracking-[0.22em] text-orange-300/70">Enterprise Commerce</p>
+              </div>
+            </div>
+            <p className="mt-4 max-w-xs text-sm leading-7 text-orange-100/72">
+              Empowering people through high-quality health and wellness products with a warmer, more polished buying experience for every Stockist and retail customer.
+            </p>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-[#ffbd62]">Quick Links</h4>
+            <div className="mt-4 space-y-3 text-sm text-orange-100/78">
+              {NAV_LINKS.slice(0, 4).map((link) => (
+                <button key={link.id} onClick={() => scrollTo(link.id)} className="block transition hover:text-white">
+                  {link.label}
+                </button>
+              ))}
+              <button onClick={() => navigate('/login')} className="block transition hover:text-white">
+                Stockist Login
+              </button>
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-[#ffbd62]">Our Products</h4>
+            <div className="mt-4 space-y-3 text-sm text-orange-100/78">
+              {PRODUCTS.slice(0, 8).map((product) => (
+                <button key={product.id} onClick={() => setSelectedProductId(product.id)} className="block text-left transition hover:text-white">
+                  {product.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-[#ffbd62]">Contact Info</h4>
+            <div className="mt-4 space-y-4 text-sm leading-7 text-orange-100/78">
+              <p>94 Navarro Street, Maligaya Park, Brgy 177, Caloocan City</p>
+              <p>+632 0908 888 888</p>
+              <p>info@nogatualliance.com</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative mx-auto mt-8 flex w-[min(1180px,100%)] flex-col gap-3 border-t border-orange-100/10 pt-5 text-xs text-orange-200/58 sm:flex-row sm:items-center sm:justify-between">
+          <p>© {new Date().getFullYear()} Nogatu Alliance. All rights reserved.</p>
+          <p>Mon-Sat: 11AM - 11PM | Sunday: Closed</p>
+        </div>
       </footer>
 
       {cartOpen && (
         <div className="fixed inset-0 z-[70]">
           <button className="absolute inset-0 bg-black/60" aria-label="Close cart" onClick={() => setCartOpen(false)} />
-          <aside className="absolute right-0 top-0 h-full w-[min(460px,100%)] border-l border-orange-100/18 bg-[#23150b] p-5 text-orange-50 shadow-2xl">
+          <aside className="cart-panel-enter absolute right-0 top-0 h-full w-[min(460px,100%)] border-l border-orange-100/18 bg-[#23150b] p-5 text-orange-50 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <h4 className="text-lg font-bold">Your Cart</h4>
               <button onClick={() => setCartOpen(false)} className="rounded-lg p-2 transition hover:bg-white/10" aria-label="Close cart">
@@ -671,7 +764,7 @@ const LandingPage = () => {
               )}
 
               {cartItems.map((item) => (
-                <article key={item.id} className="rounded-xl border border-orange-100/15 bg-white/5 p-3">
+                <article key={item.id} className="rounded-2xl border border-orange-100/15 bg-[linear-gradient(135deg,rgba(255,255,255,0.08),rgba(255,255,255,0.03))] p-3 shadow-[0_18px_36px_-30px_rgba(0,0,0,0.7)]">
                   <div className="flex gap-3">
                     <img src={item.image} alt={item.name} className="h-20 w-20 rounded-lg object-cover" />
                     <div className="flex-1">

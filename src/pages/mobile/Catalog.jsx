@@ -116,12 +116,12 @@ export default function MobileCatalog() {
                   key={product.id}
                   className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm"
                 >
-                  <div className="aspect-square bg-gray-50 overflow-hidden">
+                  <div className="aspect-square overflow-hidden bg-[radial-gradient(circle_at_top,rgba(255,219,174,0.65),transparent_58%),linear-gradient(180deg,#fffaf3_0%,#f8ecdf_100%)]">
                     <img
                       src={getProductImageSrc(product)}
                       alt={product.name}
                       onError={e => attachProductImageFallback(e, product)}
-                      className="w-full h-full object-cover"
+                      className="h-full w-full object-contain p-4"
                     />
                   </div>
                   <div className="p-3">

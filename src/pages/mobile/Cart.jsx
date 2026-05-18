@@ -118,12 +118,12 @@ export default function MobileCart() {
               return (
                 <div key={item.id} className="rounded-2xl border border-gray-100 bg-white p-3 shadow-sm">
                   <div className="flex gap-3">
-                    <div className="w-16 h-16 rounded-xl bg-gray-50 overflow-hidden flex-shrink-0">
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[radial-gradient(circle_at_top,rgba(255,219,174,0.65),transparent_58%),linear-gradient(180deg,#fffaf3_0%,#f8ecdf_100%)]">
                       <img
                         src={getProductImageSrc({ image_url: item.image_url, name: item.product_name || item.name })}
                         alt={item.product_name || item.name}
                         onError={(e) => attachProductImageFallback(e, { name: item.product_name || item.name })}
-                        className="w-full h-full object-cover"
+                        className="h-full w-full object-contain p-2"
                       />
                     </div>
 

@@ -82,14 +82,16 @@ export default function MainSettlements() {
           <div className="overflow-x-auto">
             <Table striped>
               <TableHead>
-                <TableHeadCell>Settlement</TableHeadCell>
-                <TableHeadCell>Order</TableHeadCell>
-                <TableHeadCell>Stockist</TableHeadCell>
-                <TableHeadCell>Amount</TableHeadCell>
-                <TableHeadCell>Status</TableHeadCell>
-                <TableHeadCell>Method</TableHeadCell>
-                <TableHeadCell>Expected</TableHeadCell>
-                <TableHeadCell />
+                <TableRow>
+                  <TableHeadCell>Settlement</TableHeadCell>
+                  <TableHeadCell>Order</TableHeadCell>
+                  <TableHeadCell>Stockist</TableHeadCell>
+                  <TableHeadCell>Amount</TableHeadCell>
+                  <TableHeadCell>Status</TableHeadCell>
+                  <TableHeadCell>Method</TableHeadCell>
+                  <TableHeadCell>Expected</TableHeadCell>
+                  <TableHeadCell />
+                </TableRow>
               </TableHead>
               <TableBody className="divide-y">
                 {rows.map((row) => (

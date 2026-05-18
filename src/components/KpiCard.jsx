@@ -31,8 +31,9 @@ export default function KpiCard({
 
   return (
     <div className="kpi-card">
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[#d89245] via-[#f4c989] to-transparent opacity-70" />
       <div className="flex-1 min-w-0">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{title}</p>
+        <p className="mb-1 text-[11px] font-semibold uppercase tracking-[0.24em] text-[#8d6b51] dark:text-[var(--dark-muted)]">{title}</p>
         <p className="kpi-value">
           {prefix}
           {value}
@@ -49,12 +50,12 @@ export default function KpiCard({
               {trend >= 0 ? '+' : ''}
               {trend}%
             </span>
-            {trendLabel && <span className="text-xs text-gray-400">{trendLabel}</span>}
+            {trendLabel && <span className="text-xs text-[#a0846d] dark:text-[var(--dark-muted)]">{trendLabel}</span>}
           </div>
         )}
       </div>
       {Icon && (
-        <div className={`kpi-icon-box ${iconBg} ${darkBg}`}>
+        <div className={`kpi-icon-box ${iconBg} ${darkBg} shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]`}>
           <Icon className={`w-5 h-5 ${iconLight} ${iconDark}`} />
         </div>
       )}

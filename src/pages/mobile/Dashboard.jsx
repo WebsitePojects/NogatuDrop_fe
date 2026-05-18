@@ -4,7 +4,7 @@ import { HiShoppingBag, HiTrendingUp, HiArrowRight } from 'react-icons/hi';
 import { FiPackage } from 'react-icons/fi';
 import StatusBadge from '@/components/StatusBadge';
 import api from '@/services/api';
-import { ORDERS, DASHBOARD } from '@/services/endpoints';
+import { ORDERS } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
@@ -28,7 +28,7 @@ export default function MobileDashboard() {
       const orders = Array.isArray(data.data) ? data.data : (data.data?.items || []);
       const now = new Date();
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
-      const monthOrders = orders.filter(o => new Date(o.created_at) >= monthStart).length;
+      const monthOrders = orders.filter((o) => new Date(o.created_at) >= monthStart).length;
       setStats({ totalOrders: orders.length, monthOrders });
       setRecentOrders(
         [...orders].sort((a, b) => new Date(b.created_at) - new Date(a.created_at)).slice(0, 3)
@@ -48,43 +48,47 @@ export default function MobileDashboard() {
   };
 
   return (
-    <div className="px-4 pt-6 pb-24 min-h-screen bg-white">
-      {/* Greeting */}
-      <div className="mb-6">
-        <h1 className="text-xl font-bold text-gray-900">
-          {greeting()}, {user?.name?.split(' ')[0] || 'there'}! 👋
+    <div className="min-h-screen bg-white px-4 pb-24 pt-6 dark:bg-transparent">
+      <div className="page-header-shell mb-6 rounded-[1.6rem] border border-white/60 px-4 py-5">
+        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#ff8c00]">Mobile Stockist</p>
+        <h1 className="mt-3 text-xl font-bold text-gray-900 dark:text-[var(--dark-text)]">
+          {greeting()}, {user?.name?.split(' ')[0] || 'there'}
         </h1>
-        <p className="text-sm text-gray-400 mt-0.5">
+        <p className="mt-1 text-sm text-gray-400 dark:text-[var(--dark-muted)]">
           {new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric' })}
+        </p>
+        <p className="mt-3 text-sm leading-6 text-gray-500 dark:text-[var(--dark-muted)]">
+          Track orders, reorder quickly, and stay updated with a cleaner mobile-first overview.
         </p>
       </div>
 
-      <div className="mb-6 w-full h-28 sm:h-36 rounded-2xl overflow-hidden border border-gray-100 shadow-sm bg-gray-100">
+      <div className="mb-6 overflow-hidden rounded-[1.6rem] border border-gray-100 shadow-sm dark:border-[var(--dark-border)]">
         <img
           src="/assets/picture_banner.png"
           alt="Nogatu picture banner"
-          className="w-full h-full object-cover"
+          className="h-36 w-full object-cover"
         />
       </div>
 
-      {/* KPI Grid */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      <div className="mb-6 grid grid-cols-2 gap-3">
         {[
-          { label: 'Total Orders', value: loading ? '—' : stats.totalOrders, icon: HiShoppingBag, color: 'bg-orange-50 text-orange-500' },
-          { label: "This Month's Orders", value: loading ? '—' : stats.monthOrders, icon: HiTrendingUp, color: 'bg-emerald-50 text-emerald-500' },
+          { label: 'Total Orders', value: loading ? '-' : stats.totalOrders, icon: HiShoppingBag, color: 'bg-orange-50 text-orange-500' },
+          { label: "This Month's Orders", value: loading ? '-' : stats.monthOrders, icon: HiTrendingUp, color: 'bg-emerald-50 text-emerald-500' },
         ].map(({ label, value, icon: Icon, color }) => (
-          <div key={label} className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100">
-            <div className={`w-9 h-9 rounded-xl flex items-center justify-center mb-3 ${color}`}>
+          <div
+            key={label}
+            className="rounded-[1.4rem] border border-gray-100 bg-white p-4 shadow-[0_24px_40px_-32px_rgba(15,23,42,0.18)] dark:border-[var(--dark-border)] dark:bg-[var(--dark-card)]"
+          >
+            <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-xl ${color}`}>
               <Icon size={18} />
             </div>
-            <p className="text-2xl font-bold text-gray-900">{value}</p>
-            <p className="text-xs text-gray-500 mt-0.5">{label}</p>
+            <p className="text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)]">{value}</p>
+            <p className="mt-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">{label}</p>
           </div>
         ))}
       </div>
 
-      {/* Quick Action Cards */}
-      <div className="grid grid-cols-2 gap-3 mb-6">
+      <div className="mb-6 grid grid-cols-2 gap-3">
         {[
           {
             label: 'Shop Now',
@@ -104,45 +108,39 @@ export default function MobileDashboard() {
           <button
             key={path}
             onClick={() => navigate(path)}
-            className={`${bg} text-white rounded-2xl p-4 text-left hover:opacity-90 active:scale-95 transition-all`}
+            className={`${bg} rounded-[1.4rem] p-4 text-left text-white shadow-[0_20px_36px_-26px_rgba(15,23,42,0.32)] transition-all hover:opacity-90 active:scale-95`}
           >
-            <div className="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center mb-3">
+            <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/20">
               <Icon size={18} />
             </div>
-            <p className="font-bold text-sm">{label}</p>
-            <p className="text-xs text-white/70 mt-0.5">{desc}</p>
+            <p className="text-sm font-bold">{label}</p>
+            <p className="mt-0.5 text-xs text-white/70">{desc}</p>
           </button>
         ))}
       </div>
 
-      {/* Recent Orders */}
       {recentOrders.length > 0 && (
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="font-semibold text-gray-900 text-sm">Recent Orders</h2>
-            <Link
-              to="/mobile/orders"
-              className="text-xs text-orange-500 flex items-center gap-0.5"
-            >
+          <div className="mb-3 flex items-center justify-between">
+            <h2 className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)]">Recent Orders</h2>
+            <Link to="/mobile/orders" className="flex items-center gap-0.5 text-xs text-orange-500">
               View all <HiArrowRight size={12} />
             </Link>
           </div>
           <div className="space-y-2">
-            {recentOrders.map(order => (
+            {recentOrders.map((order) => (
               <div
                 key={order.id}
-                className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 flex items-center justify-between"
+                className="flex items-center justify-between rounded-[1.4rem] border border-gray-100 bg-white p-4 shadow-[0_20px_38px_-30px_rgba(15,23,42,0.2)] dark:border-[var(--dark-border)] dark:bg-[var(--dark-card)]"
               >
                 <div>
-                  <p className="font-mono font-bold text-sm text-gray-900">
+                  <p className="font-mono text-sm font-bold text-gray-900 dark:text-[var(--dark-text)]">
                     #{order.order_number || order.id}
                   </p>
-                  <p className="text-xs text-gray-400 mt-0.5">{formatDate(order.created_at)}</p>
+                  <p className="mt-0.5 text-xs text-gray-400 dark:text-[var(--dark-muted)]">{formatDate(order.created_at)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-sm text-orange-500">
-                    {formatCurrency(order.total_amount)}
-                  </p>
+                  <p className="text-sm font-semibold text-orange-500">{formatCurrency(order.total_amount)}</p>
                   <div className="mt-1">
                     <StatusBadge status={order.status} />
                   </div>

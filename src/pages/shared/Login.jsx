@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Spinner } from 'flowbite-react';
 import { HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
+import { FiArrowLeft, FiArrowUpRight } from 'react-icons/fi';
 import { useAuth } from '@/context/AuthContext';
 
 const POSTER = '/assets/nogatuPoster_login.png';
@@ -22,6 +23,7 @@ export default function Login() {
     setLoading(true);
     try {
       const userData = await login(email, password);
+      sessionStorage.setItem('nogatu_show_notifications', '1');
       const role = userData?.role_slug;
       if (role === 'super_admin') navigate('/main/dashboard');
       else if (role === 'mobile_stockist') navigate('/mobile/dashboard');
@@ -61,7 +63,26 @@ export default function Login() {
         <div className="absolute inset-0 pointer-events-none z-0 [background-image:linear-gradient(rgba(255,199,129,0.055)_1px,transparent_1px),linear-gradient(90deg,rgba(255,199,129,0.045)_1px,transparent_1px)] [background-size:42px_42px]" />
 
         {/* Form Container */}
-        <div className="z-10 liquid-card bg-[#381f11]/90 rounded-3xl p-8 max-w-[380px] w-full shadow-2xl relative">
+        <div className="z-10 liquid-card login-force-light bg-[#381f11]/90 rounded-[2rem] p-8 max-w-[420px] w-full shadow-2xl relative">
+          <div className="mb-6 flex items-center justify-between">
+            <Link
+              to="/"
+              className="inline-flex items-center gap-2 rounded-full border border-orange-200/15 bg-white/5 px-3 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-orange-100 transition hover:bg-white/10"
+            >
+              <FiArrowLeft className="text-sm" />
+              Back
+            </Link>
+            <a
+              href="https://nogatualliance.vercel.app/"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-1 text-xs font-semibold text-amber-300 transition hover:text-amber-200"
+            >
+              Stockist Application
+              <FiArrowUpRight className="text-sm" />
+            </a>
+          </div>
+
           <div className="mb-8 flex flex-col items-center justify-center text-center">
             <Link to="/" className="mb-5 focus:outline-none">
               <img src={LOGO} alt="Nogatu Logo" className="h-16 w-16 rounded-full border border-orange-200/20 object-cover shadow-[0_0_20px_rgba(255,190,100,0.15)] transition-transform hover:scale-105" />
@@ -90,7 +111,7 @@ export default function Login() {
                 placeholder="you@example.com"
                 required
                 autoComplete="email"
-                className="w-full bg-[#e9f2ff] text-gray-900 px-4 py-3 rounded-xl border border-transparent focus:ring-4 focus:ring-amber-500/20 focus:outline-none"
+                className="w-full border-0 border-b border-white/20 bg-transparent px-0 py-3 text-white placeholder:text-[#d4bca4]/45 focus:border-amber-400 focus:ring-0 focus:outline-none"
               />
             </div>
 
@@ -112,15 +133,14 @@ export default function Login() {
                   type={showPw ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
                   required
                   autoComplete="current-password"
-                  className="w-full bg-[#e9f2ff] text-gray-900 px-4 py-3 rounded-xl border border-transparent focus:ring-4 focus:ring-amber-500/20 focus:outline-none pr-11"
+                  className="w-full border-0 border-b border-white/20 bg-transparent px-0 py-3 pr-11 text-white placeholder:text-[#d4bca4]/45 focus:border-amber-400 focus:ring-0 focus:outline-none"
                 />
                 <button
                   type="button"
                   onClick={() => setShowPw(!showPw)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-gray-800 transition-colors focus:outline-none rounded-md"
+                  className="absolute right-0 top-1/2 -translate-y-1/2 p-2 text-[#d4bca4] hover:text-white transition-colors focus:outline-none rounded-md"
                   tabIndex={-1}
                 >
                   {showPw ? <HiOutlineEyeOff className="h-5 w-5" /> : <HiOutlineEye className="h-5 w-5" />}
@@ -132,7 +152,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={loading}
-              className="mt-6 w-full btn-amber flex justify-center gap-2 items-center px-6 py-3.5 text-sm font-semibold rounded-xl"
+              className="mt-6 w-full flex justify-center gap-2 items-center rounded-xl bg-gray-900 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-black"
             >
               {loading ? (
                 <>
@@ -147,9 +167,7 @@ export default function Login() {
 
           {/* Footer Link */}
           <div className="mt-8 text-center pt-6 border-t border-white/5">
-            <p className="text-[13px] text-[#d4bca4]">
-              Stockist applications now start through the Nogatu MLM portal first.
-            </p>
+            <p className="text-[13px] text-[#d4bca4]">Stockist applications now start through the Nogatu Alliance portal.</p>
           </div>
         </div>
       </div>

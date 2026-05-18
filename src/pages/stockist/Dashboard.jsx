@@ -98,21 +98,27 @@ export default function StockistDashboard() {
     <div className="p-4 md:p-6 min-h-screen page-enter" style={{ background: '#FFF8F0' }}>
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">
-          {greeting()}, {user?.name?.split(' ')[0] || 'Stockist'}
-        </h1>
-        <p className="text-sm text-gray-500 mt-0.5">
-          {new Date().toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
-        </p>
-      </div>
+      <div className="page-header-shell mb-6 grid gap-5 rounded-[1.8rem] border border-white/60 px-5 py-5 lg:grid-cols-[1fr_0.9fr]">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#2d8a2d]">Stockist Portal</p>
+          <h1 className="mt-3 text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)]">
+            {greeting()}, {user?.name?.split(' ')[0] || 'Stockist'}
+          </h1>
+          <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-[var(--dark-muted)]">
+            {new Date().toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+          </p>
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-500 dark:text-[var(--dark-muted)]">
+            Review fulfillment, watch inventory pressure, and move quickly between catalog, orders, reports, and warehouse work without losing context.
+          </p>
+        </div>
 
-      <div className="mb-6 w-full h-32 md:h-44 lg:h-56 rounded-xl overflow-hidden border border-amber-100 bg-white shadow-sm">
-        <img
-          src="/assets/picture_banner.png"
-          alt="Nogatu picture banner"
-          className="w-full h-full object-cover"
-        />
+        <div className="overflow-hidden rounded-[1.4rem] border border-white/70 shadow-sm dark:border-[var(--dark-border)]">
+          <img
+            src="/assets/picture_banner.png"
+            alt="Nogatu picture banner"
+            className="h-full min-h-[220px] w-full object-cover"
+          />
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -125,7 +131,7 @@ export default function StockistDashboard() {
 
       {/* Low Stock Alert */}
       {lowStock.length > 0 && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 mb-6">
+        <div className="mb-6 rounded-[1.5rem] border border-amber-200 bg-[linear-gradient(135deg,#fff8eb_0%,#fff2d9_100%)] p-4 shadow-[0_22px_40px_-32px_rgba(217,119,6,0.38)]">
           <div className="flex items-center gap-2 mb-2">
             <HiExclamation className="w-5 h-5 text-amber-600 flex-shrink-0" />
             <span className="font-semibold text-amber-800 text-sm">Low Stock Alert</span>
@@ -148,7 +154,7 @@ export default function StockistDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chart */}
         <div className="lg:col-span-2">
-          <Card>
+          <Card className="rounded-[1.6rem]">
             <div className="flex items-center gap-2 mb-4">
               <FiTrendingUp className="text-amber-500" />
               <h2 className="font-semibold text-gray-900 text-sm">Orders Per Week (Last 4 Weeks)</h2>
@@ -174,7 +180,7 @@ export default function StockistDashboard() {
 
         {/* Quick Actions */}
         <div className="space-y-3">
-          <h2 className="font-semibold text-gray-900">Quick Actions</h2>
+          <h2 className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">Quick Actions</h2>
           {[
             { label: 'Browse Catalog', path: '/stockist/catalog', color: 'bg-amber-500 hover:bg-amber-600' },
             { label: 'View Orders', path: '/stockist/orders', color: 'bg-blue-600 hover:bg-blue-700' },
@@ -183,7 +189,7 @@ export default function StockistDashboard() {
             <button
               key={path}
               onClick={() => navigate(path)}
-              className={`w-full flex items-center justify-between px-4 py-3 rounded-xl text-white text-sm font-semibold transition-colors ${color}`}
+              className={`w-full flex items-center justify-between rounded-[1.2rem] px-4 py-3 text-sm font-semibold text-white shadow-[0_22px_40px_-28px_rgba(15,23,42,0.35)] transition-all hover:-translate-y-0.5 ${color}`}
             >
               {label}
               <HiChevronRight className="w-4 h-4" />
@@ -203,7 +209,7 @@ export default function StockistDashboard() {
             View all
           </button>
         </div>
-        <Card className="overflow-x-auto p-0">
+        <Card className="overflow-x-auto rounded-[1.6rem] p-0">
           {loading ? (
             <div className="py-8 text-center text-gray-400 text-sm">Loading…</div>
           ) : recentOrders.length === 0 ? (
