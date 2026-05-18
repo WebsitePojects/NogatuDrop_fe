@@ -11,6 +11,7 @@ import { PRODUCTS } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
 import { PERMISSIONS, can } from '@/utils/permissions';
+import PageHeader from '@/components/PageHeader';
 
 export default function StockistCatalog() {
   const navigate = useNavigate();
@@ -77,13 +78,13 @@ export default function StockistCatalog() {
     <div className="p-4 md:p-6 min-h-screen page-enter" style={{ background: '#FFF8F0' }}>
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
-      <div className="mb-5">
-        <h1 className="text-2xl font-bold text-gray-900">Product Catalog</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Browse and order products for your distribution</p>
-      </div>
+      <PageHeader
+        title="Product Catalog"
+        subtitle="Browse live catalog inventory, compare Stockist pricing, and place cleaner, faster replenishment orders."
+      />
 
       {/* Search */}
-      <div className="mb-4">
+      <div className="enterprise-panel mb-4 p-4">
         <TextInput
           icon={HiSearch}
           placeholder="Search products or SKU…"
@@ -135,20 +136,20 @@ export default function StockistCatalog() {
             return (
               <div
                 key={product.id}
-                className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 flex flex-col group"
+                className="catalog-product-card overflow-hidden flex flex-col group"
                 onMouseEnter={() => setHoveredId(product.id)}
                 onMouseLeave={() => setHoveredId(null)}
               >
                 {/* Image */}
                 <div
-                  className="relative aspect-square bg-gray-50 overflow-hidden cursor-pointer"
+                  className="relative aspect-square cursor-pointer overflow-hidden bg-[radial-gradient(circle_at_top,rgba(255,219,174,0.65),transparent_58%),linear-gradient(180deg,#fffaf3_0%,#f8ecdf_100%)]"
                   onClick={() => navigate(`/stockist/catalog/${product.id}`)}
                 >
                   <img
                     src={getProductImageSrc(product)}
                     alt={product.name}
                     onError={e => attachProductImageFallback(e, product)}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                    className="h-full w-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
                   />
                   {disc && (
                     <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
@@ -160,13 +161,13 @@ export default function StockistCatalog() {
                 {/* Info */}
                 <div className="p-3 flex flex-col flex-1">
                   <p
-                    className="text-xs text-gray-400 font-mono mb-0.5 truncate"
+                    className="mb-0.5 truncate text-xs font-mono text-gray-400"
                     title={product.sku}
                   >
                     {product.sku || 'SKU —'}
                   </p>
                   <h3
-                    className="text-sm font-semibold text-gray-800 leading-snug mb-1 line-clamp-2 cursor-pointer hover:text-amber-600 transition-colors"
+                    className="mb-1 line-clamp-2 cursor-pointer text-sm font-semibold leading-snug text-gray-800 transition-colors hover:text-amber-600"
                     onClick={() => navigate(`/stockist/catalog/${product.id}`)}
                     style={{ minHeight: '2.5rem' }}
                   >
@@ -189,7 +190,7 @@ export default function StockistCatalog() {
                   {canUseCart && <div className={`flex items-center gap-1 mb-2 transition-opacity duration-150 ${isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                     <button
                       onClick={() => setQty(product.id, (quantities[product.id] || 1) - 1)}
-                      className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold text-base"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 font-bold text-base text-gray-600 hover:bg-gray-100"
                     >
                       −
                     </button>
@@ -198,11 +199,11 @@ export default function StockistCatalog() {
                       min={1}
                       value={quantities[product.id] || 1}
                       onChange={e => setQty(product.id, parseInt(e.target.value) || 1)}
-                      className="w-12 h-7 text-center text-sm font-semibold border border-gray-200 rounded-lg focus:outline-none focus:border-amber-400"
+                      className="h-7 w-12 rounded-lg border border-gray-200 text-center text-sm font-semibold focus:border-amber-400 focus:outline-none"
                     />
                     <button
                       onClick={() => setQty(product.id, (quantities[product.id] || 1) + 1)}
-                      className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold text-base"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 font-bold text-base text-gray-600 hover:bg-gray-100"
                     >
                       +
                     </button>

@@ -19,6 +19,7 @@ import { formatDate } from '@/utils/formatDate';
 import KpiCard from '@/components/KpiCard';
 import StatusBadge from '@/components/StatusBadge';
 import PageHeader from '@/components/PageHeader';
+import DataTable from '@/components/DataTable';
 
 const CHART_COLORS = ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#06B6D4'];
 
@@ -78,6 +79,7 @@ export default function Dashboard() {
     <div className="page-enter">
       <PageHeader
         title="Dashboard"
+        subtitle="A clearer command view across operations, payments, stock health, catalog movement, and logistics activity."
         actions={[
           {
             label: 'Export PDF',
@@ -88,12 +90,38 @@ export default function Dashboard() {
         ]}
       />
 
-      <div className="mb-6 w-full h-32 md:h-48 lg:h-64 rounded-xl overflow-hidden border border-gray-200 dark:border-gray-700 shadow-sm bg-gray-100 dark:bg-gray-800">
-        <img
-          src="/assets/picture_banner.png"
-          alt="Nogatu picture banner"
-          className="w-full h-full object-cover"
-        />
+      <div className="workspace-summary-band mb-6 grid gap-5 overflow-hidden p-5 sm:p-6 dark:bg-[linear-gradient(135deg,#271c18_0%,#221814_100%)] lg:grid-cols-[1.08fr_0.92fr]">
+        <div className="flex flex-col justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#b56d1e] dark:text-orange-300/80">Operations Pulse</p>
+            <h2 className="font-heading mt-3 text-3xl text-[#3d1800] dark:text-[var(--dark-text)]">Professional oversight for orders, stockists, inventory, and delivery movement.</h2>
+            <p className="mt-3 max-w-2xl text-sm leading-7 text-[#7b5a43] dark:text-[var(--dark-muted)]">
+              The dashboard now groups business-critical information into cleaner, easier-to-scan surfaces so Super Admin can act faster without fighting the layout.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            {[
+              { label: 'Operations', value: 'Live' },
+              { label: 'Payments', value: 'Tracked' },
+              { label: 'Stock Health', value: 'Monitored' },
+              { label: 'Logistics', value: 'Connected' },
+            ].map((item) => (
+              <div key={item.label} className="enterprise-soft-panel px-4 py-3 text-[#5b3315] dark:bg-white/[0.03] dark:text-[var(--dark-text)]">
+                <p className="text-lg font-bold">{item.value}</p>
+                <p className="text-[11px] uppercase tracking-[0.2em] text-[#946a49] dark:text-[var(--dark-muted)]">{item.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="overflow-hidden rounded-[1.4rem] border border-white/60 shadow-sm dark:border-[var(--dark-border)]">
+          <img
+            src="/assets/picture_banner.png"
+            alt="Nogatu picture banner"
+            className="h-full min-h-[240px] w-full object-cover"
+          />
+        </div>
       </div>
 
       {/* KPI Cards */}
@@ -132,8 +160,8 @@ export default function Dashboard() {
 
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
-        <Card>
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Revenue Trend (7 Days)</h3>
+        <div className="enterprise-panel p-5">
+          <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)]">Revenue Trend (7 Days)</h3>
           {loading ? (
             <div className="skeleton h-56 w-full rounded-lg" />
           ) : (
@@ -157,10 +185,10 @@ export default function Dashboard() {
               </LineChart>
             </ResponsiveContainer>
           )}
-        </Card>
+        </div>
 
-        <Card>
-          <h3 className="text-sm font-semibold text-gray-700 mb-4">Product Distribution</h3>
+        <div className="enterprise-panel p-5">
+          <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)]">Product Distribution</h3>
           {loading ? (
             <div className="skeleton h-56 w-full rounded-lg" />
           ) : productDist.length > 0 ? (
@@ -178,15 +206,15 @@ export default function Dashboard() {
           ) : (
             <div className="flex items-center justify-center h-56 text-gray-400 text-sm">No data</div>
           )}
-        </Card>
+        </div>
       </div>
 
       {/* Recent Orders + Low Stock */}
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
         {/* Recent Orders */}
         <div className="xl:col-span-2">
-          <Card>
-            <h3 className="text-sm font-semibold text-gray-700 mb-3">Recent Orders</h3>
+          <div className="enterprise-panel p-5">
+            <h3 className="mb-3 text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)]">Recent Orders</h3>
             {loading ? (
               <div className="space-y-2">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -194,47 +222,30 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <Table striped>
-                  <TableHead>
-                    <TableRow>
-                      <TableHeadCell>Order #</TableHeadCell>
-                      <TableHeadCell>Stockist</TableHeadCell>
-                      <TableHeadCell>Amount</TableHeadCell>
-                      <TableHeadCell>Status</TableHeadCell>
-                      <TableHeadCell>Date</TableHeadCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody className="divide-y">
-                    {recentOrders.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={5} className="text-center text-gray-400 py-8">
-                          No recent orders
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      recentOrders.slice(0, 10).map((order) => (
-                        <TableRow key={order.id} className="hover:bg-amber-50/40">
-                          <TableCell className="font-medium text-gray-900">{order.order_number}</TableCell>
-                          <TableCell>{order.partner_name || order.business_name || 'N/A'}</TableCell>
-                          <TableCell>{formatCurrency(order.total_amount)}</TableCell>
-                          <TableCell><StatusBadge status={order.status} /></TableCell>
-                          <TableCell>{formatDate(order.created_at)}</TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+              <DataTable
+                className="dashboard-table-shell border-0 bg-transparent shadow-none"
+                headers={['Order #', 'Stockist', 'Amount', 'Status', 'Date']}
+                rows={recentOrders.slice(0, 10)}
+                emptyMessage="No recent orders"
+                renderRow={(order) => (
+                  <tr key={order.id}>
+                    <td className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{order.order_number}</td>
+                    <td>{order.partner_name || order.business_name || 'N/A'}</td>
+                    <td>{formatCurrency(order.total_amount)}</td>
+                    <td><StatusBadge status={order.status} /></td>
+                    <td>{formatDate(order.created_at)}</td>
+                  </tr>
+                )}
+              />
             )}
-          </Card>
+          </div>
         </div>
 
         {/* Low Stock Alert */}
-        <Card>
+        <div className="enterprise-panel p-5">
           <div className="flex items-center gap-2 mb-3">
             <HiOutlineExclamation className="w-4 h-4 text-amber-500" />
-            <h3 className="text-sm font-semibold text-gray-700">Low Stock Alerts</h3>
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)]">Low Stock Alerts</h3>
           </div>
           {loading ? (
             <div className="space-y-2">
@@ -247,10 +258,10 @@ export default function Dashboard() {
           ) : (
             <div className="space-y-2">
               {lowStock.map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-2.5 bg-amber-50 rounded-lg border border-amber-100">
+                <div key={item.id} className="enterprise-soft-panel flex items-center justify-between p-3 dark:bg-white/[0.03]">
                   <div>
-                    <p className="text-xs font-semibold text-gray-800">{item.product_name}</p>
-                    <p className="text-xs text-gray-500">{item.warehouse_name}</p>
+                    <p className="text-xs font-semibold text-gray-800 dark:text-[var(--dark-text)]">{item.product_name}</p>
+                    <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{item.warehouse_name}</p>
                   </div>
                   <span className="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
                     {item.current_stock} left
@@ -259,7 +270,7 @@ export default function Dashboard() {
               ))}
             </div>
           )}
-        </Card>
+        </div>
       </div>
     </div>
   );

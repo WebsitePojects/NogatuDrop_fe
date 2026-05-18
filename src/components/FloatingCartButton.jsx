@@ -11,6 +11,7 @@ export default function FloatingCartButton({ destinationPath, hiddenPathPrefixes
   const [isShaking, setIsShaking] = useState(false);
 
   const isMobilePortal = pathname.startsWith('/mobile');
+  const portalVariant = isMobilePortal ? 'mobile' : 'stockist';
   const targetPath = destinationPath || (isMobilePortal ? '/mobile/cart' : '/stockist/cart');
   const hiddenPaths = hiddenPathPrefixes || (isMobilePortal ? ['/mobile/cart'] : ['/stockist/cart']);
 
@@ -35,11 +36,12 @@ export default function FloatingCartButton({ destinationPath, hiddenPathPrefixes
       type="button"
       onClick={() => navigate(targetPath)}
       className={`floating-cart-button ${isShaking ? 'shake' : ''}`}
+      data-portal={portalVariant}
       aria-label={`Open cart with ${cartCount} items`}
       title="Open cart"
     >
       <HiShoppingCart className="h-5 w-5" />
-      <span>{label}</span>
+      <span className="floating-cart-label">{label}</span>
       <span className="floating-cart-count">{cartCount}</span>
     </button>
   );

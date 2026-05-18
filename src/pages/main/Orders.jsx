@@ -501,9 +501,9 @@ export default function Orders() {
                     </tbody>
                   </table>
                 </div>
-                <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex justify-end items-center">
-                  <span className="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase mr-4 tracking-wider">Total Amount</span>
-                  <span className="text-2xl font-black text-[var(--dark-text)] dark:text-white tracking-tight">
+                <div className="px-6 py-4 bg-gradient-to-r from-[#fff8f0] to-[#fff2df] dark:from-gray-800/90 dark:to-gray-800/70 border-t border-[#efd8bd] dark:border-gray-700 flex justify-end items-center gap-4">
+                  <span className="text-sm font-bold text-[#9a6d45] dark:text-gray-400 uppercase tracking-[0.18em]">Total Amount</span>
+                  <span className="text-3xl font-black text-[#6d2f0f] dark:text-[#ffd8ae] tracking-tight">
                     {formatCurrency(selectedOrder.total_amount)}
                   </span>
                 </div>
@@ -613,14 +613,14 @@ export default function Orders() {
           ) : null}
         </ModalBody>
         {selectedOrder && isSuperAdmin && (
-          <ModalFooter className="border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 px-6 py-4 justify-between items-center flex-wrap gap-y-3">
+          <ModalFooter className="border-t border-[#eee1cf] dark:border-gray-700 bg-gradient-to-r from-[#fffaf4] to-[#f7efe3] dark:from-gray-800/80 dark:to-gray-800/65 px-6 py-4 flex flex-wrap items-center justify-between gap-3">
             <div className="flex gap-2 items-center flex-wrap">
               {selectedStatusKey === 'pending' && (
                 <>
-                  <Button color="success" onClick={() => { setShowDetail(false); handleApprove(selectedOrder); }} className="font-bold shadow-sm">
+                  <Button color="success" onClick={() => { setShowDetail(false); handleApprove(selectedOrder); }} className="font-bold shadow-sm ring-1 ring-emerald-200 dark:ring-emerald-800">
                     <HiOutlineCheck className="w-4 h-4 mr-1.5" /> Approve
                   </Button>
-                  <Button color="failure" outline onClick={() => { setShowDetail(false); handleReject(selectedOrder); }} className="font-bold bg-white dark:bg-transparent">
+                  <Button color="failure" outline onClick={() => { setShowDetail(false); handleReject(selectedOrder); }} className="font-bold bg-white text-red-700 border-red-200 hover:bg-red-50 dark:bg-transparent dark:text-red-300 dark:border-red-700">
                     <HiOutlineX className="w-4 h-4 mr-1.5" /> Reject
                   </Button>
                 </>
@@ -630,7 +630,7 @@ export default function Orders() {
                  color={selectedOrder.payment_proof_url ? "success" : "light"}
                  disabled={!selectedOrder.payment_proof_url || actionLoading}
                  onClick={() => handleVerifyPayment(selectedOrder)}
-                 className="font-bold shadow-sm"
+                 className="font-bold shadow-sm ring-1 ring-emerald-200 dark:ring-emerald-800"
                >
                  <HiOutlineCheckCircle className="w-4 h-4 mr-1.5" />
                  {selectedOrder.payment_proof_url
@@ -645,18 +645,18 @@ export default function Orders() {
                   color="purple"
                   disabled={!canGenerateDeliveryLink || actionLoading}
                   onClick={() => handleGenerateDelivery(selectedOrder)}
-                  className="font-bold shadow-sm"
+                  className="font-bold shadow-sm ring-1 ring-purple-200 dark:ring-purple-800"
                 >
                   <HiOutlinePaperAirplane className="w-4 h-4 mr-1.5 rotate-45 -mt-0.5" />
                   {isTerminalStatus ? 'Link unavailable' : isPaymentVerified ? (actionLoading ? 'Working...' : 'Send Delivery Link') : 'Payment required'}
                 </Button>
 
                 {!['delivered', 'cancelled', 'rejected'].includes(selectedStatusKey) && (
-                  <Button color="failure" outline onClick={() => { setShowDetail(false); handleCancel(selectedOrder); }} className="font-bold bg-white dark:bg-transparent">
+                  <Button color="failure" outline onClick={() => { setShowDetail(false); handleCancel(selectedOrder); }} className="font-bold bg-white text-[#8a3b12] border-[#e8c29a] hover:bg-[#fff3e2] dark:bg-transparent dark:text-orange-200 dark:border-orange-800">
                     Cancel Task
                   </Button>
                 )}
-                <Button color="gray" onClick={() => setShowDetail(false)} className="font-bold shadow-sm">
+                <Button color="gray" onClick={() => setShowDetail(false)} className="font-bold shadow-sm bg-[#374151] text-white hover:bg-[#1f2937] dark:bg-gray-700 dark:hover:bg-gray-600">
                   Close
                 </Button>
             </div>

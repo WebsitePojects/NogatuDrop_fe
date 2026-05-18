@@ -102,12 +102,12 @@ export default function StockistCart() {
                   className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-start gap-4"
                 >
                   {/* Image */}
-                  <div className="w-16 h-16 rounded-xl bg-gray-50 overflow-hidden flex-shrink-0">
+                  <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[radial-gradient(circle_at_top,rgba(255,219,174,0.65),transparent_58%),linear-gradient(180deg,#fffaf3_0%,#f8ecdf_100%)]">
                     <img
                       src={getProductImageSrc({ image_url: item.image_url, name: item.product_name })}
                       alt={item.product_name}
                       onError={e => attachProductImageFallback(e, { name: item.product_name })}
-                      className="w-full h-full object-cover"
+                      className="h-full w-full object-contain p-2"
                     />
                   </div>
 

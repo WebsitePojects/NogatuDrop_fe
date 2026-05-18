@@ -1,14 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Badge,
-  Card,
   Spinner,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeadCell,
-  TableRow,
 } from 'flowbite-react';
 import { Link } from 'react-router-dom';
 import {
@@ -30,6 +22,7 @@ import PageHeader from '@/components/PageHeader';
 import KpiCard from '@/components/KpiCard';
 import EmptyState from '@/components/EmptyState';
 import StatusBadge from '@/components/StatusBadge';
+import DataTable from '@/components/DataTable';
 import api from '@/services/api';
 import { DELIVERY_TOKENS, MOBILE_STOCKISTS, ORDERS, REPORTS, TRACKING } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
@@ -657,6 +650,7 @@ export default function StockistPhase1Workspace({ pageKey }) {
     <div className="space-y-5 page-enter p-4 md:p-6 min-h-screen" style={{ background: '#FFF8F0' }}>
       <PageHeader
         title={page.title}
+        subtitle={page.summary}
         actions={[
           {
             label: autoRefresh ? 'Auto: ON' : 'Auto: OFF',
@@ -672,38 +666,37 @@ export default function StockistPhase1Workspace({ pageKey }) {
         ]}
       />
 
-      <Card className="border-l-4 border-l-green-600">
+      <div className="workspace-summary-band p-5 sm:p-6 dark:bg-[linear-gradient(135deg,#162316_0%,#111f11_100%)]">
         <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <Badge color="success">{page.tab}</Badge>
-              <Badge color="success">Live Data</Badge>
+              <span className="brand-chip brand-chip--green">{page.tab}</span>
+              <span className="brand-chip brand-chip--green">Live Data</span>
             </div>
-            <p className="text-sm text-gray-600">{page.summary}</p>
-            <p className="text-xs text-gray-500">{view.intro}</p>
-            <p className="text-xs text-gray-400">Last sync: {lastSyncAt ? formatRelative(lastSyncAt) : 'Not synced yet'}</p>
+            <p className="text-sm text-[#6f5643] dark:text-[var(--dark-muted)]">{view.intro}</p>
+            <p className="text-xs text-[#a0846d] dark:text-[var(--dark-muted)]">Last sync: {lastSyncAt ? formatRelative(lastSyncAt) : 'Not synced yet'}</p>
           </div>
-          <div className="w-12 h-12 rounded-xl bg-green-100 text-green-700 flex items-center justify-center">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-green-100 text-green-700 shadow-[inset_0_1px_0_rgba(255,255,255,0.65)]">
             <Icon className="w-6 h-6" />
           </div>
         </div>
-      </Card>
+      </div>
 
       {state.error && (
-        <Card className="border border-red-200 bg-red-50">
+        <div className="enterprise-panel border border-red-200 bg-red-50 p-4 dark:bg-red-950/20">
           <div className="flex items-start gap-2 text-sm text-red-700">
             <HiOutlineExclamationCircle className="w-5 h-5 mt-0.5 flex-shrink-0" />
             <p>{state.error}</p>
           </div>
-        </Card>
+        </div>
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         {state.loading
           ? Array.from({ length: 4 }).map((_, idx) => (
-            <Card key={idx} className="p-0">
+            <div key={idx} className="enterprise-panel p-0">
               <div className="h-20 animate-pulse bg-gray-100 rounded-lg" />
-            </Card>
+            </div>
           ))
           : view.kpis.map((kpi) => (
             <KpiCard
@@ -717,8 +710,8 @@ export default function StockistPhase1Workspace({ pageKey }) {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-4">
-        <Card className="xl:col-span-2">
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">{view.tableTitle}</h3>
+        <div className="workspace-split-panel xl:col-span-2 p-5">
+          <h3 className="mb-3 text-sm font-semibold text-gray-800 dark:text-[var(--dark-text)]">{view.tableTitle}</h3>
 
           {state.loading ? (
             <div className="flex justify-center py-10">
@@ -731,49 +724,41 @@ export default function StockistPhase1Workspace({ pageKey }) {
               description="No live records currently match this workspace view."
             />
           ) : (
-            <div className="overflow-x-auto">
-              <Table striped>
-                <TableHead>
-                  <TableRow>
-                    {view.columns.map((column) => (
-                      <TableHeadCell key={column.label}>{column.label}</TableHeadCell>
-                    ))}
-                    <TableHeadCell>Action</TableHeadCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody className="divide-y">
-                  {view.rows.map((row, idx) => (
-                    <TableRow key={row.id || `${row.name || 'row'}-${idx}`} className="hover:bg-green-50/30">
-                      {view.columns.map((column) => (
-                        <TableCell key={column.label}>{column.render(row)}</TableCell>
-                      ))}
-                      <TableCell>
-                        {(() => {
-                          const action = getStockistRowAction(pageKey, row);
-                          if (!action) return <span className="text-xs text-gray-400">-</span>;
-                          return (
-                            <Link
-                              to={action.to}
-                              className="inline-flex items-center rounded-lg bg-green-100 px-2 py-1 text-xs font-semibold text-green-700 hover:bg-green-200"
-                            >
-                              {action.label}
-                            </Link>
-                          );
-                        })()}
-                      </TableCell>
-                    </TableRow>
+            <DataTable
+              className="workspace-table-shell border-0 bg-transparent shadow-none"
+              headers={[...view.columns.map((column) => column.label), 'Action']}
+              rows={view.rows}
+              emptyMessage="No records found"
+              renderRow={(row, idx) => (
+                <tr key={row.id || `${row.name || 'row'}-${idx}`}>
+                  {view.columns.map((column) => (
+                    <td key={column.label}>{column.render(row)}</td>
                   ))}
-                </TableBody>
-              </Table>
-            </div>
+                  <td>
+                    {(() => {
+                      const action = getStockistRowAction(pageKey, row);
+                      if (!action) return <span className="text-xs text-gray-400">-</span>;
+                      return (
+                        <Link
+                          to={action.to}
+                          className="brand-btn brand-btn--secondary !px-3 !py-2 !text-[11px] uppercase tracking-[0.12em]"
+                        >
+                          {action.label}
+                        </Link>
+                      );
+                    })()}
+                  </td>
+                </tr>
+              )}
+            />
           )}
-        </Card>
+        </div>
 
-        <Card>
-          <h3 className="text-sm font-semibold text-gray-800 mb-3">Live Insights</h3>
+        <div className="workspace-split-panel p-5">
+          <h3 className="mb-3 text-sm font-semibold text-gray-800 dark:text-[var(--dark-text)]">Live Insights</h3>
           <div className="space-y-2">
             {view.insights.map((item) => (
-              <div key={item} className="flex items-start gap-2 text-sm text-gray-600">
+              <div key={item} className="flex items-start gap-2 text-sm text-gray-600 dark:text-[var(--dark-muted)]">
                 <HiOutlineCheckCircle className="w-4 h-4 text-green-600 mt-0.5 flex-shrink-0" />
                 <span>{item}</span>
               </div>
@@ -781,13 +766,13 @@ export default function StockistPhase1Workspace({ pageKey }) {
           </div>
 
           <div className="mt-5 pt-4 border-t border-gray-100">
-            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Related Pages</h4>
+            <h4 className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-[var(--dark-muted)]">Related Pages</h4>
             <div className="space-y-2">
               {page.links.map((item) => (
                 <Link
                   key={item.to}
                   to={item.to}
-                  className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                  className="workspace-link-tile flex items-center justify-between px-3 py-2 text-sm text-gray-700 dark:bg-white/[0.03] dark:text-[var(--dark-text)]"
                 >
                   <span>{item.label}</span>
                   <HiOutlineArrowRight className="w-4 h-4 text-gray-500" />
@@ -795,7 +780,7 @@ export default function StockistPhase1Workspace({ pageKey }) {
               ))}
             </div>
           </div>
-        </Card>
+        </div>
       </div>
     </div>
   );
