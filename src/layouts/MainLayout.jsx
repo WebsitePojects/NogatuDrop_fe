@@ -1,6 +1,6 @@
-import { useState, Fragment } from 'react';
+import { useState, Fragment, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Dropdown, DropdownItem, DropdownDivider } from 'flowbite-react';
+import { Dropdown } from 'flowbite-react';
 import {
   HiOutlineHome, HiOutlineShoppingCart, HiOutlineCube, HiOutlineCollection,
   HiOutlineAdjustments, HiOutlineOfficeBuilding, HiOutlineTag,
@@ -117,6 +117,31 @@ export default function MainLayout() {
     '--dark-text':   '#f5ebe3',
     '--dark-muted':  '#9e8a7e',
   } : {};
+
+  useEffect(() => {
+    if (sessionStorage.getItem('nogatu_show_notifications') !== '1') return undefined;
+
+    setNotifOpen(true);
+    sessionStorage.removeItem('nogatu_show_notifications');
+
+    const timer = setTimeout(() => setNotifOpen(false), 5000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    let timer;
+    const handleShowNotifications = () => {
+      setNotifOpen(true);
+      clearTimeout(timer);
+      timer = setTimeout(() => setNotifOpen(false), 5000);
+    };
+
+    window.addEventListener('nogatu:notifications:show', handleShowNotifications);
+    return () => {
+      clearTimeout(timer);
+      window.removeEventListener('nogatu:notifications:show', handleShowNotifications);
+    };
+  }, []);
 
   return (
     <div
@@ -264,13 +289,6 @@ export default function MainLayout() {
                 <p className="text-sm font-medium text-gray-900">{user?.name}</p>
                 <p className="text-xs text-gray-400">{user?.email}</p>
               </div>
-              <DropdownItem onClick={toggleTheme}>
-                {dark ? '☀️ Light Mode' : '🌙 Dark Mode'}
-              </DropdownItem>
-              <DropdownDivider />
-              <DropdownItem icon={HiOutlineLogout} onClick={handleLogout}>
-                Sign out
-              </DropdownItem>
             </Dropdown>
           </div>
         </header>

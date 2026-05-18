@@ -13,29 +13,6 @@ import { getProductImageSrc, attachProductImageFallback } from '@/utils/productI
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
-const NEW_SAMPLE_PRODUCTS = [
-  {
-    id: 'sample_vitamin_c',
-    name: 'Vitamin C',
-    description: 'Premium vitamin C supplement for immune support and wellness',
-  },
-  {
-    id: 'sample_nogatu_black_coffee',
-    name: 'Nogatu Black Coffee',
-    description: 'Rich and smooth black coffee blend crafted for daily performance',
-  },
-  {
-    id: 'sample_nogatu_max_fuel',
-    name: 'Nogatu Max Fuel Coffee Drink Mix',
-    description: 'Energy-packed coffee drink mix for maximum endurance and focus',
-  },
-  {
-    id: 'sample_berry_nad',
-    name: 'Berry NAD+',
-    description: 'Natural berry-infused NAD+ supplement for cellular vitality',
-  },
-];
-
 export default function Shop() {
   const [search, setSearch] = useState('');
   const [cart, setCart] = useState([]); // { product_id, name, quantity, unit_price, image_url }
@@ -43,7 +20,6 @@ export default function Shop() {
   const [step, setStep] = useState('browse'); // browse | checkout | success
   const [orderNumber, setOrderNumber] = useState('');
   const [customer, setCustomer] = useState({ name: '', phone: '', email: '', address: '' });
-  const [paymentMethod, setPaymentMethod] = useState('cod');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -67,15 +43,6 @@ export default function Shop() {
 
   const cartTotal = cart.reduce((s, i) => s + i.quantity * i.unit_price, 0);
   const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
-
-  useEffect(() => {
-    if (cartTotal > 5000 && paymentMethod === 'cod') {
-      setPaymentMethod('bank_transfer');
-    }
-    if (cartTotal <= 5000 && !paymentMethod) {
-      setPaymentMethod('cod');
-    }
-  }, [cartTotal, paymentMethod]);
 
   const addToCart = (product) => {
     setCart(prev => {
@@ -115,7 +82,7 @@ export default function Shop() {
         customer_phone: customer.phone,
         customer_email: customer.email,
         customer_address: customer.address,
-        payment_method: paymentMethod,
+        payment_method: 'bank_transfer',
         items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
       });
       setOrderNumber(res.data.data?.order_number || 'N/A');
@@ -138,7 +105,7 @@ export default function Shop() {
           <p className="text-gray-500 mb-1">Order Number:</p>
           <p className="text-lg font-bold font-mono text-amber-600 mb-4">#{orderNumber}</p>
           <p className="text-sm text-gray-400 mb-6">
-            Our team will contact you to arrange delivery and payment details.
+            Our team will contact you with bank transfer payment details after approval.
           </p>
           <div className="flex flex-col gap-2">
             <Link to={`/track/${orderNumber}`} className="text-sm text-blue-600 hover:underline">
@@ -219,12 +186,12 @@ export default function Shop() {
                       key={product.id}
                       className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all"
                     >
-                      <div className="aspect-square bg-gray-50 overflow-hidden">
+                      <div className="aspect-square overflow-hidden bg-[radial-gradient(circle_at_top,rgba(255,219,174,0.65),transparent_58%),linear-gradient(180deg,#fffaf3_0%,#f8ecdf_100%)]">
                         <img
                           src={getProductImageSrc(product)}
                           alt={product.name}
                           onError={e => attachProductImageFallback(e, product)}
-                          className="w-full h-full object-cover hover:scale-105 transition-transform duration-300"
+                          className="h-full w-full object-contain p-4 transition-transform duration-300 hover:scale-105"
                         />
                       </div>
                       <div className="p-3">
@@ -258,36 +225,6 @@ export default function Shop() {
                     </div>
                   );
                 })}
-                {NEW_SAMPLE_PRODUCTS.map((product) => (
-                  <div
-                    key={product.id}
-                    className="bg-white rounded-2xl border border-amber-200 overflow-hidden shadow-sm hover:shadow-md transition-all"
-                  >
-                    <div className="aspect-square bg-gradient-to-br from-amber-50 to-orange-50 overflow-hidden flex items-center justify-center">
-                      <div className="text-center">
-                        <FiPackage size={32} className="mx-auto mb-2 text-amber-300" />
-                        <p className="text-xs font-semibold text-amber-600 tracking-wider">COMING SOON</p>
-                      </div>
-                    </div>
-                    <div className="p-3">
-                      <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 mb-1 min-h-[2.5rem]">
-                        {product.name}
-                      </h3>
-                      <p className="text-xs text-gray-500 mb-3 line-clamp-2">
-                        {product.description}
-                      </p>
-                      <div className="flex items-center justify-between">
-                        <span className="text-amber-500 font-bold text-sm">TBD</span>
-                        <button
-                          disabled
-                          className="px-3 py-1.5 bg-gray-100 text-gray-400 rounded-lg text-xs font-semibold cursor-not-allowed"
-                        >
-                          TBD
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
               </div>
             )}
 
@@ -369,7 +306,7 @@ export default function Shop() {
                 />
               </div>
               <p className="text-xs text-gray-400">
-                Our team will contact you to confirm delivery and arrange payment via bank transfer or cash on delivery (for orders ≤₱5,000).
+                Our team will contact you to confirm delivery and provide bank transfer payment instructions after approval.
               </p>
               <button
                 type="submit"
@@ -388,7 +325,7 @@ export default function Shop() {
       {cartOpen && (
         <div className="fixed inset-0 z-50 flex">
           <div className="flex-1 bg-black/40" onClick={() => setCartOpen(false)} />
-          <div className="w-80 bg-white h-full shadow-2xl flex flex-col">
+          <div className="cart-panel-enter flex h-full w-80 flex-col bg-white shadow-2xl">
             <div className="flex items-center justify-between p-4 border-b border-gray-100">
               <h3 className="font-bold text-gray-900">Cart ({cartCount})</h3>
               <button onClick={() => setCartOpen(false)} className="p-1.5 hover:bg-gray-100 rounded-lg">

@@ -28,6 +28,16 @@ const TAB_STATUSES = {
   cancelled: ['cancelled', 'rejected'],
 };
 
+function roleLabel(roleSlug) {
+  const normalized = String(roleSlug || '').trim().toLowerCase();
+  if (normalized === 'mobile_stockist') return 'Mobile Stockist';
+  if (normalized === 'city_stockist') return 'City Stockist';
+  if (normalized === 'provincial_stockist') return 'Provincial Stockist';
+  if (normalized === 'staff') return 'Staff';
+  if (normalized === 'super_admin') return 'Super Admin';
+  return normalized ? normalized.replace(/_/g, ' ') : 'Unknown';
+}
+
 export default function StockistOrders() {
   const { toasts, showToast, dismiss } = useToast();
 
@@ -70,7 +80,7 @@ export default function StockistOrders() {
       setOrderDetail(data.data);
 
       // Fetch bank account if approved and unpaid
-      if (data.data?.status === 'approved' && data.data?.payment_status !== 'paid' && Number(data.data?.cod_amount || 0) <= 0) {
+      if (data.data?.status === 'approved' && data.data?.payment_status !== 'paid') {
         try {
           const ba = await api.get(BANK_ACCOUNTS.FOR_ORDER(order.id));
           setBankAccount(ba.data.data);
@@ -298,6 +308,17 @@ export default function StockistOrders() {
                 ))}
               </div>
 
+              <div className="bg-gray-50 dark:bg-[var(--dark-card2)] rounded-xl p-3">
+                <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)] mb-0.5">Placed By</p>
+                <div className="font-semibold text-sm text-gray-900 dark:text-[var(--dark-text)]">
+                  {detail.placed_by_name || detail.customer_name || 'Unknown'}
+                </div>
+                <div className="text-xs text-gray-500 dark:text-[var(--dark-muted)] mt-0.5">
+                  {roleLabel(detail.placed_by_role_slug)}
+                  {detail.placed_by_email ? ` - ${detail.placed_by_email}` : ''}
+                </div>
+              </div>
+
               {/* Items */}
               <div>
                 <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-2">Order Items</h3>
@@ -341,23 +362,29 @@ export default function StockistOrders() {
               {detail.status === 'approved' && (
                 <div>
                   <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-2">Payment</h3>
-                  {Number(detail.cod_amount || 0) > 0 ? (
-                    <div className="rounded-xl bg-orange-50 px-4 py-3 text-sm text-orange-700">
-                      Cash on delivery approved for {formatCurrency(detail.cod_amount)}. Settlement will be tracked after delivery proof is recorded.
-                    </div>
-                  ) : (
-                    <PaymentCountdownTimer
-                      deadline={detail.payment_deadline}
-                      bankAccount={bankAccount}
-                      onUpload={handleUploadProof}
-                      uploading={uploading}
-                      paymentProofUrl={detail.payment_proof_url}
-                    />
-                  )}
-                  {detail.payment_status === 'paid' && Number(detail.cod_amount || 0) <= 0 && (
-                    <div className="mt-2 flex items-center gap-2 text-emerald-600 text-sm font-medium">
-                      <HiCheckCircle className="w-4 h-4" />
-                      Payment verified
+                  <PaymentCountdownTimer
+                    deadline={detail.payment_deadline}
+                    bankAccount={bankAccount}
+                    onUpload={handleUploadProof}
+                    uploading={uploading}
+                    paymentProofUrl={detail.payment_proof_url}
+                  />
+                  {detail.payment_status === 'paid' && (
+                    <div className="mt-2 space-y-1">
+                      <div className="flex items-center gap-2 text-emerald-600 text-sm font-medium">
+                        <HiCheckCircle className="w-4 h-4" />
+                        Payment verified
+                      </div>
+                      {detail.payment_proof_url && (
+                        <a
+                          href={detail.payment_proof_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-block text-xs text-blue-600 hover:underline"
+                        >
+                          View uploaded proof
+                        </a>
+                      )}
                     </div>
                   )}
                 </div>

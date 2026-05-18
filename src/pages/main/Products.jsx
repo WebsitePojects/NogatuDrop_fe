@@ -13,6 +13,7 @@ import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
 import { ToastContainer, useToast } from '@/components/Toast';
+import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
 
 const CATEGORIES = ['Coffee', 'Barley', 'Supplements', 'Beverages', 'Personal Care', 'Other'];
 
@@ -202,13 +203,13 @@ export default function Products() {
     <div className="page-enter">
       <PageHeader
         title="Products"
-        subtitle="Manage your product catalog"
+        subtitle="Manage the Nogatu catalog with cleaner merchandising cards, clearer pricing hierarchy, and a more polished product detail workflow."
         actions={[{ label: 'Add Product', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: openAdd }]}
       />
 
       {/* Search */}
-      <div className="flex gap-3 mb-4">
-        <div className="relative flex-1 max-w-xs">
+      <div className="enterprise-panel mb-5 flex gap-3 p-4">
+        <div className="relative flex-1 max-w-sm">
           <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
           <TextInput
             value={search}
@@ -224,7 +225,7 @@ export default function Products() {
       {loading ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
-            <div key={i} className="bg-white dark:bg-[var(--dark-card)] rounded-xl border border-gray-100 dark:border-[var(--dark-border)] p-3">
+            <div key={i} className="product-admin-card p-3 dark:bg-[var(--dark-card)]">
               <div className="skeleton h-36 w-full rounded-lg mb-3" />
               <div className="skeleton h-4 w-3/4 rounded mb-2" />
               <div className="skeleton h-3 w-1/2 rounded" />
@@ -244,17 +245,15 @@ export default function Products() {
           {products.map((p) => (
             <div
               key={p.id}
-              className="bg-white dark:bg-[var(--dark-card)] rounded-xl border border-gray-100 dark:border-[var(--dark-border)] p-3 cursor-pointer hover:shadow-md hover:-translate-y-0.5 transition-all"
+              className="product-admin-card cursor-pointer p-3 dark:bg-[var(--dark-card)]"
               onClick={() => openDetail(p)}
             >
               <div className="relative">
                 <img
-                  src={p.image_url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%231e1613'/%3E%3Crect x='60' y='60' width='80' height='80' rx='8' fill='%23271c18'/%3E%3Cpath d='M85 95 L100 75 L115 95 L130 110 H70 Z' fill='%23B85C00' opacity='0.6'/%3E%3Ccircle cx='115' cy='82' r='8' fill='%23B85C00' opacity='0.5'/%3E%3C/svg%3E"}
+                  src={getProductImageSrc(p)}
                   alt={p.name}
-                  className="w-full h-36 object-cover rounded-lg"
-                  onError={(e) => {
-                    e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%231e1613'/%3E%3Crect x='60' y='60' width='80' height='80' rx='8' fill='%23271c18'/%3E%3Cpath d='M85 95 L100 75 L115 95 L130 110 H70 Z' fill='%23B85C00' opacity='0.6'/%3E%3Ccircle cx='115' cy='82' r='8' fill='%23B85C00' opacity='0.5'/%3E%3C/svg%3E";
-                  }}
+                  className="w-full h-36 rounded-lg object-contain bg-[radial-gradient(circle_at_top,rgba(255,220,180,0.3),transparent_55%),linear-gradient(180deg,#2a170b_0%,#1d1108_100%)] p-3"
+                  onError={(e) => attachProductImageFallback(e, p)}
                 />
                 {!p.is_active && (
                   <span className="absolute top-2 right-2 bg-gray-700 text-white text-xs px-1.5 py-0.5 rounded">
@@ -264,11 +263,11 @@ export default function Products() {
               </div>
               <div className="mt-2">
                 <p className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)] truncate">{p.name}</p>
-                <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)] mt-0.5">{p.sku} · {p.category}</p>
+                <p className="mt-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">{p.sku} · {p.category}</p>
                 <div className="flex justify-between items-center mt-1.5">
-                  <span className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Partner: {formatCurrency(p.partner_price)}</span>
+                  <span className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Stockist: {formatCurrency(p.partner_price)}</span>
                 </div>
-                <p className="text-xs font-medium text-amber-600">{formatCurrency(p.retail_price)}</p>
+                <p className="mt-1 text-sm font-semibold text-amber-600">{formatCurrency(p.retail_price)}</p>
               </div>
             </div>
           ))}
@@ -304,12 +303,10 @@ export default function Products() {
               <div className="space-y-4">
                 <div className="flex gap-4">
                   <img
-                    src={selected.image_url || "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%231e1613'/%3E%3Crect x='60' y='60' width='80' height='80' rx='8' fill='%23271c18'/%3E%3Cpath d='M85 95 L100 75 L115 95 L130 110 H70 Z' fill='%23B85C00' opacity='0.6'/%3E%3Ccircle cx='115' cy='82' r='8' fill='%23B85C00' opacity='0.5'/%3E%3C/svg%3E"}
+                    src={getProductImageSrc(selected)}
                     alt={selected.name}
-                    className="w-28 h-28 object-cover rounded-xl border"
-                    onError={(e) => {
-                      e.currentTarget.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200' viewBox='0 0 200 200'%3E%3Crect width='200' height='200' fill='%231e1613'/%3E%3Crect x='60' y='60' width='80' height='80' rx='8' fill='%23271c18'/%3E%3Cpath d='M85 95 L100 75 L115 95 L130 110 H70 Z' fill='%23B85C00' opacity='0.6'/%3E%3Ccircle cx='115' cy='82' r='8' fill='%23B85C00' opacity='0.5'/%3E%3C/svg%3E";
-                    }}
+                    className="h-28 w-28 rounded-xl border bg-[radial-gradient(circle_at_top,rgba(255,220,180,0.3),transparent_55%),linear-gradient(180deg,#2a170b_0%,#1d1108_100%)] object-contain p-3"
+                    onError={(e) => attachProductImageFallback(e, selected)}
                   />
                   <div className="flex-1 space-y-1">
                     <p className="text-lg font-bold text-gray-900 dark:text-[var(--dark-text)]">{selected.name}</p>

@@ -120,7 +120,7 @@ export default function CatalogDetail() {
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
           {/* Image */}
-          <div className="relative bg-gray-50 flex items-center justify-center p-6 lg:p-10 aspect-square lg:aspect-auto min-h-[280px] lg:min-h-[400px]">
+          <div className="relative flex aspect-square min-h-[280px] items-center justify-center bg-[radial-gradient(circle_at_top,rgba(255,219,174,0.65),transparent_58%),linear-gradient(180deg,#fffaf3_0%,#f8ecdf_100%)] p-6 lg:aspect-auto lg:min-h-[400px] lg:p-10">
             {disc && (
               <span className="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full z-10">
                 -{disc}% OFF
