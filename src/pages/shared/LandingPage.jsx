@@ -108,7 +108,7 @@ const LandingPage = () => {
     address: '',
     city: '',
     zip: '',
-    payment: 'card',
+      payment: 'card',
   });
 
   const revealRefs = useRef([]);
@@ -934,7 +934,6 @@ const LandingPage = () => {
                     <option value="card">Credit / Debit Card</option>
                     <option value="gcash">GCash</option>
                     <option value="bank">Bank Transfer</option>
-                    <option value="cod">Cash on Delivery</option>
                   </select>
                 </label>
 

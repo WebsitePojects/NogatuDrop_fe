@@ -20,7 +20,6 @@ export default function Shop() {
   const [step, setStep] = useState('browse'); // browse | checkout | success
   const [orderNumber, setOrderNumber] = useState('');
   const [customer, setCustomer] = useState({ name: '', phone: '', email: '', address: '' });
-  const [paymentMethod, setPaymentMethod] = useState('cod');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
 
@@ -44,15 +43,6 @@ export default function Shop() {
 
   const cartTotal = cart.reduce((s, i) => s + i.quantity * i.unit_price, 0);
   const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
-
-  useEffect(() => {
-    if (cartTotal > 5000 && paymentMethod === 'cod') {
-      setPaymentMethod('bank_transfer');
-    }
-    if (cartTotal <= 5000 && !paymentMethod) {
-      setPaymentMethod('cod');
-    }
-  }, [cartTotal, paymentMethod]);
 
   const addToCart = (product) => {
     setCart(prev => {
@@ -92,7 +82,7 @@ export default function Shop() {
         customer_phone: customer.phone,
         customer_email: customer.email,
         customer_address: customer.address,
-        payment_method: paymentMethod,
+        payment_method: 'bank_transfer',
         items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
       });
       setOrderNumber(res.data.data?.order_number || 'N/A');
@@ -115,7 +105,7 @@ export default function Shop() {
           <p className="text-gray-500 mb-1">Order Number:</p>
           <p className="text-lg font-bold font-mono text-amber-600 mb-4">#{orderNumber}</p>
           <p className="text-sm text-gray-400 mb-6">
-            Our team will contact you to arrange delivery and payment details.
+            Our team will contact you with bank transfer payment details after approval.
           </p>
           <div className="flex flex-col gap-2">
             <Link to={`/track/${orderNumber}`} className="text-sm text-blue-600 hover:underline">
@@ -316,7 +306,7 @@ export default function Shop() {
                 />
               </div>
               <p className="text-xs text-gray-400">
-                Our team will contact you to confirm delivery and arrange payment via bank transfer or cash on delivery (for orders ≤₱5,000).
+                Our team will contact you to confirm delivery and provide bank transfer payment instructions after approval.
               </p>
               <button
                 type="submit"

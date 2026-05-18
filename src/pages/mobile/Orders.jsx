@@ -145,11 +145,7 @@ export default function MobileOrders() {
                     {order.status === 'approved' && (
                       <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase mb-1.5">Payment</p>
-                        {Number(order.cod_amount || 0) > 0 ? (
-                          <div className="rounded-xl bg-orange-50 px-3 py-2 text-sm text-orange-700">
-                            Cash on delivery approved for {formatCurrency(order.cod_amount)}.
-                          </div>
-                        ) : order.payment_status === 'paid' ? (
+                        {order.payment_status === 'paid' ? (
                           <div className="space-y-1.5">
                             <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-medium">
                               <HiCheckCircle className="w-4 h-4" />
@@ -202,6 +198,11 @@ export default function MobileOrders() {
                             {order.payment_deadline && (
                               <p className="text-xs text-amber-600 mt-1">
                                 Pay by: {formatDate(order.payment_deadline, true)}
+                              </p>
+                            )}
+                            {!order.payment_deadline && (
+                              <p className="text-xs text-amber-600 mt-1">
+                                Upload your bank transfer proof as soon as payment details are available.
                               </p>
                             )}
                           </div>
