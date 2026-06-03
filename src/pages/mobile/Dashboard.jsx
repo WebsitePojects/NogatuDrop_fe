@@ -58,7 +58,7 @@ export default function MobileDashboard() {
           {new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric' })}
         </p>
         <p className="mt-3 text-sm leading-6 text-gray-500 dark:text-[var(--dark-muted)]">
-          Track orders, reorder quickly, and stay updated with a cleaner mobile-first overview.
+          Track orders, browse products, and stay updated with delivery progress from one mobile-first overview.
         </p>
       </div>
 

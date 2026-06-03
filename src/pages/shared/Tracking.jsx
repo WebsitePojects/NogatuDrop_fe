@@ -286,9 +286,9 @@ export default function Tracking() {
         )}
 
         <div className="mt-8 text-center">
-          <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600">
+          <Link to="/shop" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600">
             <FiArrowLeft size={14} />
-            Back to Home
+            Back to Shop
           </Link>
         </div>
       </div>

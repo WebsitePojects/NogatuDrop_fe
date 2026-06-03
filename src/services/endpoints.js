@@ -24,6 +24,7 @@ export const PARTNERS = {
 };
 
 export const PRODUCTS = {
+  PUBLIC: '/products/public',
   LIST:   '/products',
   CREATE: '/products',
   BY_ID:  (id) => `/products/${id}`,

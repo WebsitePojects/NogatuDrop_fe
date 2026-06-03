@@ -4,10 +4,6 @@ import {
   Button, TextInput, Textarea, Label, Spinner } from 'flowbite-react';
 import { HiSearch, HiAdjustments } from 'react-icons/hi';
 import { FiPackage } from 'react-icons/fi';
-// TODO: run `npm install xlsx jspdf jspdf-autotable` in NogatuDrop_fe
-import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import StatusBadge from '@/components/StatusBadge';
 import ConfirmModal from '@/components/ConfirmModal';
 import { ToastContainer, useToast } from '@/components/Toast';
@@ -84,7 +80,8 @@ export default function StockistInventory() {
 
   const available = (item) => (item.current_stock || 0) - (item.reserved_stock || 0);
 
-  const exportExcel = () => {
+  const exportExcel = async () => {
+    const XLSX = await import('xlsx');
     const rows = inventory.map((item) => ({
       'Product': item.product?.name || item.product_name || `Item #${item.id}`,
       'SKU': item.product?.sku || item.sku || '-',
@@ -101,13 +98,17 @@ export default function StockistInventory() {
     XLSX.writeFile(wb, `inventory_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ]);
     const doc = new jsPDF();
     doc.setFontSize(14);
     doc.text('Inventory Report', 14, 15);
     doc.setFontSize(9);
     doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 22);
-    doc.autoTable({
+    autoTable(doc, {
       startY: 28,
       head: [['Product', 'SKU', 'Warehouse', 'Stock', 'Reserved', 'Available', 'Status']],
       body: inventory.map((item) => [

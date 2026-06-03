@@ -12,7 +12,6 @@ const StockistLayout = lazy(() => import('./layouts/StockistLayout.jsx'));
 const MobileLayout = lazy(() => import('./layouts/MobileLayout.jsx'));
 
 const Login = lazy(() => import('./pages/shared/Login.jsx'));
-const LandingPage = lazy(() => import('./pages/shared/LandingPage.jsx'));
 const NotFound = lazy(() => import('./pages/shared/NotFound.jsx'));
 const Tracking = lazy(() => import('./pages/shared/Tracking.jsx'));
 const Deliver = lazy(() => import('./pages/shared/Deliver.jsx'));
@@ -35,7 +34,6 @@ const MainStockAdjustments = lazy(() => import('./pages/main/StockAdjustments.js
 const MainCycleCounts = lazy(() => import('./pages/main/CycleCounts.jsx'));
 const MainSettlements = lazy(() => import('./pages/main/Settlements.jsx'));
 const MainDeliveryLive = lazy(() => import('./pages/main/DeliveryLive.jsx'));
-const MainPhase1Workspace = lazy(() => import('./pages/main/Phase1Workspace.jsx'));
 
 const StockistDashboard = lazy(() => import('./pages/stockist/Dashboard.jsx'));
 const StockistCatalog = lazy(() => import('./pages/stockist/Catalog.jsx'));
@@ -53,7 +51,6 @@ const StockistWarehouses = lazy(() => import('./pages/stockist/Warehouses.jsx'))
 const StockistCycleCounts = lazy(() => import('./pages/stockist/CycleCounts.jsx'));
 const StockistSettlements = lazy(() => import('./pages/stockist/Settlements.jsx'));
 const StockistDeliveryLive = lazy(() => import('./pages/stockist/DeliveryLive.jsx'));
-const StockistPhase1Workspace = lazy(() => import('./pages/stockist/Phase1Workspace.jsx'));
 
 const MobileDashboard = lazy(() => import('./pages/mobile/Dashboard.jsx'));
 const MobileCatalog = lazy(() => import('./pages/mobile/Catalog.jsx'));
@@ -61,7 +58,6 @@ const MobileCart = lazy(() => import('./pages/mobile/Cart.jsx'));
 const MobileOrders = lazy(() => import('./pages/mobile/Orders.jsx'));
 const MobileProfile = lazy(() => import('./pages/mobile/Profile.jsx'));
 const MobileDeliveryLive = lazy(() => import('./pages/mobile/DeliveryLive.jsx'));
-const MobilePhase1Workspace = lazy(() => import('./pages/mobile/Phase1Workspace.jsx'));
 
 const LoadingScreen = () => (
   <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -102,9 +98,10 @@ const AppRoutes = () => {
   return (
     <Suspense fallback={<LoadingScreen />}>
       <Routes>
-        <Route path="/" element={<LandingPage />} />
+        <Route path="/" element={<Navigate to="/shop" replace />} />
         <Route path="/login" element={<Login />} />
         <Route path="/shop" element={<Shop />} />
+        <Route path="/track" element={<Tracking />} />
         <Route path="/track/:orderNumber" element={<Tracking />} />
         <Route path="/deliver/:token" element={<Deliver />} />
 
@@ -119,16 +116,16 @@ const AppRoutes = () => {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<MainDashboard />} />
           <Route path="orders" element={<MainOrders />} />
-          <Route path="operations/control-tower" element={<MainPhase1Workspace pageKey="operations-control-tower" />} />
-          <Route path="operations/dispatch-board" element={<MainPhase1Workspace pageKey="operations-dispatch-board" />} />
-          <Route path="operations/exceptions" element={<MainPhase1Workspace pageKey="operations-exceptions" />} />
+          <Route path="operations/control-tower" element={<Navigate to="/main/orders" replace />} />
+          <Route path="operations/dispatch-board" element={<Navigate to="/main/stock-transfers" replace />} />
+          <Route path="operations/exceptions" element={<Navigate to="/main/orders" replace />} />
           <Route path="delivery/live" element={<MainDeliveryLive />} />
-          <Route path="payments/queue" element={<MainPhase1Workspace pageKey="payments-queue" />} />
-          <Route path="payments/routing" element={<MainPhase1Workspace pageKey="payments-routing" />} />
+          <Route path="payments/queue" element={<Navigate to="/main/orders" replace />} />
+          <Route path="payments/routing" element={<Navigate to="/main/bank-accounts" replace />} />
           <Route path="payments/settlements" element={<MainSettlements />} />
-          <Route path="stock/replenishment" element={<MainPhase1Workspace pageKey="stock-replenishment" />} />
-          <Route path="stock/expiry-risk" element={<MainPhase1Workspace pageKey="stock-expiry-risk" />} />
-          <Route path="stock/capacity" element={<MainPhase1Workspace pageKey="stock-capacity" />} />
+          <Route path="stock/replenishment" element={<Navigate to="/main/inventory" replace />} />
+          <Route path="stock/expiry-risk" element={<Navigate to="/main/inventory" replace />} />
+          <Route path="stock/capacity" element={<Navigate to="/main/warehouses" replace />} />
           <Route path="cycle-counts" element={<MainCycleCounts />} />
           <Route path="inventory" element={<MainInventory />} />
           <Route path="stock-movements" element={<MainStockMovements />} />
@@ -172,13 +169,13 @@ const AppRoutes = () => {
             }
           />
           <Route path="orders" element={<StockistOrders />} />
-          <Route path="orders/board" element={<StockistPhase1Workspace pageKey="orders-board" />} />
-          <Route path="orders/payments" element={<StockistPhase1Workspace pageKey="orders-payments" />} />
-          <Route path="orders/dispatch" element={<StockistPhase1Workspace pageKey="orders-dispatch" />} />
+          <Route path="orders/board" element={<Navigate to="/stockist/orders" replace />} />
+          <Route path="orders/payments" element={<Navigate to="/stockist/orders" replace />} />
+          <Route path="orders/dispatch" element={<Navigate to="/stockist/orders" replace />} />
           <Route path="orders/:id" element={<StockistOrders />} />
           <Route path="delivery/live" element={<StockistDeliveryLive />} />
-          <Route path="delivery/couriers" element={<StockistPhase1Workspace pageKey="delivery-couriers" />} />
-          <Route path="delivery/pod" element={<StockistPhase1Workspace pageKey="delivery-pod" />} />
+          <Route path="delivery/couriers" element={<Navigate to="/stockist/delivery/live" replace />} />
+          <Route path="delivery/pod" element={<Navigate to="/stockist/orders" replace />} />
           <Route path="inventory" element={<StockistInventory />} />
           <Route
             path="cycle-counts"
@@ -209,7 +206,7 @@ const AppRoutes = () => {
             path="mobile-stockists/segments"
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS.MOBILE_STOCKISTS_MANAGE}>
-                <StockistPhase1Workspace pageKey="mobile-stockists-segments" />
+                <Navigate to="/stockist/mobile-stockists" replace />
               </ProtectedRoute>
             }
           />
@@ -217,7 +214,7 @@ const AppRoutes = () => {
             path="mobile-stockists/activity"
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS.MOBILE_STOCKISTS_MANAGE}>
-                <StockistPhase1Workspace pageKey="mobile-stockists-activity" />
+                <Navigate to="/stockist/mobile-stockists" replace />
               </ProtectedRoute>
             }
           />
@@ -225,7 +222,7 @@ const AppRoutes = () => {
             path="mobile-stockists/risk-signals"
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS.MOBILE_STOCKISTS_MANAGE}>
-                <StockistPhase1Workspace pageKey="mobile-stockists-risk-signals" />
+                <Navigate to="/stockist/mobile-stockists" replace />
               </ProtectedRoute>
             }
           />
@@ -286,9 +283,9 @@ const AppRoutes = () => {
           <Route path="catalog" element={<MobileCatalog />} />
           <Route path="cart" element={<MobileCart />} />
           <Route path="orders" element={<MobileOrders />} />
-          <Route path="reorder" element={<MobilePhase1Workspace pageKey="reorder" />} />
+          <Route path="reorder" element={<Navigate to="/mobile/catalog" replace />} />
           <Route path="delivery" element={<MobileDeliveryLive />} />
-          <Route path="account" element={<MobilePhase1Workspace pageKey="account" />} />
+          <Route path="account" element={<Navigate to="/mobile/profile" replace />} />
           <Route path="profile" element={<MobileProfile />} />
         </Route>
 
