@@ -41,8 +41,13 @@ export default function MobileCatalog() {
     const item = cartItems.find(i => i.product_id === productId || i.id === productId);
     return item?.quantity || 0;
   };
+  const getAvailableQty = (product) => Number(product?.available_qty || 0);
 
   const handleAddToCart = async (product) => {
+    if (getAvailableQty(product) < 1) {
+      showToast(`${product.name} is currently unavailable from your supply route`, 'error');
+      return;
+    }
     setAddingId(product.id);
     try {
       await addToCart(product.id, product.warehouse_id || null, 1);
@@ -111,6 +116,8 @@ export default function MobileCatalog() {
             {products.map(product => {
               const qty = getCartQty(product.id);
               const isAdding = addingId === product.id;
+              const availableQty = getAvailableQty(product);
+              const isOrderable = availableQty > 0;
               return (
                 <div
                   key={product.id}
@@ -131,7 +138,10 @@ export default function MobileCatalog() {
                     <p className="text-orange-500 font-bold text-sm mb-2.5">
                       {formatCurrency(product.partner_price || product.price || 0)}
                     </p>
-                    {qty > 0 ? (
+                    <div className={`mb-2 text-[11px] font-semibold ${isOrderable ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {isOrderable ? `${availableQty} available` : 'Unavailable from your route'}
+                    </div>
+                    {qty > 0 && isOrderable ? (
                       <div className="flex items-center justify-between bg-orange-50 rounded-xl px-2 py-1">
                         <button
                           onClick={() => handleUpdateQty(product, qty - 1)}
@@ -150,15 +160,19 @@ export default function MobileCatalog() {
                     ) : (
                       <button
                         onClick={() => handleAddToCart(product)}
-                        disabled={isAdding}
-                        className="w-full py-2 bg-orange-500 text-white rounded-xl text-xs font-semibold hover:bg-orange-600 active:scale-95 transition-all disabled:opacity-60"
+                        disabled={isAdding || !isOrderable}
+                        className={`w-full py-2 rounded-xl text-xs font-semibold active:scale-95 transition-all disabled:opacity-60 ${
+                          isOrderable
+                            ? 'bg-orange-500 text-white hover:bg-orange-600'
+                            : 'bg-gray-200 text-gray-500'
+                        }`}
                       >
                         {isAdding ? (
                           <span className="flex items-center justify-center gap-1">
                             <Spinner size="xs" color="white" />
                           </span>
                         ) : (
-                          'Add to Cart'
+                          isOrderable ? 'Add to Cart' : 'Unavailable'
                         )}
                       </button>
                     )}

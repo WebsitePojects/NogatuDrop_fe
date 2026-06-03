@@ -7,11 +7,12 @@ const mainLayoutSource = readFileSync(new URL('../src/layouts/MainLayout.jsx', i
 const stockistLayoutSource = readFileSync(new URL('../src/layouts/StockistLayout.jsx', import.meta.url), 'utf8');
 const mobileLayoutSource = readFileSync(new URL('../src/layouts/MobileLayout.jsx', import.meta.url), 'utf8');
 const shopSource = readFileSync(new URL('../src/pages/shared/Shop.jsx', import.meta.url), 'utf8');
+const stockistCatalogSource = readFileSync(new URL('../src/pages/stockist/Catalog.jsx', import.meta.url), 'utf8');
 
 test('app shell removes phase workspace pages from the live route surface', () => {
-  assert.equal(appSource.includes('LandingPage'), false);
+  assert.equal(appSource.includes('LandingPage'), true);
   assert.equal(appSource.includes('Phase1Workspace'), false);
-  assert.match(appSource, /path="\/"\s+element={<Navigate to="\/shop" replace \/>}/);
+  assert.match(appSource, /path="\/"\s+element={<LandingPage \/>}/);
   assert.match(appSource, /path="\/track"\s+element={<Tracking \/>}/);
 });
 
@@ -40,6 +41,12 @@ test('stockist and mobile navigation remove duplicate workspace views', () => {
   assert.equal(mobileLayoutSource.includes("label: 'Account'"), false);
 });
 
+test('staff does not keep direct access to stockist ordering catalog routes', () => {
+  assert.match(appSource, /path="catalog"[\s\S]*requiredPermission=\{PERMISSIONS\.CART_USE\}/);
+  assert.match(appSource, /path="catalog\/:id"[\s\S]*requiredPermission=\{PERMISSIONS\.CART_USE\}/);
+  assert.match(stockistLayoutSource, /\.\.\.\(canUseCart \? \[\{ path: '\/stockist\/catalog'/);
+});
+
 test('public shop uses production public routes instead of placeholder navigation', () => {
   assert.equal(shopSource.includes('PRODUCTS.PUBLIC'), true);
   assert.equal(shopSource.includes("to=\"/track/search\""), false);
@@ -51,4 +58,10 @@ test('public shop exposes a recoverable catalog error state instead of failing s
   assert.equal(shopSource.includes('Catalog temporarily unavailable'), true);
   assert.equal(shopSource.includes('Retry catalog load'), true);
   assert.equal(shopSource.includes('No matching products found'), true);
+});
+
+test('stockist catalog surfaces route-aware availability before checkout', () => {
+  assert.equal(stockistCatalogSource.includes('available_qty'), true);
+  assert.equal(stockistCatalogSource.includes('Unavailable from your route'), true);
+  assert.equal(stockistCatalogSource.includes('is currently unavailable from your supply route'), true);
 });

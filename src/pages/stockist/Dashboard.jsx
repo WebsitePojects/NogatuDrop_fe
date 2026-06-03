@@ -17,11 +17,14 @@ import { ORDERS, INVENTORY } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
+import { PERMISSIONS, can } from '@/utils/permissions';
 
 export default function StockistDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toasts, showToast, dismiss } = useToast();
+  const canUseCart = can(user?.role_slug, PERMISSIONS.CART_USE);
+  const canCreateCycleCounts = can(user?.role_slug, PERMISSIONS.CYCLE_COUNTS_CREATE);
 
   const [kpis, setKpis] = useState({ totalOrders: 0, revenueMonth: 0, pendingOrders: 0, inventoryItems: 0 });
   const [recentOrders, setRecentOrders] = useState([]);
@@ -93,6 +96,22 @@ export default function StockistDashboard() {
     if (h < 17) return 'Good afternoon';
     return 'Good evening';
   };
+
+  const quickActions = canUseCart
+    ? [
+        { label: 'Browse Catalog', path: '/stockist/catalog', color: 'bg-amber-500 hover:bg-amber-600' },
+        { label: 'View Orders', path: '/stockist/orders', color: 'bg-blue-600 hover:bg-blue-700' },
+        { label: 'View Inventory', path: '/stockist/inventory', color: 'bg-purple-600 hover:bg-purple-700' },
+      ]
+    : [
+        { label: 'View Orders', path: '/stockist/orders', color: 'bg-blue-600 hover:bg-blue-700' },
+        { label: 'View Inventory', path: '/stockist/inventory', color: 'bg-purple-600 hover:bg-purple-700' },
+        {
+          label: canCreateCycleCounts ? 'Open Cycle Counts' : 'Open GRN',
+          path: canCreateCycleCounts ? '/stockist/cycle-counts' : '/stockist/grn',
+          color: 'bg-emerald-600 hover:bg-emerald-700',
+        },
+      ];
 
   return (
     <div className="p-4 md:p-6 min-h-screen page-enter" style={{ background: '#FFF8F0' }}>
@@ -181,11 +200,7 @@ export default function StockistDashboard() {
         {/* Quick Actions */}
         <div className="space-y-3">
           <h2 className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">Quick Actions</h2>
-          {[
-            { label: 'Browse Catalog', path: '/stockist/catalog', color: 'bg-amber-500 hover:bg-amber-600' },
-            { label: 'View Orders', path: '/stockist/orders', color: 'bg-blue-600 hover:bg-blue-700' },
-            { label: 'View Inventory', path: '/stockist/inventory', color: 'bg-purple-600 hover:bg-purple-700' },
-          ].map(({ label, path, color }) => (
+          {quickActions.map(({ label, path, color }) => (
             <button
               key={path}
               onClick={() => navigate(path)}

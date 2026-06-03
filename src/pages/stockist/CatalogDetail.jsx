@@ -52,6 +52,10 @@ export default function CatalogDetail() {
 
   const handleAddToCart = async () => {
     if (!canUseCart) return;
+    if (!isOrderable) {
+      showToast(`${product.name} is currently unavailable from your supply route`, 'error');
+      return;
+    }
     setAddingCart(true);
     try {
       await addToCart(product.id, product.warehouse_id || null, qty);
@@ -65,6 +69,10 @@ export default function CatalogDetail() {
 
   const handleCheckoutNow = async () => {
     if (!canUseCart) return;
+    if (!isOrderable) {
+      showToast(`${product.name} is currently unavailable from your supply route`, 'error');
+      return;
+    }
     setCheckingOut(true);
     try {
       await addToCart(product.id, product.warehouse_id || null, qty);
@@ -98,6 +106,8 @@ export default function CatalogDetail() {
   }
 
   const disc = discountPct(product.retail_price, product.partner_price);
+  const availableQty = Number(product.available_qty || 0);
+  const isOrderable = availableQty > 0;
 
   return (
     <div className="p-4 md:p-6 min-h-screen page-enter" style={{ background: '#FFF8F0' }}>
@@ -169,14 +179,14 @@ export default function CatalogDetail() {
             )}
 
             {/* Stock info */}
-            {product.total_stock !== undefined && (
+            {product.available_qty !== undefined && (
               <p className="text-xs text-gray-400 mb-4">
-                Stock available: <span className="font-semibold text-gray-700">{product.total_stock || 0}</span>
+                Available from your route: <span className={`font-semibold ${isOrderable ? 'text-gray-700' : 'text-rose-600'}`}>{availableQty}</span>
               </p>
             )}
 
             {/* Quantity Selector */}
-            {canUseCart && <div className="flex items-center gap-3 mb-6">
+            {canUseCart && isOrderable && <div className="flex items-center gap-3 mb-6">
               <span className="text-sm font-medium text-gray-700">Quantity:</span>
               <div className="flex items-center gap-2">
                 <button
@@ -205,23 +215,29 @@ export default function CatalogDetail() {
             {canUseCart && <div className="flex gap-3 mt-auto">
               <button
                 onClick={handleAddToCart}
-                disabled={addingCart || checkingOut}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white font-semibold text-sm transition-colors"
+                disabled={addingCart || checkingOut || !isOrderable}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl disabled:opacity-60 font-semibold text-sm transition-colors ${
+                  isOrderable ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-gray-200 text-gray-500'
+                }`}
               >
                 {addingCart ? (
                   <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white" />
                 ) : (
                   <HiShoppingCart className="w-4 h-4" />
                 )}
-                {addingCart ? 'Adding...' : 'Add to Cart'}
+                {addingCart ? 'Adding...' : isOrderable ? 'Add to Cart' : 'Unavailable'}
               </button>
               <button
                 onClick={handleCheckoutNow}
-                disabled={addingCart || checkingOut}
-                className="flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gray-900 hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 disabled:opacity-60 text-white font-semibold text-sm transition-colors"
+                disabled={addingCart || checkingOut || !isOrderable}
+                className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl disabled:opacity-60 font-semibold text-sm transition-colors ${
+                  isOrderable
+                    ? 'bg-gray-900 hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 text-white'
+                    : 'bg-gray-200 text-gray-500'
+                }`}
               >
                 <HiLightningBolt className="w-4 h-4" />
-                {checkingOut ? 'Processing...' : 'Checkout Now'}
+                {checkingOut ? 'Processing...' : isOrderable ? 'Checkout Now' : 'Unavailable'}
               </button>
             </div>}
           </div>

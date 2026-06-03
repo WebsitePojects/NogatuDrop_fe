@@ -55,9 +55,14 @@ export default function StockistCatalog() {
   });
 
   const setQty = (id, val) => setQuantities(prev => ({ ...prev, [id]: Math.max(1, val) }));
+  const getAvailableQty = (product) => Number(product?.available_qty || 0);
 
   const handleAddToCart = async (product) => {
     if (!canUseCart) return;
+    if (getAvailableQty(product) < 1) {
+      showToast(`${product.name} is currently unavailable from your supply route`, 'error');
+      return;
+    }
     setAddingId(product.id);
     try {
       await addToCart(product.id, product.warehouse_id || null, quantities[product.id] || 1);
@@ -132,6 +137,8 @@ export default function StockistCatalog() {
             const disc = discountPct(product.retail_price, product.partner_price);
             const isAdding = addingId === product.id;
             const isHovered = hoveredId === product.id;
+            const availableQty = getAvailableQty(product);
+            const isOrderable = availableQty > 0;
 
             return (
               <div
@@ -186,8 +193,17 @@ export default function StockistCatalog() {
                     )}
                   </div>
 
+                  <div className="mb-2 flex items-center justify-between gap-2 text-xs">
+                    <span className={`font-semibold ${isOrderable ? 'text-emerald-600' : 'text-rose-600'}`}>
+                      {isOrderable ? `${availableQty} available` : 'Unavailable from your route'}
+                    </span>
+                    {product.source_warehouse_id ? (
+                      <span className="text-gray-400">Source #{product.source_warehouse_id}</span>
+                    ) : null}
+                  </div>
+
                   {/* Qty stepper — visible on hover/focus */}
-                  {canUseCart && <div className={`flex items-center gap-1 mb-2 transition-opacity duration-150 ${isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                  {canUseCart && isOrderable && <div className={`flex items-center gap-1 mb-2 transition-opacity duration-150 ${isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                     <button
                       onClick={() => setQty(product.id, (quantities[product.id] || 1) - 1)}
                       className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 font-bold text-base text-gray-600 hover:bg-gray-100"
@@ -212,15 +228,19 @@ export default function StockistCatalog() {
                   {/* Add to cart */}
                   {canUseCart && <button
                     onClick={() => handleAddToCart(product)}
-                    disabled={isAdding}
-                    className="mt-auto w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60 bg-amber-500 hover:bg-amber-600 text-white"
+                    disabled={isAdding || !isOrderable}
+                    className={`mt-auto w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60 ${
+                      isOrderable
+                        ? 'bg-amber-500 hover:bg-amber-600 text-white'
+                        : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                    }`}
                   >
                     {isAdding ? (
                       <Spinner size="sm" color="white" />
                     ) : (
                       <HiShoppingCart className="w-4 h-4" />
                     )}
-                    {isAdding ? 'Adding…' : 'Add to Cart'}
+                    {isAdding ? 'Adding...' : isOrderable ? 'Add to Cart' : 'Unavailable'}
                   </button>}
                 </div>
               </div>

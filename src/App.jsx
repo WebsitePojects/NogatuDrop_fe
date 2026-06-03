@@ -16,6 +16,7 @@ const NotFound = lazy(() => import('./pages/shared/NotFound.jsx'));
 const Tracking = lazy(() => import('./pages/shared/Tracking.jsx'));
 const Deliver = lazy(() => import('./pages/shared/Deliver.jsx'));
 const Shop = lazy(() => import('./pages/shared/Shop.jsx'));
+const LandingPage = lazy(() => import('./pages/shared/LandingPage.jsx'));
 
 const MainDashboard = lazy(() => import('./pages/main/Dashboard.jsx'));
 const MainInventory = lazy(() => import('./pages/main/Inventory.jsx'));
@@ -98,7 +99,7 @@ const AppRoutes = () => {
   return (
     <Suspense fallback={<LoadingScreen />}>
       <Routes>
-        <Route path="/" element={<Navigate to="/shop" replace />} />
+        <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/track" element={<Tracking />} />

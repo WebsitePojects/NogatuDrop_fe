@@ -16,6 +16,7 @@ import api from '@/services/api';
 import { ORDERS, BANK_ACCOUNTS, DELIVERY_TOKENS } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate, formatDateTime } from '@/utils/formatDate';
+import { useAuth } from '@/context/AuthContext';
 
 const STATUS_STEPS = ['pending', 'approved', 'delivering', 'delivered'];
 
@@ -39,6 +40,7 @@ function roleLabel(roleSlug) {
 }
 
 export default function StockistOrders() {
+  const { user } = useAuth();
   const { toasts, showToast, dismiss } = useToast();
 
   const [orders, setOrders] = useState([]);
@@ -51,8 +53,13 @@ export default function StockistOrders() {
   const [deliveryProofLoading, setDeliveryProofLoading] = useState(false);
   const [bankAccount, setBankAccount] = useState(null);
   const [confirmCancel, setConfirmCancel] = useState(null);
+  const [confirmApprove, setConfirmApprove] = useState(null);
   const [cancelling, setCancelling] = useState(false);
+  const [approving, setApproving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejecting, setRejecting] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -127,6 +134,39 @@ export default function StockistOrders() {
       showToast(err?.response?.data?.message || 'Failed to cancel order', 'error');
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const handleApprove = async () => {
+    if (!confirmApprove) return;
+    setApproving(true);
+    try {
+      await api.patch(ORDERS.APPROVE(confirmApprove));
+      showToast('Order approved', 'success');
+      setConfirmApprove(null);
+      closeDetail();
+      fetchOrders();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to approve order', 'error');
+    } finally {
+      setApproving(false);
+    }
+  };
+
+  const handleReject = async () => {
+    if (!detail?.id) return;
+    setRejecting(true);
+    try {
+      await api.patch(ORDERS.REJECT(detail.id), { reason: rejectReason });
+      showToast('Order rejected', 'info');
+      setShowRejectModal(false);
+      setRejectReason('');
+      closeDetail();
+      fetchOrders();
+    } catch (err) {
+      showToast(err?.response?.data?.message || 'Failed to reject order', 'error');
+    } finally {
+      setRejecting(false);
     }
   };
 
@@ -226,6 +266,14 @@ export default function StockistOrders() {
   };
 
   const detail = orderDetail || selectedOrder;
+  const viewerRole = String(user?.role_slug || '').toLowerCase();
+  const placedByRole = String(detail?.placed_by_role_slug || '').toLowerCase();
+  const canReviewPendingOrder = Boolean(
+    detail?.status === 'pending' && (
+      (viewerRole === 'provincial_stockist' && placedByRole === 'city_stockist')
+      || (viewerRole === 'city_stockist' && placedByRole === 'mobile_stockist')
+    )
+  );
 
   return (
     <div className="p-4 md:p-6 min-h-screen page-enter bg-[#FFF8F0] dark:bg-[var(--dark-bg)]">
@@ -401,14 +449,37 @@ export default function StockistOrders() {
               {/* Cancel button */}
               {detail.status === 'pending' && (
                 <div className="pt-2">
-                  <Button
-                    color="failure"
-                    size="sm"
-                    onClick={() => setConfirmCancel(detail.id)}
-                  >
-                    <HiX className="mr-2 w-4 h-4" />
-                    Cancel Order
-                  </Button>
+                  <div className="flex flex-wrap gap-2">
+                    {canReviewPendingOrder && (
+                      <>
+                        <Button
+                          color="success"
+                          size="sm"
+                          onClick={() => setConfirmApprove(detail.id)}
+                        >
+                          <HiCheckCircle className="mr-2 w-4 h-4" />
+                          Approve Child Order
+                        </Button>
+                        <Button
+                          color="failure"
+                          outline
+                          size="sm"
+                          onClick={() => setShowRejectModal(true)}
+                        >
+                          <HiExclamationCircle className="mr-2 w-4 h-4" />
+                          Reject Child Order
+                        </Button>
+                      </>
+                    )}
+                    <Button
+                      color="failure"
+                      size="sm"
+                      onClick={() => setConfirmCancel(detail.id)}
+                    >
+                      <HiX className="mr-2 w-4 h-4" />
+                      Cancel Order
+                    </Button>
+                  </div>
                 </div>
               )}
             </>
@@ -427,6 +498,41 @@ export default function StockistOrders() {
         onConfirm={handleCancel}
         onClose={() => setConfirmCancel(null)}
       />
+
+      <ConfirmModal
+        show={!!confirmApprove}
+        title="Approve Order"
+        message="Approve this child order and move it to payment collection?"
+        confirmLabel="Approve Order"
+        confirmColor="success"
+        loading={approving}
+        onConfirm={handleApprove}
+        onClose={() => setConfirmApprove(null)}
+      />
+
+      <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} size="md" backdropClasses="bg-black/50 backdrop-blur-sm">
+        <ModalHeader>Reject Order</ModalHeader>
+        <ModalBody className="space-y-3">
+          <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)]">
+            Provide a short reason so the child Stockist understands what to fix.
+          </p>
+          <textarea
+            value={rejectReason}
+            onChange={(event) => setRejectReason(event.target.value)}
+            rows={4}
+            className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-200 dark:border-[var(--dark-border)] dark:bg-[var(--dark-card2)] dark:text-[var(--dark-text)]"
+            placeholder="Reason for rejection"
+          />
+        </ModalBody>
+        <ModalFooter>
+          <Button color="failure" onClick={handleReject} isProcessing={rejecting} disabled={rejecting}>
+            Reject Order
+          </Button>
+          <Button color="gray" onClick={() => setShowRejectModal(false)}>
+            Cancel
+          </Button>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 }

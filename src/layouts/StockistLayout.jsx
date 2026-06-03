@@ -40,6 +40,7 @@ function buildNavGroups(role) {
   const isCity = normalizedRole === 'city_stockist' || isAdmin;
   const isProvincial = normalizedRole === 'provincial_stockist';
   const isManager = isProvincial || isCity; // can manage things
+  const canUseCart = can(normalizedRole, PERMISSIONS.CART_USE);
 
   return [
     // ── Overview ──────────────────────────────────────────
@@ -54,8 +55,8 @@ function buildNavGroups(role) {
     {
       label: 'Selling',
       items: [
-        { path: '/stockist/catalog',  label: 'Product Catalog', icon: HiOutlineViewGrid },
-        ...(can(normalizedRole, PERMISSIONS.CART_USE) ? [{ path: '/stockist/cart', label: 'Shopping Cart', icon: HiOutlineShoppingCart }] : []),
+        ...(canUseCart ? [{ path: '/stockist/catalog', label: 'Product Catalog', icon: HiOutlineViewGrid }] : []),
+        ...(canUseCart ? [{ path: '/stockist/cart', label: 'Shopping Cart', icon: HiOutlineShoppingCart }] : []),
       ],
     },
 
@@ -133,7 +134,7 @@ function buildNavGroups(role) {
           },
         ]
       : []),
-  ];
+  ].filter((group) => Array.isArray(group.items) && group.items.length > 0);
 }
 
 export default function StockistLayout() {
