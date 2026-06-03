@@ -2,7 +2,7 @@ import { useState, Fragment, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Dropdown } from 'flowbite-react';
 import {
-  HiOutlineHome, HiOutlineViewGrid, HiOutlineRefresh,
+  HiOutlineHome, HiOutlineViewGrid,
   HiOutlineLocationMarker,
   HiOutlineShoppingBag,
   HiOutlineUser, HiOutlineBell, HiOutlineLogout,
@@ -24,9 +24,7 @@ const NAV_ITEMS = [
   { path: '/mobile/dashboard', label: 'Dashboard',    icon: HiOutlineHome },
   { path: '/mobile/catalog',   label: 'Product Catalog', icon: HiOutlineViewGrid },
   { path: '/mobile/orders',    label: 'My Orders',    icon: HiOutlineShoppingBag },
-  { path: '/mobile/reorder',   label: 'Reorder',      icon: HiOutlineRefresh },
   { path: '/mobile/delivery',  label: 'Delivery',     icon: HiOutlineLocationMarker },
-  { path: '/mobile/account',   label: 'Account',      icon: HiOutlineUser },
   { path: '/mobile/profile',   label: 'Profile',      icon: HiOutlineUser },
 ];
 

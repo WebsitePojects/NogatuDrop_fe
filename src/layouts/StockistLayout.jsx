@@ -1,6 +1,6 @@
 import { useState, Fragment, useEffect } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { Dropdown, Tooltip } from 'flowbite-react';
+import { Dropdown } from 'flowbite-react';
 import {
   HiOutlineHome,
   HiOutlineViewGrid,
@@ -15,15 +15,12 @@ import {
   HiOutlineMenuAlt2,
   HiOutlineX,
   HiOutlineDocumentText,
-  HiOutlineRefresh,
   HiOutlineSwitchHorizontal,
   HiOutlineSun,
   HiOutlineMoon,
   HiOutlineCog,
   HiOutlineArchive,
-  HiOutlineShoppingBag,
   HiChevronDown,
-  HiChevronRight,
 } from 'react-icons/hi';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -39,7 +36,6 @@ const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 // Each item: path, label, icon, roles (if undefined = all stockist roles can see)
 function buildNavGroups(role) {
   const normalizedRole = normalizeRoleSlug(role);
-  const isStaff = normalizedRole === 'staff';
   const isAdmin = role === 'admin'; // legacy — treat same as city
   const isCity = normalizedRole === 'city_stockist' || isAdmin;
   const isProvincial = normalizedRole === 'provincial_stockist';
@@ -68,9 +64,6 @@ function buildNavGroups(role) {
       label: 'Order Center',
       items: [
         { path: '/stockist/orders', label: 'Orders', icon: HiOutlineClipboardList },
-        { path: '/stockist/orders/board', label: 'Kanban Orders', icon: HiOutlineClipboardList },
-        { path: '/stockist/orders/payments', label: 'Payment Status', icon: HiOutlineShoppingBag },
-        { path: '/stockist/orders/dispatch', label: 'Dispatch Readiness', icon: HiOutlineTruck },
       ],
     },
 
@@ -79,8 +72,6 @@ function buildNavGroups(role) {
       label: 'Delivery',
       items: [
         { path: '/stockist/delivery/live', label: 'Live Deliveries Map', icon: HiOutlineTruck },
-        { path: '/stockist/delivery/couriers', label: 'Courier Performance', icon: HiOutlineTruck },
-        { path: '/stockist/delivery/pod', label: 'Delivery Proofs', icon: HiOutlineDocumentText },
       ],
     },
 
@@ -109,9 +100,6 @@ function buildNavGroups(role) {
             label: 'Mobile Stockists',
             items: [
               { path: '/stockist/mobile-stockists', label: 'Mobile Stockists', icon: HiOutlineUsers },
-              { path: '/stockist/mobile-stockists/segments', label: 'Segments', icon: HiOutlineUsers },
-              { path: '/stockist/mobile-stockists/activity', label: 'Activity and Last Login', icon: HiOutlineRefresh },
-              { path: '/stockist/mobile-stockists/risk-signals', label: 'Risk Signals', icon: HiOutlineCog },
             ],
           },
           {

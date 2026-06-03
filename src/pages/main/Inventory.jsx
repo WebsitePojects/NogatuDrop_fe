@@ -3,10 +3,6 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Card, Spinner, TextInput, Select, Label, Badge, Pagination } from 'flowbite-react';
 import { HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineAdjustments } from 'react-icons/hi';
-// TODO: run `npm install xlsx jspdf jspdf-autotable` in NogatuDrop_fe
-import * as XLSX from 'xlsx';
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
 import api from '@/services/api';
 import { INVENTORY, WAREHOUSES, PRODUCTS } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
@@ -152,7 +148,8 @@ export default function Inventory() {
     }
   };
 
-  const exportExcel = () => {
+  const exportExcel = async () => {
+    const XLSX = await import('xlsx');
     const rows = items.map((item) => ({
       'Product': item.product_name,
       'SKU': item.sku,
@@ -169,13 +166,17 @@ export default function Inventory() {
     XLSX.writeFile(wb, `inventory_${new Date().toISOString().slice(0, 10)}.xlsx`);
   };
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ]);
     const doc = new jsPDF();
     doc.setFontSize(14);
     doc.text('Inventory Report', 14, 15);
     doc.setFontSize(9);
     doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 22);
-    doc.autoTable({
+    autoTable(doc, {
       startY: 28,
       head: [['Product', 'SKU', 'Warehouse', 'Stock', 'Reserved', 'Available', 'Status']],
       body: items.map((item) => [

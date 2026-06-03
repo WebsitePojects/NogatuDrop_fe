@@ -9,12 +9,16 @@ import { Spinner } from 'flowbite-react';
 import api from '@/services/api';
 import { ORDERS, PRODUCTS } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { getPublicCatalogPrice } from '@/utils/publicCatalogPrice';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
 export default function Shop() {
   const [search, setSearch] = useState('');
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState('');
   const [cart, setCart] = useState([]); // { product_id, name, quantity, unit_price, image_url }
   const [cartOpen, setCartOpen] = useState(false);
   const [step, setStep] = useState('browse'); // browse | checkout | success
@@ -25,12 +29,14 @@ export default function Shop() {
 
   const fetchProducts = useCallback(async () => {
     setProductsLoading(true);
+    setProductsError('');
     try {
-      const { data } = await api.get(PRODUCTS.LIST, { params: { limit: 50, is_active: 1, search } });
+      const { data } = await api.get(PRODUCTS.PUBLIC, { params: { limit: 50, search } });
       const list = Array.isArray(data.data) ? data.data : (data.data?.items || []);
       setProducts(list);
     } catch {
-      // silent fail on public page
+      setProducts([]);
+      setProductsError('We could not load the product catalog right now. Please try again.');
     } finally {
       setProductsLoading(false);
     }
@@ -52,7 +58,7 @@ export default function Shop() {
         product_id: product.id,
         name: product.name,
         quantity: 1,
-        unit_price: product.partner_price || product.price || 0,
+        unit_price: getPublicCatalogPrice(product),
         image_url: product.image_url,
       }];
     });
@@ -136,7 +142,7 @@ export default function Shop() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <Link to="/track/search" className="text-xs text-gray-500 hover:text-gray-700 hidden sm:block">
+            <Link to="/track" className="text-xs text-gray-500 hover:text-gray-700 hidden sm:block">
               Track Order
             </Link>
             <button
@@ -164,7 +170,7 @@ export default function Shop() {
                 type="search"
                 value={search}
                 onChange={e => setSearch(e.target.value)}
-                placeholder="Search products…"
+                placeholder="Search products..."
                 className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:border-amber-400"
               />
             </div>
@@ -172,10 +178,22 @@ export default function Shop() {
             {/* Products Grid */}
             {productsLoading ? (
               <div className="flex justify-center py-16"><Spinner size="xl" color="warning" /></div>
+            ) : productsError ? (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50 px-5 py-6 text-sm text-amber-900">
+                <p className="font-semibold">Catalog temporarily unavailable</p>
+                <p className="mt-1 text-amber-800">{productsError}</p>
+                <button
+                  type="button"
+                  onClick={() => fetchProducts()}
+                  className="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-amber-500 px-4 py-2 font-semibold text-white transition-colors hover:bg-amber-600 focus:outline-none focus:ring-4 focus:ring-amber-200"
+                >
+                  Retry catalog load
+                </button>
+              </div>
             ) : products.length === 0 ? (
               <div className="flex flex-col items-center py-16 text-gray-400">
                 <FiPackage size={48} className="mb-3 opacity-30" />
-                <p className="text-sm">No products available</p>
+                <p className="text-sm">{search.trim() ? 'No matching products found' : 'No products available'}</p>
               </div>
             ) : (
               <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
@@ -199,7 +217,7 @@ export default function Shop() {
                           {product.name}
                         </h3>
                         <p className="text-amber-500 font-bold text-sm mb-3">
-                          {formatCurrency(product.partner_price || product.price || 0)}
+                          {formatCurrency(getPublicCatalogPrice(product))}
                         </p>
                         {qty > 0 ? (
                           <div className="flex items-center justify-between bg-amber-50 rounded-xl px-2 py-1">
@@ -236,7 +254,7 @@ export default function Shop() {
                   className="flex items-center gap-2 px-5 py-3 bg-amber-500 text-white rounded-2xl shadow-lg font-semibold text-sm hover:bg-amber-600 transition-colors"
                 >
                   <HiShoppingCart size={16} />
-                  Checkout — {formatCurrency(cartTotal)}
+                  Checkout - {formatCurrency(cartTotal)}
                   <HiChevronRight size={16} />
                 </button>
               </div>
@@ -250,7 +268,7 @@ export default function Shop() {
               onClick={() => setStep('browse')}
               className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-5"
             >
-              ← Back to products
+              Back to products
             </button>
 
             {/* Order summary */}
@@ -314,7 +332,7 @@ export default function Shop() {
                 className="w-full py-3.5 bg-amber-500 text-white rounded-xl font-semibold text-sm hover:bg-amber-600 transition-colors disabled:opacity-60 flex items-center justify-center gap-2"
               >
                 {submitting ? <Spinner size="sm" color="white" /> : null}
-                {submitting ? 'Placing Order…' : `Place Order — ${formatCurrency(cartTotal)}`}
+                {submitting ? 'Placing Order...' : `Place Order - ${formatCurrency(cartTotal)}`}
               </button>
             </form>
           </div>
