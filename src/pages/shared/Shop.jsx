@@ -351,12 +351,18 @@ export default function Shop() {
 
           <div className="rounded-2xl border border-gray-100 p-5 mb-6">
             <h3 className="font-bold text-gray-900 mb-3">Upload Payment Proof</h3>
-            <input
-              type="file"
-              accept="image/*,.pdf"
-              onChange={(event) => setProofFile(event.target.files?.[0] || null)}
-              className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-xl file:border-0 file:bg-amber-500 file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-amber-600"
-            />
+            <label className="block">
+              <span className="mb-2 block text-xs font-semibold uppercase tracking-wide text-gray-500">Choose Payment Proof File</span>
+              <input
+                type="file"
+                accept="image/*,.pdf"
+                onChange={(event) => setProofFile(event.target.files?.[0] || null)}
+                className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-xl file:border-0 file:bg-amber-500 file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-amber-600"
+              />
+            </label>
+            <p className="mt-2 text-xs text-gray-500">
+              {proofFile ? `Selected file: ${proofFile.name}` : 'No file selected yet.'}
+            </p>
             {proofMessage && (
               <p className="mt-3 rounded-xl bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
                 {proofMessage}
@@ -373,7 +379,7 @@ export default function Shop() {
               disabled={proofUploading}
               className="mt-4 w-full rounded-xl bg-amber-500 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {proofUploading ? 'Uploading Payment Proof...' : 'Upload Payment Proof'}
+              {proofUploading ? 'Submitting Payment Proof...' : 'Submit Payment Proof'}
             </button>
           </div>
 

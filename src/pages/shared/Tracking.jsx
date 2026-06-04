@@ -307,6 +307,9 @@ export default function Tracking() {
                       onChange={(event) => setProofFile(event.target.files?.[0] || null)}
                       className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-amber-100 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-amber-800 hover:file:bg-amber-200"
                     />
+                    <p className="text-xs text-gray-500">
+                      {proofFile ? `Selected file: ${proofFile.name}` : 'No file selected yet.'}
+                    </p>
                     <button
                       type="button"
                       onClick={handleUploadProof}
@@ -316,8 +319,8 @@ export default function Tracking() {
                       {trackingData.payment_proof_uploaded_at
                         ? 'Payment proof already uploaded'
                         : proofUploading
-                          ? 'Uploading proof...'
-                          : 'Upload payment proof'}
+                          ? 'Submitting payment proof...'
+                          : 'Submit payment proof'}
                     </button>
                   </div>
                 </div>

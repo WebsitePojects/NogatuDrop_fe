@@ -8,6 +8,7 @@ const stockistLayoutSource = readFileSync(new URL('../src/layouts/StockistLayout
 const mobileLayoutSource = readFileSync(new URL('../src/layouts/MobileLayout.jsx', import.meta.url), 'utf8');
 const landingSource = readFileSync(new URL('../src/pages/shared/LandingPage.jsx', import.meta.url), 'utf8');
 const shopSource = readFileSync(new URL('../src/pages/shared/Shop.jsx', import.meta.url), 'utf8');
+const stockistOrdersSource = readFileSync(new URL('../src/pages/stockist/Orders.jsx', import.meta.url), 'utf8');
 const stockistCatalogSource = readFileSync(new URL('../src/pages/stockist/Catalog.jsx', import.meta.url), 'utf8');
 const loginSource = readFileSync(new URL('../src/pages/shared/Login.jsx', import.meta.url), 'utf8');
 const apiSource = readFileSync(new URL('../src/services/api.js', import.meta.url), 'utf8');
@@ -66,7 +67,8 @@ test('public shop exposes a recoverable catalog error state instead of failing s
 
 test('public shop now completes checkout with a bank-transfer payment wall and proof upload', () => {
   assert.equal(shopSource.includes('Bank Transfer Instructions'), true);
-  assert.equal(shopSource.includes('Upload Payment Proof'), true);
+  assert.equal(shopSource.includes('Choose Payment Proof File'), true);
+  assert.equal(shopSource.includes('Submit Payment Proof'), true);
   assert.equal(shopSource.includes('ORDERS.PUBLIC_PAYMENT_PROOF'), true);
   assert.equal(shopSource.includes('Track my order'), true);
   assert.equal(shopSource.includes('VAT and System Fee Included'), true);
@@ -80,6 +82,17 @@ test('public tracking can continue unpaid orders with payment instructions and p
   assert.equal(trackingSource.includes('Phone number used at checkout'), true);
   assert.equal(trackingSource.includes('ORDERS.PUBLIC_PAYMENT_PROOF'), true);
   assert.equal(trackingSource.includes('Payment proof already uploaded'), true);
+  assert.equal(trackingSource.includes('Submit payment proof'), true);
+});
+
+test('stockist orders split own and child queues while exposing child payment and delivery actions', () => {
+  assert.equal(stockistOrdersSource.includes('My City Orders'), true);
+  assert.equal(stockistOrdersSource.includes('Mobile Stockist Orders'), true);
+  assert.equal(stockistOrdersSource.includes('My Provincial Orders'), true);
+  assert.equal(stockistOrdersSource.includes('Affiliated City Orders'), true);
+  assert.equal(stockistOrdersSource.includes('Verify Payment'), true);
+  assert.equal(stockistOrdersSource.includes('Generate Delivery Link'), true);
+  assert.equal(stockistOrdersSource.includes('Delivery Magic Link'), true);
 });
 
 test('landing checkout hands products forward into the public shop flow and shows the new total note', () => {

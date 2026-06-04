@@ -1,9 +1,17 @@
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
-import { useState, useEffect, useCallback } from 'react';
+import { Button, Spinner } from 'flowbite-react';
 import {
-  Button, Spinner, Tabs, TabItem } from 'flowbite-react';
-import {
-  HiShoppingCart, HiX, HiCheckCircle, HiExclamationCircle,
+  HiShoppingCart,
+  HiX,
+  HiCheckCircle,
+  HiExclamationCircle,
+  HiOutlinePaperAirplane,
+  HiOutlineClipboardCopy,
+  HiOutlineCheck,
+  HiOutlineExternalLink,
+  HiOutlinePhotograph,
+  HiOutlineClock,
 } from 'react-icons/hi';
 import { FiPackage } from 'react-icons/fi';
 import ConfirmModal from '@/components/ConfirmModal';
@@ -19,7 +27,6 @@ import { formatDate, formatDateTime } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
 
 const STATUS_STEPS = ['pending', 'approved', 'delivering', 'delivered'];
-
 const TAB_STATUSES = {
   all: null,
   pending: ['pending'],
@@ -39,15 +46,206 @@ function roleLabel(roleSlug) {
   return normalized ? normalized.replace(/_/g, ' ') : 'Unknown';
 }
 
+function toStatusKey(value) {
+  return String(value || '').trim().toLowerCase();
+}
+
+function isManagedChildOrder(order, viewerRole) {
+  const placedByRole = toStatusKey(order?.placed_by_role_slug);
+  if (viewerRole === 'city_stockist') {
+    return placedByRole === 'mobile_stockist';
+  }
+  if (viewerRole === 'provincial_stockist') {
+    return placedByRole === 'city_stockist';
+  }
+  return false;
+}
+
+function isOwnScopedOrder(order, viewerRole) {
+  return !isManagedChildOrder(order, viewerRole);
+}
+
+function getSectionTitles(viewerRole) {
+  if (viewerRole === 'city_stockist') {
+    return {
+      own: 'My City Orders',
+      child: 'Mobile Stockist Orders',
+      ownEmpty: 'No city orders match this filter.',
+      childEmpty: 'No affiliated mobile stockist orders match this filter.',
+    };
+  }
+
+  if (viewerRole === 'provincial_stockist') {
+    return {
+      own: 'My Provincial Orders',
+      child: 'Affiliated City Orders',
+      ownEmpty: 'No provincial orders match this filter.',
+      childEmpty: 'No affiliated city orders match this filter.',
+    };
+  }
+
+  return {
+    own: 'Operational Orders',
+    child: '',
+    ownEmpty: 'No orders match this filter.',
+    childEmpty: '',
+  };
+}
+
+function buildDeliveryLinkState(order) {
+  if (order?.has_active_delivery_link) {
+    return { label: 'Generated', tone: 'success' };
+  }
+  const paymentStatus = toStatusKey(order?.payment_status);
+  const orderStatus = toStatusKey(order?.status);
+  if (['delivered', 'cancelled', 'rejected'].includes(orderStatus)) {
+    return { label: 'Closed', tone: 'gray' };
+  }
+  if (!['paid', 'verified'].includes(paymentStatus)) {
+    return { label: 'Waiting Payment', tone: 'warning' };
+  }
+  return { label: 'Ready', tone: 'info' };
+}
+
+function buildProofState(order) {
+  if (order?.payment_proof_uploaded_at || order?.payment_proof_url) {
+    return { label: 'Uploaded', tone: 'success' };
+  }
+  return { label: 'Missing', tone: 'gray' };
+}
+
+function SectionHeader({ title, count }) {
+  return (
+    <div className="mb-3 flex items-center justify-between">
+      <h2 className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-700 dark:text-[var(--dark-text)]">
+        {title}
+      </h2>
+      <span className="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-500/10 dark:text-amber-200">
+        {count}
+      </span>
+    </div>
+  );
+}
+
+function TonePill({ label, tone }) {
+  const styles = {
+    success: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-200',
+    warning: 'bg-amber-100 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200',
+    info: 'bg-blue-100 text-blue-700 dark:bg-blue-500/10 dark:text-blue-200',
+    gray: 'bg-gray-100 text-gray-600 dark:bg-gray-500/10 dark:text-gray-300',
+  };
+
+  return (
+    <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${styles[tone] || styles.gray}`}>
+      {label}
+    </span>
+  );
+}
+
+function EmptyState({ label }) {
+  return (
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 px-4 py-10 text-center text-gray-400 dark:border-[var(--dark-border)] dark:text-[var(--dark-muted)]">
+      <FiPackage size={34} className="mb-3 opacity-30" />
+      <p className="text-sm">{label}</p>
+    </div>
+  );
+}
+
+function OrderTable({ list, onOpenDetail }) {
+  if (list.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-[var(--dark-border)] dark:bg-[var(--dark-card)]">
+      <table className="w-full text-sm">
+        <thead className="bg-gray-50 dark:bg-[var(--dark-card2)]">
+          <tr>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Order #</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Placed By</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Role</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Total</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Payment</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Proof</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Delivery Link</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Status</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Date</th>
+            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {list.map((order) => {
+            const proofState = buildProofState(order);
+            const deliveryState = buildDeliveryLinkState(order);
+            return (
+              <tr
+                key={order.id}
+                className="cursor-pointer border-t border-gray-50 transition-colors hover:bg-amber-50/30 dark:border-[var(--dark-border)] dark:hover:bg-white/5"
+                onClick={() => onOpenDetail(order)}
+              >
+                <td className="px-4 py-3 font-mono text-xs font-semibold text-gray-900 dark:text-[var(--dark-text)]">
+                  {order.order_number}
+                </td>
+                <td className="px-4 py-3">
+                  <div className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">
+                    {order.placed_by_name || order.customer_name || 'Unknown'}
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">
+                    {order.partner_name || 'Stockist'}
+                  </div>
+                </td>
+                <td className="px-4 py-3 text-xs text-gray-600 dark:text-[var(--dark-muted)]">
+                  {roleLabel(order.placed_by_role_slug)}
+                </td>
+                <td className="px-4 py-3 font-semibold text-gray-900 dark:text-[var(--dark-text)]">
+                  {formatCurrency(order.total_amount)}
+                </td>
+                <td className="px-4 py-3">
+                  <StatusBadge status={order.payment_status || 'unpaid'} />
+                </td>
+                <td className="px-4 py-3">
+                  <TonePill {...proofState} />
+                </td>
+                <td className="px-4 py-3">
+                  <TonePill {...deliveryState} />
+                </td>
+                <td className="px-4 py-3">
+                  <StatusBadge status={order.status} />
+                </td>
+                <td className="px-4 py-3 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
+                  {formatDate(order.created_at)}
+                </td>
+                <td className="px-4 py-3 text-right">
+                  <button
+                    type="button"
+                    className="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onOpenDetail(order);
+                    }}
+                  >
+                    View
+                  </button>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 export default function StockistOrders() {
   const { user } = useAuth();
   const { toasts, showToast, dismiss } = useToast();
+  const viewerRole = toStatusKey(user?.role_slug);
+  const titles = getSectionTitles(viewerRole);
 
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
-  const [orderDetail, setOrderDetail] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
   const [deliveryProof, setDeliveryProof] = useState(null);
   const [deliveryProofLoading, setDeliveryProofLoading] = useState(false);
@@ -60,6 +258,9 @@ export default function StockistOrders() {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejecting, setRejecting] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
+  const [verifyingPayment, setVerifyingPayment] = useState(false);
+  const [deliveryLinkInfo, setDeliveryLinkInfo] = useState(null);
+  const [copiedOrderId, setCopiedOrderId] = useState(null);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -67,14 +268,47 @@ export default function StockistOrders() {
       const { data } = await api.get(ORDERS.LIST, { params: { limit: 100 } });
       const list = Array.isArray(data.data) ? data.data : (data.data?.items || []);
       setOrders(list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
-    } catch {
-      showToast('Failed to load orders', 'error');
+    } catch (error) {
+      setOrders([]);
+      showToast(error?.response?.data?.message || 'Failed to load orders', 'error');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [showToast]);
 
-  useEffect(() => { fetchOrders(); }, [fetchOrders]);
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
+  const hydrateDeliveryLinkForOrder = useCallback(async (orderLike) => {
+    if (!orderLike?.id || !isManagedChildOrder(orderLike, viewerRole)) {
+      setDeliveryLinkInfo(null);
+      return;
+    }
+
+    const paymentKey = toStatusKey(orderLike.payment_status);
+    const statusKey = toStatusKey(orderLike.status);
+    if (!['paid', 'verified'].includes(paymentKey) || ['delivered', 'cancelled', 'rejected'].includes(statusKey)) {
+      setDeliveryLinkInfo(null);
+      return;
+    }
+
+    try {
+      const { data } = await api.get(DELIVERY_TOKENS.BY_ORDER(orderLike.id));
+      const existingLink = data?.data?.magic_link || null;
+      if (existingLink) {
+        setDeliveryLinkInfo({
+          orderId: orderLike.id,
+          magicLink: existingLink,
+          expiresAt: data.data?.expires_at || null,
+        });
+      } else {
+        setDeliveryLinkInfo(null);
+      }
+    } catch {
+      setDeliveryLinkInfo(null);
+    }
+  }, [viewerRole]);
 
   const openDetail = async (order) => {
     setSelectedOrder(order);
@@ -82,21 +316,26 @@ export default function StockistOrders() {
     setBankAccount(null);
     setDeliveryProof(null);
     setDeliveryProofLoading(false);
+    setDeliveryLinkInfo(null);
+    setCopiedOrderId(null);
+
     try {
       const { data } = await api.get(ORDERS.BY_ID(order.id));
-      setOrderDetail(data.data);
+      const detail = data.data;
+      setSelectedOrder(detail);
 
-      // Fetch bank account if approved and unpaid
-      if (data.data?.status === 'approved' && data.data?.payment_status !== 'paid') {
+      if (detail?.status === 'approved' && detail?.payment_status !== 'paid') {
         try {
-          const ba = await api.get(BANK_ACCOUNTS.FOR_ORDER(order.id));
-          setBankAccount(ba.data.data);
+          const bank = await api.get(BANK_ACCOUNTS.FOR_ORDER(order.id));
+          setBankAccount(bank.data.data || null);
         } catch {
-          // no bank account available
+          setBankAccount(null);
         }
       }
 
-      if (['delivering', 'delivered'].includes(String(data.data?.status || '').toLowerCase())) {
+      await hydrateDeliveryLinkForOrder(detail);
+
+      if (['delivering', 'delivered'].includes(toStatusKey(detail?.status))) {
         setDeliveryProofLoading(true);
         try {
           const pod = await api.get(DELIVERY_TOKENS.POD_BY_ORDER(order.id));
@@ -107,8 +346,8 @@ export default function StockistOrders() {
           setDeliveryProofLoading(false);
         }
       }
-    } catch {
-      showToast('Failed to load order details', 'error');
+    } catch (error) {
+      showToast(error?.response?.data?.message || 'Failed to load order details', 'error');
     } finally {
       setDetailLoading(false);
     }
@@ -116,9 +355,10 @@ export default function StockistOrders() {
 
   const closeDetail = () => {
     setSelectedOrder(null);
-    setOrderDetail(null);
     setDeliveryProof(null);
     setDeliveryProofLoading(false);
+    setDeliveryLinkInfo(null);
+    setCopiedOrderId(null);
   };
 
   const handleCancel = async () => {
@@ -130,8 +370,8 @@ export default function StockistOrders() {
       setConfirmCancel(null);
       closeDetail();
       fetchOrders();
-    } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to cancel order', 'error');
+    } catch (error) {
+      showToast(error?.response?.data?.message || 'Failed to cancel order', 'error');
     } finally {
       setCancelling(false);
     }
@@ -142,189 +382,260 @@ export default function StockistOrders() {
     setApproving(true);
     try {
       await api.patch(ORDERS.APPROVE(confirmApprove));
-      showToast('Order approved', 'success');
+      showToast('Child order approved. Waiting for payment proof.', 'success');
+      const approvedOrderId = confirmApprove;
       setConfirmApprove(null);
-      closeDetail();
-      fetchOrders();
-    } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to approve order', 'error');
+      await fetchOrders();
+      if (selectedOrder && String(selectedOrder.id) === String(approvedOrderId)) {
+        await openDetail({ id: approvedOrderId });
+      } else {
+        closeDetail();
+      }
+    } catch (error) {
+      showToast(error?.response?.data?.message || 'Failed to approve order', 'error');
     } finally {
       setApproving(false);
     }
   };
 
   const handleReject = async () => {
-    if (!detail?.id) return;
+    if (!selectedOrder?.id) return;
     setRejecting(true);
     try {
-      await api.patch(ORDERS.REJECT(detail.id), { reason: rejectReason });
-      showToast('Order rejected', 'info');
+      await api.patch(ORDERS.REJECT(selectedOrder.id), { reason: rejectReason });
+      showToast('Child order rejected', 'info');
       setShowRejectModal(false);
       setRejectReason('');
       closeDetail();
       fetchOrders();
-    } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to reject order', 'error');
+    } catch (error) {
+      showToast(error?.response?.data?.message || 'Failed to reject order', 'error');
     } finally {
       setRejecting(false);
     }
   };
 
   const handleUploadProof = async (file) => {
-    if (!orderDetail) return;
+    if (!selectedOrder) return;
     setUploading(true);
     const formData = new FormData();
     formData.append('proof', file);
     try {
-      await api.post(ORDERS.PAYMENT_PROOF(orderDetail.id), formData, {
+      await api.post(ORDERS.PAYMENT_PROOF(selectedOrder.id), formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       showToast('Payment proof uploaded!', 'success');
-      // Refresh detail
-      const { data } = await api.get(ORDERS.BY_ID(orderDetail.id));
-      setOrderDetail(data.data);
+      await openDetail({ id: selectedOrder.id });
       fetchOrders();
-    } catch (err) {
-      showToast(err?.response?.data?.message || 'Upload failed', 'error');
+    } catch (error) {
+      showToast(error?.response?.data?.message || 'Upload failed', 'error');
     } finally {
       setUploading(false);
     }
   };
 
-  const filteredOrders = (status) => {
-    const statuses = TAB_STATUSES[status];
-    if (!statuses) return orders;
-    return orders.filter(o => statuses.includes(o.status));
+  const handleVerifyPayment = async () => {
+    if (!selectedOrder?.id) return;
+    setVerifyingPayment(true);
+    try {
+      await api.patch(ORDERS.VERIFY_PAYMENT(selectedOrder.id));
+
+      let generatedLink = null;
+      try {
+        const { data } = await api.post(DELIVERY_TOKENS.GENERATE, { order_id: selectedOrder.id });
+        generatedLink = data?.data?.magic_link || null;
+        if (generatedLink) {
+          setDeliveryLinkInfo({
+            orderId: selectedOrder.id,
+            magicLink: generatedLink,
+            expiresAt: data.data?.expires_at || null,
+          });
+        }
+      } catch {
+        generatedLink = null;
+      }
+
+      showToast(
+        generatedLink
+          ? 'Payment verified and delivery link generated.'
+          : 'Payment verified. Generate the delivery link if needed.',
+        'success'
+      );
+
+      await fetchOrders();
+      await openDetail({ id: selectedOrder.id });
+    } catch (error) {
+      showToast(error?.response?.data?.message || 'Failed to verify payment', 'error');
+    } finally {
+      setVerifyingPayment(false);
+    }
   };
 
-  const tabCounts = Object.fromEntries(
-    Object.entries(TAB_STATUSES).map(([k, v]) => [k, v ? orders.filter(o => v.includes(o.status)).length : orders.length])
+  const handleGenerateDelivery = async () => {
+    if (!selectedOrder?.id) return;
+    setVerifyingPayment(true);
+    try {
+      const { data } = await api.post(DELIVERY_TOKENS.GENERATE, { order_id: selectedOrder.id });
+      const generatedLink = data?.data?.magic_link || null;
+      if (generatedLink) {
+        setDeliveryLinkInfo({
+          orderId: selectedOrder.id,
+          magicLink: generatedLink,
+          expiresAt: data.data?.expires_at || null,
+        });
+      }
+      showToast('Delivery link generated. Copy it below and send it to the delivery team.', 'success');
+      await fetchOrders();
+      await openDetail({ id: selectedOrder.id });
+    } catch (error) {
+      showToast(error?.response?.data?.message || 'Failed to generate delivery link', 'error');
+    } finally {
+      setVerifyingPayment(false);
+    }
+  };
+
+  const handleCopyDeliveryLink = async () => {
+    const link = deliveryLinkInfo?.magicLink;
+    if (!link || !selectedOrder?.id) return;
+
+    try {
+      if (navigator?.clipboard?.writeText) {
+        await navigator.clipboard.writeText(link);
+      } else {
+        const textArea = document.createElement('textarea');
+        textArea.value = link;
+        textArea.style.position = 'fixed';
+        textArea.style.opacity = '0';
+        document.body.appendChild(textArea);
+        textArea.focus();
+        textArea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textArea);
+      }
+
+      setCopiedOrderId(String(selectedOrder.id));
+      showToast('Delivery link copied.', 'success');
+    } catch {
+      showToast('Failed to copy link. Please copy it manually.', 'error');
+    }
+  };
+
+  const filteredOrders = useMemo(() => {
+    const statuses = TAB_STATUSES[activeTab];
+    if (!statuses) return orders;
+    return orders.filter((order) => statuses.includes(order.status));
+  }, [activeTab, orders]);
+
+  const ownOrders = useMemo(
+    () => filteredOrders.filter((order) => isOwnScopedOrder(order, viewerRole)),
+    [filteredOrders, viewerRole]
+  );
+  const childOrders = useMemo(
+    () => filteredOrders.filter((order) => isManagedChildOrder(order, viewerRole)),
+    [filteredOrders, viewerRole]
   );
 
-  const renderOrderTable = (list) => {
-    if (loading) {
-      return (
-        <div className="flex justify-center py-12">
-          <Spinner size="lg" color="warning" />
-        </div>
-      );
-    }
-    if (list.length === 0) {
-      return (
-        <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-          <FiPackage size={40} className="mb-3 opacity-30" />
-          <p className="text-sm">No orders found</p>
-        </div>
-      );
-    }
-    return (
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card)]">
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide">Order #</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide">Total</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide">Status</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide">Payment</th>
-              <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide">Date</th>
-              <th className="py-2.5 px-4" />
-            </tr>
-          </thead>
-          <tbody>
-            {list.map(order => (
-              <tr
-                key={order.id}
-                className="border-b border-gray-50 hover:bg-amber-50/40 cursor-pointer transition-colors"
-                onClick={() => openDetail(order)}
-              >
-                <td className="py-3 px-4 font-mono font-semibold text-xs text-gray-800 dark:text-[var(--dark-text)]">
-                  #{order.order_number || order.id}
-                </td>
-                <td className="py-3 px-4 font-semibold text-gray-900 dark:text-[var(--dark-text)]">
-                  {formatCurrency(order.total_amount)}
-                </td>
-                <td className="py-3 px-4">
-                  <StatusBadge status={order.status} />
-                </td>
-                <td className="py-3 px-4">
-                  <StatusBadge status={order.payment_status || 'unpaid'} />
-                </td>
-                <td className="py-3 px-4 text-gray-500 dark:text-[var(--dark-muted)] text-xs">
-                  {formatDate(order.created_at)}
-                </td>
-                <td className="py-3 px-4">
-                  <button className="text-xs text-amber-600 hover:text-amber-700 font-medium">
-                    View
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-    );
-  };
-
-  const detail = orderDetail || selectedOrder;
-  const viewerRole = String(user?.role_slug || '').toLowerCase();
-  const placedByRole = String(detail?.placed_by_role_slug || '').toLowerCase();
-  const canReviewPendingOrder = Boolean(
-    detail?.status === 'pending' && (
-      (viewerRole === 'provincial_stockist' && placedByRole === 'city_stockist')
-      || (viewerRole === 'city_stockist' && placedByRole === 'mobile_stockist')
+  const tabCounts = useMemo(() => (
+    Object.fromEntries(
+      Object.entries(TAB_STATUSES).map(([key, statuses]) => [
+        key,
+        statuses ? orders.filter((order) => statuses.includes(order.status)).length : orders.length,
+      ])
     )
+  ), [orders]);
+
+  const detail = selectedOrder;
+  const placedByRole = toStatusKey(detail?.placed_by_role_slug);
+  const isChildManagedOrder = isManagedChildOrder(detail, viewerRole);
+  const isOwnOrder = detail ? isOwnScopedOrder(detail, viewerRole) : false;
+  const selectedStatusKey = toStatusKey(detail?.status);
+  const selectedPaymentKey = toStatusKey(detail?.payment_status);
+  const isPaymentVerified = ['paid', 'verified'].includes(selectedPaymentKey);
+  const isTerminalStatus = ['delivered', 'cancelled', 'rejected'].includes(selectedStatusKey);
+  const canReviewPendingChildOrder = Boolean(detail?.status === 'pending' && isChildManagedOrder);
+  const canVerifyChildPayment = Boolean(
+    detail?.status === 'approved'
+    && !isPaymentVerified
+    && isChildManagedOrder
+    && detail?.payment_proof_url
+  );
+  const canGenerateChildDeliveryLink = Boolean(isChildManagedOrder && isPaymentVerified && !isTerminalStatus);
+  const canCancelOwnPendingOrder = Boolean(detail?.status === 'pending' && isOwnOrder);
+  const canUploadOwnPaymentProof = Boolean(detail?.status === 'approved' && !isPaymentVerified && isOwnOrder);
+  const hasActiveDetailLink = Boolean(
+    detail
+    && deliveryLinkInfo
+    && String(deliveryLinkInfo.orderId) === String(detail.id)
+    && deliveryLinkInfo.magicLink
   );
 
   return (
-    <div className="p-4 md:p-6 min-h-screen page-enter bg-[#FFF8F0] dark:bg-[var(--dark-bg)]">
+    <div className="min-h-screen bg-[#FFF8F0] p-4 md:p-6 dark:bg-[var(--dark-bg)]">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)] flex items-center gap-2">
+        <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)]">
           <HiShoppingCart className="text-amber-500" />
-          My Orders
+          Orders
         </h1>
-        <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)] mt-0.5">Track and manage your orders</p>
+        <p className="mt-0.5 text-sm text-gray-500 dark:text-[var(--dark-muted)]">
+          Review your orders and the child-order queue routed to your Stockist level.
+        </p>
       </div>
 
-      {/* Tabs */}
-      <div className="bg-white dark:bg-[var(--dark-card)] rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] shadow-sm overflow-hidden">
-        <Tabs
-          aria-label="Orders tabs"
-          variant="underline"
-          onActiveTabChange={idx => {
-            const keys = Object.keys(TAB_STATUSES);
-            setActiveTab(keys[idx]);
-          }}
-        >
-          {Object.entries(TAB_STATUSES).map(([key]) => (
-            <TabItem
-              key={key}
-              title={
-                <span className="flex items-center gap-1.5 capitalize">
-                  {key}
-                  {tabCounts[key] > 0 && (
-                    <span className="text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full font-normal">
-                      {tabCounts[key]}
-                    </span>
-                  )}
-                </span>
-              }
-            >
-              <div className="p-0">
-                {renderOrderTable(filteredOrders(key))}
-              </div>
-            </TabItem>
-          ))}
-        </Tabs>
+      <div className="mb-5 flex flex-wrap gap-2">
+        {Object.keys(TAB_STATUSES).map((tabKey) => (
+          <button
+            key={tabKey}
+            type="button"
+            onClick={() => setActiveTab(tabKey)}
+            className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
+              activeTab === tabKey
+                ? 'bg-amber-500 text-white'
+                : 'bg-white text-gray-600 hover:bg-amber-50 dark:bg-[var(--dark-card)] dark:text-[var(--dark-muted)] dark:hover:bg-[var(--dark-card2)]'
+            }`}
+          >
+            <span className="capitalize">{tabKey}</span>
+            <span className="ml-2 rounded-full bg-black/10 px-2 py-0.5 text-[11px] font-bold text-current dark:bg-white/10">
+              {tabCounts[tabKey]}
+            </span>
+          </button>
+        ))}
       </div>
 
-      {/* Order Detail Modal */}
-      <Modal show={!!selectedOrder} onClose={closeDetail} size="xl" backdropClasses="bg-black/50 backdrop-blur-sm">
+      {loading ? (
+        <div className="flex justify-center py-16">
+          <Spinner size="xl" color="warning" />
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <section>
+            <SectionHeader title={titles.own} count={ownOrders.length} />
+            {ownOrders.length === 0 ? (
+              <EmptyState label={titles.ownEmpty} />
+            ) : (
+              <OrderTable list={ownOrders} onOpenDetail={openDetail} />
+            )}
+          </section>
+
+          {titles.child ? (
+            <section>
+              <SectionHeader title={titles.child} count={childOrders.length} />
+              {childOrders.length === 0 ? (
+                <EmptyState label={titles.childEmpty} />
+              ) : (
+                <OrderTable list={childOrders} onOpenDetail={openDetail} />
+              )}
+            </section>
+          ) : null}
+        </div>
+      )}
+
+      <Modal show={Boolean(selectedOrder)} onClose={closeDetail} size="3xl" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>
           Order Details
           {detail && (
-            <span className="ml-2 font-mono text-sm font-normal text-gray-500">
+            <span className="ml-2 font-mono text-sm font-normal text-gray-500 dark:text-[var(--dark-muted)]">
               #{detail.order_number || detail.id}
             </span>
           )}
@@ -336,80 +647,108 @@ export default function StockistOrders() {
             </div>
           ) : !detail ? null : (
             <>
-              {/* Status progress */}
               {!['cancelled', 'rejected'].includes(detail.status) && (
                 <StatusProgressBar steps={STATUS_STEPS} current={detail.status} />
               )}
 
-              {/* Header info */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
                   { label: 'Order #', value: `#${detail.order_number || detail.id}` },
-                  { label: 'Date', value: formatDate(detail.created_at) },
+                  { label: 'Date', value: formatDateTime(detail.created_at) },
                   { label: 'Status', value: <StatusBadge status={detail.status} /> },
                   { label: 'Payment', value: <StatusBadge status={detail.payment_status || 'unpaid'} /> },
                 ].map(({ label, value }) => (
-                  <div key={label} className="bg-gray-50 dark:bg-[var(--dark-card2)] rounded-xl p-3">
-                    <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)] mb-0.5">{label}</p>
-                    <div className="font-semibold text-sm text-gray-900 dark:text-[var(--dark-text)]">{value}</div>
+                  <div key={label} className="rounded-xl bg-gray-50 p-3 dark:bg-[var(--dark-card2)]">
+                    <p className="mb-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">{label}</p>
+                    <div className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)]">{value}</div>
                   </div>
                 ))}
               </div>
 
-              <div className="bg-gray-50 dark:bg-[var(--dark-card2)] rounded-xl p-3">
-                <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)] mb-0.5">Placed By</p>
-                <div className="font-semibold text-sm text-gray-900 dark:text-[var(--dark-text)]">
+              <div className="rounded-xl bg-gray-50 p-3 dark:bg-[var(--dark-card2)]">
+                <p className="mb-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">Placed By</p>
+                <div className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)]">
                   {detail.placed_by_name || detail.customer_name || 'Unknown'}
                 </div>
-                <div className="text-xs text-gray-500 dark:text-[var(--dark-muted)] mt-0.5">
+                <div className="mt-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
                   {roleLabel(detail.placed_by_role_slug)}
                   {detail.placed_by_email ? ` - ${detail.placed_by_email}` : ''}
                 </div>
               </div>
 
-              {/* Items */}
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-2">Order Items</h3>
-                {(!detail.items || detail.items.length === 0) ? (
-                  <p className="text-sm text-gray-400 bg-gray-50 dark:bg-[var(--dark-card2)] rounded-xl px-4 py-3">No items found</p>
-                ) : (
-                  <div className="border border-gray-100 dark:border-[var(--dark-border)] rounded-xl overflow-hidden">
-                    <table className="w-full text-sm">
-                      <thead className="bg-gray-50 dark:bg-[var(--dark-card)]">
-                        <tr>
-                          <th className="text-left px-4 py-2.5 text-xs text-gray-500 dark:text-[var(--dark-muted)] font-semibold">Product</th>
-                          <th className="text-center px-4 py-2.5 text-xs text-gray-500 dark:text-[var(--dark-muted)] font-semibold">Qty</th>
-                          <th className="text-right px-4 py-2.5 text-xs text-gray-500 dark:text-[var(--dark-muted)] font-semibold">Price</th>
-                          <th className="text-right px-4 py-2.5 text-xs text-gray-500 dark:text-[var(--dark-muted)] font-semibold">Subtotal</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {detail.items.map((item, i) => (
-                          <tr key={i} className="border-t border-gray-50 dark:border-[var(--dark-border)]">
-                            <td className="px-4 py-2.5 font-medium text-gray-800 dark:text-[var(--dark-text)]">{item.product_name}</td>
-                            <td className="px-4 py-2.5 text-center text-gray-600 dark:text-[var(--dark-muted)]">{item.quantity}</td>
-                            <td className="px-4 py-2.5 text-right text-gray-600 dark:text-[var(--dark-muted)]">{formatCurrency(item.unit_price)}</td>
-                            <td className="px-4 py-2.5 text-right font-semibold text-gray-900 dark:text-[var(--dark-text)]">
-                              {formatCurrency(item.subtotal ?? (item.quantity * item.unit_price))}
-                            </td>
-                          </tr>
-                        ))}
-                        <tr className="border-t-2 border-gray-200 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)]">
-                          <td colSpan={3} className="px-4 py-3 text-right font-bold text-gray-900 dark:text-[var(--dark-text)]">Total</td>
-                          <td className="px-4 py-3 text-right font-bold text-amber-600 text-base">
-                            {formatCurrency(detail.total_amount)}
-                          </td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+              <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-[var(--dark-border)]">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 dark:bg-[var(--dark-card)]">
+                    <tr>
+                      <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)]">Product</th>
+                      <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)]">Qty</th>
+                      <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)]">Price</th>
+                      <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)]">Subtotal</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {(detail.items || []).map((item, index) => (
+                      <tr key={`${item.product_id}-${index}`} className="border-t border-gray-50 dark:border-[var(--dark-border)]">
+                        <td className="px-4 py-2.5 font-medium text-gray-800 dark:text-[var(--dark-text)]">{item.product_name}</td>
+                        <td className="px-4 py-2.5 text-center text-gray-600 dark:text-[var(--dark-muted)]">{item.quantity}</td>
+                        <td className="px-4 py-2.5 text-right text-gray-600 dark:text-[var(--dark-muted)]">{formatCurrency(item.unit_price)}</td>
+                        <td className="px-4 py-2.5 text-right font-semibold text-gray-900 dark:text-[var(--dark-text)]">
+                          {formatCurrency(item.subtotal ?? (item.quantity * item.unit_price))}
+                        </td>
+                      </tr>
+                    ))}
+                    <tr className="border-t-2 border-gray-200 bg-gray-50 dark:border-[var(--dark-border)] dark:bg-[var(--dark-card2)]">
+                      <td colSpan={3} className="px-4 py-3 text-right font-bold text-gray-900 dark:text-[var(--dark-text)]">Total</td>
+                      <td className="px-4 py-3 text-right text-base font-bold text-amber-600">
+                        {formatCurrency(detail.total_amount)}
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
 
-              {/* Payment section */}
-              {detail.status === 'approved' && (
+              {detail.payment_proof_url && (
+                <div className="flex items-center justify-between rounded-xl border border-blue-100 bg-blue-50 p-4 dark:border-blue-500/20 dark:bg-blue-500/10">
+                  <div className="flex items-center gap-3">
+                    <div className="rounded-lg bg-blue-100 p-2 text-blue-600 dark:bg-blue-500/10 dark:text-blue-200">
+                      <HiOutlinePhotograph className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-800 dark:text-blue-200">Payment Proof</p>
+                      <p className="text-xs text-blue-700/80 dark:text-blue-200/80">
+                        {detail.payment_proof_uploaded_at ? `Uploaded ${formatDateTime(detail.payment_proof_uploaded_at)}` : 'Proof uploaded'}
+                      </p>
+                    </div>
+                  </div>
+                  <a
+                    href={detail.payment_proof_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+                  >
+                    View Proof
+                    <HiOutlineExternalLink className="h-3.5 w-3.5" />
+                  </a>
+                </div>
+              )}
+
+              {detail.payment_deadline && selectedPaymentKey !== 'paid' && !['cancelled', 'rejected'].includes(selectedStatusKey) && (
+                <div className="flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50 p-4 dark:border-amber-500/20 dark:bg-amber-500/10">
+                  <div className="rounded-lg bg-amber-100 p-2 text-amber-600 dark:bg-amber-500/10 dark:text-amber-200">
+                    <HiOutlineClock className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-amber-800 dark:text-amber-200">Payment Deadline</p>
+                    <p className="text-sm font-semibold text-amber-700 dark:text-amber-100">
+                      {formatDateTime(detail.payment_deadline)}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {canUploadOwnPaymentProof ? (
                 <div>
-                  <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-2">Payment</h3>
+                  <h3 className="mb-2 text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)]">Payment</h3>
                   <PaymentCountdownTimer
                     deadline={detail.payment_deadline}
                     bankAccount={bankAccount}
@@ -417,79 +756,107 @@ export default function StockistOrders() {
                     uploading={uploading}
                     paymentProofUrl={detail.payment_proof_url}
                   />
-                  {detail.payment_status === 'paid' && (
-                    <div className="mt-2 space-y-1">
-                      <div className="flex items-center gap-2 text-emerald-600 text-sm font-medium">
-                        <HiCheckCircle className="w-4 h-4" />
-                        Payment verified
-                      </div>
-                      {detail.payment_proof_url && (
-                        <a
-                          href={detail.payment_proof_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-block text-xs text-blue-600 hover:underline"
-                        >
-                          View uploaded proof
-                        </a>
+                </div>
+              ) : detail.status === 'approved' && detail.payment_status !== 'paid' && isChildManagedOrder ? (
+                <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
+                  This child order is awaiting payment verification. Review the uploaded proof, verify payment, and generate the delivery link once payment is confirmed.
+                </div>
+              ) : null}
+
+              {hasActiveDetailLink && (
+                <div className="rounded-xl border border-purple-200 bg-purple-50 p-5 dark:border-purple-500/20 dark:bg-purple-500/10">
+                  <div className="mb-3">
+                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-purple-900 dark:text-purple-200">
+                      Delivery Magic Link
+                    </p>
+                    <p className="text-sm text-purple-700/80 dark:text-purple-200/80">
+                      Copy this link and send it to the delivery team.
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center">
+                    <input
+                      type="text"
+                      readOnly
+                      value={deliveryLinkInfo.magicLink}
+                      className="w-full rounded-xl border border-purple-200 bg-white px-3 py-2 text-xs font-mono text-gray-700 dark:border-purple-500/20 dark:bg-[var(--dark-card2)] dark:text-[var(--dark-text)]"
+                    />
+                    <Button color="purple" onClick={handleCopyDeliveryLink}>
+                      {String(copiedOrderId) === String(detail.id) ? (
+                        <>
+                          <HiOutlineCheck className="mr-2 h-4 w-4" />
+                          Copied
+                        </>
+                      ) : (
+                        <>
+                          <HiOutlineClipboardCopy className="mr-2 h-4 w-4" />
+                          Copy Link
+                        </>
                       )}
-                    </div>
+                    </Button>
+                  </div>
+                  {deliveryLinkInfo.expiresAt && (
+                    <p className="mt-3 text-xs text-purple-700/80 dark:text-purple-200/80">
+                      Expires: {formatDateTime(deliveryLinkInfo.expiresAt)}
+                    </p>
                   )}
                 </div>
               )}
 
-              {(deliveryProofLoading || deliveryProof || ['delivering', 'delivered'].includes(String(detail.status || '').toLowerCase())) && (
+              {(deliveryProofLoading || deliveryProof || ['delivering', 'delivered'].includes(selectedStatusKey)) && (
                 <ProofOfDeliveryPanel
                   proof={deliveryProof}
                   loading={deliveryProofLoading}
-                  emptyMessage="The rider has not submitted proof of delivery yet. The map will only become live after the courier opens the magic link and starts sending GPS pings."
+                  emptyMessage="The rider has not submitted proof of delivery yet. The map becomes live after the delivery magic link starts sending GPS pings."
                 />
-              )}
-
-              {/* Cancel button */}
-              {detail.status === 'pending' && (
-                <div className="pt-2">
-                  <div className="flex flex-wrap gap-2">
-                    {canReviewPendingOrder && (
-                      <>
-                        <Button
-                          color="success"
-                          size="sm"
-                          onClick={() => setConfirmApprove(detail.id)}
-                        >
-                          <HiCheckCircle className="mr-2 w-4 h-4" />
-                          Approve Child Order
-                        </Button>
-                        <Button
-                          color="failure"
-                          outline
-                          size="sm"
-                          onClick={() => setShowRejectModal(true)}
-                        >
-                          <HiExclamationCircle className="mr-2 w-4 h-4" />
-                          Reject Child Order
-                        </Button>
-                      </>
-                    )}
-                    <Button
-                      color="failure"
-                      size="sm"
-                      onClick={() => setConfirmCancel(detail.id)}
-                    >
-                      <HiX className="mr-2 w-4 h-4" />
-                      Cancel Order
-                    </Button>
-                  </div>
-                </div>
               )}
             </>
           )}
         </ModalBody>
+        {detail && !detailLoading && (
+          <ModalFooter>
+            <div className="flex w-full flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap gap-2">
+                {canReviewPendingChildOrder && (
+                  <>
+                    <Button color="success" onClick={() => setConfirmApprove(detail.id)}>
+                      <HiCheckCircle className="mr-2 h-4 w-4" />
+                      Approve Child Order
+                    </Button>
+                    <Button color="failure" outline onClick={() => setShowRejectModal(true)}>
+                      <HiExclamationCircle className="mr-2 h-4 w-4" />
+                      Reject Child Order
+                    </Button>
+                  </>
+                )}
+                {canVerifyChildPayment && (
+                  <Button color="success" onClick={handleVerifyPayment} isProcessing={verifyingPayment} disabled={verifyingPayment}>
+                    <HiCheckCircle className="mr-2 h-4 w-4" />
+                    Verify Payment
+                  </Button>
+                )}
+                {canGenerateChildDeliveryLink && (
+                  <Button color="purple" onClick={handleGenerateDelivery} isProcessing={verifyingPayment} disabled={verifyingPayment}>
+                    <HiOutlinePaperAirplane className="mr-2 h-4 w-4 rotate-45" />
+                    {hasActiveDetailLink ? 'Regenerate Delivery Link' : 'Generate Delivery Link'}
+                  </Button>
+                )}
+                {canCancelOwnPendingOrder && (
+                  <Button color="failure" onClick={() => setConfirmCancel(detail.id)}>
+                    <HiX className="mr-2 h-4 w-4" />
+                    Cancel Order
+                  </Button>
+                )}
+              </div>
+              <Button color="gray" onClick={closeDetail}>
+                Close
+              </Button>
+            </div>
+          </ModalFooter>
+        )}
       </Modal>
 
-      {/* Cancel Confirm */}
       <ConfirmModal
-        show={!!confirmCancel}
+        show={Boolean(confirmCancel)}
         title="Cancel Order"
         message="Are you sure you want to cancel this order? This action cannot be undone."
         confirmLabel="Cancel Order"
@@ -500,10 +867,10 @@ export default function StockistOrders() {
       />
 
       <ConfirmModal
-        show={!!confirmApprove}
-        title="Approve Order"
-        message="Approve this child order and move it to payment collection?"
-        confirmLabel="Approve Order"
+        show={Boolean(confirmApprove)}
+        title="Approve Child Order"
+        message="Approve this child order and move it into payment collection?"
+        confirmLabel="Approve Child Order"
         confirmColor="success"
         loading={approving}
         onConfirm={handleApprove}
@@ -511,10 +878,10 @@ export default function StockistOrders() {
       />
 
       <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} size="md" backdropClasses="bg-black/50 backdrop-blur-sm">
-        <ModalHeader>Reject Order</ModalHeader>
+        <ModalHeader>Reject Child Order</ModalHeader>
         <ModalBody className="space-y-3">
           <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)]">
-            Provide a short reason so the child Stockist understands what to fix.
+            Provide a short reason so the child Stockist knows what to fix before resubmitting.
           </p>
           <textarea
             value={rejectReason}
@@ -526,7 +893,7 @@ export default function StockistOrders() {
         </ModalBody>
         <ModalFooter>
           <Button color="failure" onClick={handleReject} isProcessing={rejecting} disabled={rejecting}>
-            Reject Order
+            Reject Child Order
           </Button>
           <Button color="gray" onClick={() => setShowRejectModal(false)}>
             Cancel
