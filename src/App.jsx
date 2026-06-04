@@ -1,9 +1,10 @@
 import React, { Suspense, lazy } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { useThemeMode } from 'flowbite-react';
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { CartProvider } from '@/context/CartContext';
 import { NotificationProvider } from '@/context/NotificationContext';
-import { ThemeProvider } from '@/context/ThemeContext';
+import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { ROLE_SLUGS } from '@/utils/constants';
 import { PERMISSIONS, can, normalizeRoleSlug } from '@/utils/permissions';
 
@@ -94,7 +95,30 @@ const ProtectedRoute = ({ children, allowedRoles, requiredPermission }) => {
 
 const AppRoutes = () => {
   const { user } = useAuth();
+  const { dark } = useTheme();
+  const { setMode } = useThemeMode();
+  const location = useLocation();
   const normalizedRole = normalizeRoleSlug(user?.role_slug);
+
+  React.useLayoutEffect(() => {
+    const isPublicRoute = ['/', '/login', '/shop', '/track'].some((path) =>
+      location.pathname === path || location.pathname.startsWith(path + '/')
+    ) || location.pathname.startsWith('/deliver/');
+
+    const root = document.documentElement;
+    if (isPublicRoute) {
+      root.classList.remove('dark');
+      setMode('light');
+    } else {
+      if (dark) {
+        root.classList.add('dark');
+        setMode('dark');
+      } else {
+        root.classList.remove('dark');
+        setMode('light');
+      }
+    }
+  }, [location.pathname, dark, setMode]);
 
   return (
     <Suspense fallback={<LoadingScreen />}>

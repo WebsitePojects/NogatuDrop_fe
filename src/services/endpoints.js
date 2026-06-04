@@ -83,6 +83,7 @@ export const ORDERS = {
   LIST:          '/orders',
   CREATE:        '/orders',
   PUBLIC:        '/orders/public',
+  PUBLIC_PAYMENT_PROOF: '/orders/public/payment-proof',
   BY_ID:         (id) => `/orders/${id}`,
   APPROVE:       (id) => `/orders/${id}/approve`,
   REJECT:        (id) => `/orders/${id}/reject`,

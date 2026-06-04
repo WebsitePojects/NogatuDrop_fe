@@ -6,8 +6,12 @@ const appSource = readFileSync(new URL('../src/App.jsx', import.meta.url), 'utf8
 const mainLayoutSource = readFileSync(new URL('../src/layouts/MainLayout.jsx', import.meta.url), 'utf8');
 const stockistLayoutSource = readFileSync(new URL('../src/layouts/StockistLayout.jsx', import.meta.url), 'utf8');
 const mobileLayoutSource = readFileSync(new URL('../src/layouts/MobileLayout.jsx', import.meta.url), 'utf8');
+const landingSource = readFileSync(new URL('../src/pages/shared/LandingPage.jsx', import.meta.url), 'utf8');
 const shopSource = readFileSync(new URL('../src/pages/shared/Shop.jsx', import.meta.url), 'utf8');
 const stockistCatalogSource = readFileSync(new URL('../src/pages/stockist/Catalog.jsx', import.meta.url), 'utf8');
+const loginSource = readFileSync(new URL('../src/pages/shared/Login.jsx', import.meta.url), 'utf8');
+const apiSource = readFileSync(new URL('../src/services/api.js', import.meta.url), 'utf8');
+const productImagesSource = readFileSync(new URL('../src/utils/productImages.js', import.meta.url), 'utf8');
 
 test('app shell removes phase workspace pages from the live route surface', () => {
   assert.equal(appSource.includes('LandingPage'), true);
@@ -60,8 +64,49 @@ test('public shop exposes a recoverable catalog error state instead of failing s
   assert.equal(shopSource.includes('No matching products found'), true);
 });
 
+test('public shop now completes checkout with a bank-transfer payment wall and proof upload', () => {
+  assert.equal(shopSource.includes('Bank Transfer Instructions'), true);
+  assert.equal(shopSource.includes('Upload Payment Proof'), true);
+  assert.equal(shopSource.includes('ORDERS.PUBLIC_PAYMENT_PROOF'), true);
+  assert.equal(shopSource.includes('Track my order'), true);
+  assert.equal(shopSource.includes('VAT and System Fee Included'), true);
+  assert.equal(shopSource.includes('normalizeIncomingPublicCart'), true);
+});
+
+test('public tracking can continue unpaid orders with payment instructions and proof upload', () => {
+  const trackingSource = readFileSync(new URL('../src/pages/shared/Tracking.jsx', import.meta.url), 'utf8');
+
+  assert.equal(trackingSource.includes('Payment Instructions'), true);
+  assert.equal(trackingSource.includes('Phone number used at checkout'), true);
+  assert.equal(trackingSource.includes('ORDERS.PUBLIC_PAYMENT_PROOF'), true);
+  assert.equal(trackingSource.includes('Payment proof already uploaded'), true);
+});
+
+test('landing checkout hands products forward into the public shop flow and shows the new total note', () => {
+  assert.equal(landingSource.includes("navigate('/shop', { state: { cart: cartItems, openCheckout: true } });"), true);
+  assert.equal(landingSource.includes('VAT and System Fee Included'), true);
+});
+
+test('frontend defaults API and image origins to the current browser host when env is unset', () => {
+  assert.equal(apiSource.includes('const { protocol, hostname } = window.location;'), true);
+  assert.equal(apiSource.includes('return `${protocol}//${hostname}:5000/api/v1`;'), true);
+  assert.equal(productImagesSource.includes('const { protocol, hostname } = window.location;'), true);
+  assert.equal(productImagesSource.includes('return `${protocol}//${hostname}:5000/api/v1`;'), true);
+});
+
 test('stockist catalog surfaces route-aware availability before checkout', () => {
   assert.equal(stockistCatalogSource.includes('available_qty'), true);
   assert.equal(stockistCatalogSource.includes('Unavailable from your route'), true);
   assert.equal(stockistCatalogSource.includes('is currently unavailable from your supply route'), true);
+});
+
+test('login form tabs from email to password before forgot-password recovery link', () => {
+  const passwordFieldIndex = loginSource.indexOf('id="login-password"');
+  const forgotPasswordIndex = loginSource.indexOf('Forgot password?');
+
+  assert.equal(loginSource.includes('name="email"'), true);
+  assert.equal(loginSource.includes('name="password"'), true);
+  assert.ok(passwordFieldIndex > -1, 'Password field should exist');
+  assert.ok(forgotPasswordIndex > -1, 'Forgot password link should exist');
+  assert.ok(passwordFieldIndex < forgotPasswordIndex, 'Forgot password link should come after the password field in DOM order');
 });

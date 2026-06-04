@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   FiArrowRight,
@@ -20,6 +20,7 @@ import {
   FiX,
 } from 'react-icons/fi';
 import { NOGATU_PRODUCT_CATALOG } from '@/utils/nogatuCatalog';
+import { getPublicOrderPricingTotals } from '@/utils/publicCheckoutPricing';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 const ABOUT_IMAGE = '/assets/about_nogatu.jpg';
@@ -96,20 +97,9 @@ const LandingPage = () => {
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
-  const [checkoutOpen, setCheckoutOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
   const [selectedProductId, setSelectedProductId] = useState(PRODUCTS[0].id);
   const [cart, setCart] = useState([]);
-  const [orderPlaced, setOrderPlaced] = useState(false);
-  const [checkoutForm, setCheckoutForm] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: '',
-    city: '',
-    zip: '',
-      payment: 'card',
-  });
 
   const revealRefs = useRef([]);
 
@@ -138,9 +128,9 @@ const LandingPage = () => {
   }, [cart]);
 
   const subtotal = useMemo(() => cartItems.reduce((sum, item) => sum + item.lineTotal, 0), [cartItems]);
-  const shipping = subtotal > 0 ? (subtotal >= 2500 ? 0 : 149) : 0;
-  const tax = subtotal * 0.12;
-  const total = subtotal + shipping + tax;
+  const pricingTotals = useMemo(() => getPublicOrderPricingTotals(subtotal), [subtotal]);
+  const shipping = pricingTotals.shippingFee;
+  const total = pricingTotals.totalDue;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -163,11 +153,11 @@ const LandingPage = () => {
   }, []);
 
   useEffect(() => {
-    document.body.style.overflow = cartOpen || checkoutOpen ? 'hidden' : 'auto';
+    document.body.style.overflow = cartOpen ? 'hidden' : 'auto';
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [cartOpen, checkoutOpen]);
+  }, [cartOpen]);
 
   const setRevealRef = (index) => (element) => {
     revealRefs.current[index] = element;
@@ -206,30 +196,6 @@ const LandingPage = () => {
     setCart((previous) => previous.filter((item) => item.id !== productId));
   };
 
-  const handleCheckoutField = (event) => {
-    const { name, value } = event.target;
-    setCheckoutForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const completeCheckout = (event) => {
-    event.preventDefault();
-    if (!cartItems.length) return;
-    setOrderPlaced(true);
-    setCart([]);
-    setTimeout(() => {
-      setCheckoutOpen(false);
-      setOrderPlaced(false);
-      setCheckoutForm({
-        fullName: '',
-        email: '',
-        phone: '',
-        address: '',
-        city: '',
-        zip: '',
-        payment: 'card',
-      });
-    }, 1700);
-  };
 
   return (
     <div className="landing-shell relative min-h-screen overflow-x-hidden text-[#f8efe4]">
@@ -340,7 +306,7 @@ const LandingPage = () => {
                 <span className="bg-gradient-to-r from-[#ffd79e] via-[#ffaf57] to-[#ff8d32] bg-clip-text text-transparent"> Nogatu Wellness Drinks</span>
               </h1>
               <p className="max-w-xl text-base leading-relaxed text-orange-50/78 sm:text-lg">
-                From energizing coffee blends and rich chocolate mixes to nourishing barley drinks ΓÇö Nogatu brings you
+                From energizing coffee blends and rich chocolate mixes to nourishing barley drinks Nogatu brings you
                 health-focused beverages crafted for everyday wellness, delivered nationwide across the Philippines.
               </p>
 
@@ -811,14 +777,13 @@ const LandingPage = () => {
               </div>
               <div className="flex items-center justify-between text-orange-100/80">
                 <span>Shipping</span>
-                <span>{shipping === 0 ? 'Free' : formatPeso(shipping)}</span>
-              </div>
-              <div className="flex items-center justify-between text-orange-100/80">
-                <span>VAT (12%)</span>
-                <span>{formatPeso(tax)}</span>
+                <span>{formatPeso(shipping)}</span>
               </div>
               <div className="mt-2 flex items-center justify-between border-t border-orange-100/18 pt-2 text-base font-bold text-orange-50">
-                <span>Total</span>
+                <div>
+                  <span>Total</span>
+                  <p className="text-[11px] font-medium text-orange-200/60">VAT and System Fee Included</p>
+                </div>
                 <span>{formatPeso(total)}</span>
               </div>
             </div>
@@ -827,7 +792,7 @@ const LandingPage = () => {
               disabled={!cartItems.length}
               onClick={() => {
                 setCartOpen(false);
-                setCheckoutOpen(true);
+                navigate('/shop', { state: { cart: cartItems, openCheckout: true } });
               }}
               className="mt-4 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#f7a340] to-[#de7a26] px-4 py-3 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-45"
             >
@@ -842,128 +807,7 @@ const LandingPage = () => {
         </div>
       )}
 
-      {checkoutOpen && (
-        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 p-4">
-          <div className="max-h-[92vh] w-full max-w-2xl overflow-auto rounded-2xl border border-orange-100/20 bg-[#24160c] p-6 text-orange-50">
-            <div className="mb-4 flex items-center justify-between">
-              <h4 className="text-xl font-bold">Checkout</h4>
-              <button onClick={() => setCheckoutOpen(false)} className="rounded-lg p-2 transition hover:bg-white/10" aria-label="Close checkout">
-                <FiX />
-              </button>
-            </div>
 
-            {orderPlaced ? (
-              <div className="rounded-xl border border-emerald-300/30 bg-emerald-500/15 p-8 text-center">
-                <div className="mx-auto mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full bg-emerald-400/20 text-emerald-200">
-                  <FiCheck size={28} />
-                </div>
-                <p className="text-lg font-bold text-emerald-100">Order placed successfully</p>
-                <p className="mt-2 text-sm text-emerald-100/80">Your request is now queued for processing and fulfillment.</p>
-              </div>
-            ) : (
-              <form onSubmit={completeCheckout} className="grid gap-5 md:grid-cols-2">
-                <label className="text-sm">
-                  Full Name
-                  <input
-                    name="fullName"
-                    value={checkoutForm.fullName}
-                    onChange={handleCheckoutField}
-                    required
-                    className="mt-1 w-full rounded-lg border border-orange-100/25 bg-[#2f1a0d] px-3 py-2 text-sm text-orange-50 outline-none transition focus:border-orange-300/60"
-                  />
-                </label>
-                <label className="text-sm">
-                  Email
-                  <input
-                    type="email"
-                    name="email"
-                    value={checkoutForm.email}
-                    onChange={handleCheckoutField}
-                    required
-                    className="mt-1 w-full rounded-lg border border-orange-100/25 bg-[#2f1a0d] px-3 py-2 text-sm text-orange-50 outline-none transition focus:border-orange-300/60"
-                  />
-                </label>
-                <label className="text-sm">
-                  Phone
-                  <input
-                    name="phone"
-                    value={checkoutForm.phone}
-                    onChange={handleCheckoutField}
-                    required
-                    className="mt-1 w-full rounded-lg border border-orange-100/25 bg-[#2f1a0d] px-3 py-2 text-sm text-orange-50 outline-none transition focus:border-orange-300/60"
-                  />
-                </label>
-                <label className="text-sm">
-                  City
-                  <input
-                    name="city"
-                    value={checkoutForm.city}
-                    onChange={handleCheckoutField}
-                    required
-                    className="mt-1 w-full rounded-lg border border-orange-100/25 bg-[#2f1a0d] px-3 py-2 text-sm text-orange-50 outline-none transition focus:border-orange-300/60"
-                  />
-                </label>
-                <label className="text-sm md:col-span-2">
-                  Street Address
-                  <input
-                    name="address"
-                    value={checkoutForm.address}
-                    onChange={handleCheckoutField}
-                    required
-                    className="mt-1 w-full rounded-lg border border-orange-100/25 bg-[#2f1a0d] px-3 py-2 text-sm text-orange-50 outline-none transition focus:border-orange-300/60"
-                  />
-                </label>
-                <label className="text-sm">
-                  ZIP Code
-                  <input
-                    name="zip"
-                    value={checkoutForm.zip}
-                    onChange={handleCheckoutField}
-                    required
-                    className="mt-1 w-full rounded-lg border border-orange-100/25 bg-[#2f1a0d] px-3 py-2 text-sm text-orange-50 outline-none transition focus:border-orange-300/60"
-                  />
-                </label>
-                <label className="text-sm">
-                  Payment Method
-                  <select
-                    name="payment"
-                    value={checkoutForm.payment}
-                    onChange={handleCheckoutField}
-                    className="mt-1 w-full rounded-lg border border-orange-100/25 bg-[#2f1a0d] px-3 py-2 text-sm text-orange-50 outline-none transition focus:border-orange-300/60"
-                  >
-                    <option value="card">Credit / Debit Card</option>
-                    <option value="gcash">GCash</option>
-                    <option value="bank">Bank Transfer</option>
-                  </select>
-                </label>
-
-                <div className="rounded-lg border border-orange-100/20 bg-white/5 p-4 text-sm md:col-span-2">
-                  <div className="mb-1 flex justify-between text-orange-100/80">
-                    <span>Subtotal</span>
-                    <span>{formatPeso(subtotal)}</span>
-                  </div>
-                  <div className="mb-1 flex justify-between text-orange-100/80">
-                    <span>Shipping</span>
-                    <span>{shipping === 0 ? 'Free' : formatPeso(shipping)}</span>
-                  </div>
-                  <div className="flex justify-between border-t border-orange-100/20 pt-2 font-bold text-orange-50">
-                    <span>Total Amount</span>
-                    <span>{formatPeso(total)}</span>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="md:col-span-2 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#f7a340] to-[#de7a26] px-4 py-3 text-sm font-semibold text-white transition hover:brightness-110"
-                >
-                  Confirm Checkout
-                  <FiCreditCard />
-                </button>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 };

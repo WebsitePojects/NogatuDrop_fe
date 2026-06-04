@@ -101,15 +101,20 @@ export default function Login() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Input */}
             <div className="space-y-1.5">
-              <label className="block text-[11px] font-bold uppercase tracking-wider text-amber-500/80">
+              <label htmlFor="login-email" className="block text-[11px] font-bold uppercase tracking-wider text-amber-500/80">
                 Email Address
               </label>
               <input
+                id="login-email"
+                name="email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
+                autoCapitalize="none"
+                autoCorrect="off"
+                inputMode="email"
                 autoComplete="email"
                 className="w-full border-0 border-b border-white/20 bg-transparent px-0 py-3 text-white placeholder:text-[#d4bca4]/45 focus:border-amber-400 focus:ring-0 focus:outline-none"
               />
@@ -117,19 +122,13 @@ export default function Login() {
 
             {/* Password Input */}
             <div className="space-y-1.5">
-              <div className="flex items-center justify-between">
-                <label className="block text-[11px] font-bold uppercase tracking-wider text-amber-500/80">
-                  Password
-                </label>
-                <Link
-                  to="/forgot-password"
-                  className="text-[11px] font-medium tracking-wide text-amber-400 transition-colors hover:text-amber-300 focus:outline-none focus:underline"
-                >
-                  Forgot password?
-                </Link>
-              </div>
+              <label htmlFor="login-password" className="block text-[11px] font-bold uppercase tracking-wider text-amber-500/80">
+                Password
+              </label>
               <div className="relative">
                 <input
+                  id="login-password"
+                  name="password"
                   type={showPw ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -145,6 +144,14 @@ export default function Login() {
                 >
                   {showPw ? <HiOutlineEyeOff className="h-5 w-5" /> : <HiOutlineEye className="h-5 w-5" />}
                 </button>
+              </div>
+              <div className="flex justify-end">
+                <Link
+                  to="/forgot-password"
+                  className="text-[11px] font-medium tracking-wide text-amber-400 transition-colors hover:text-amber-300 focus:outline-none focus:underline"
+                >
+                  Forgot password?
+                </Link>
               </div>
             </div>
 

@@ -7,8 +7,9 @@ import { GoogleMap, LoadScriptNext, MarkerF } from '@react-google-maps/api';
 import OpenDeliveryMap from '@/components/OpenDeliveryMap';
 import StatusBadge from '@/components/StatusBadge';
 import api from '@/services/api';
-import { TRACKING } from '@/services/endpoints';
+import { ORDERS, TRACKING } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
+import { formatCurrency } from '@/utils/formatCurrency';
 import { isGoogleMapsFeatureEnabled, shouldAttemptGoogleMaps } from '@/utils/deliveryMapRuntime';
 
 const STATUS_TIMELINE = [
@@ -36,6 +37,10 @@ export default function Tracking() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [mapLoadFailed, setMapLoadFailed] = useState(false);
+  const [proofPhone, setProofPhone] = useState('');
+  const [proofFile, setProofFile] = useState(null);
+  const [proofUploading, setProofUploading] = useState(false);
+  const [proofMessage, setProofMessage] = useState('');
   const intervalRef = useRef(null);
 
   const normalizePing = (ping) => {
@@ -52,6 +57,7 @@ export default function Tracking() {
     setLoading(true);
     setError('');
     setTrackingData(null);
+    setProofMessage('');
     try {
       const { data } = await api.get(TRACKING.PUBLIC(normalizedOrderNumber));
       const payload = data.data || {};
@@ -95,6 +101,44 @@ export default function Tracking() {
   const handleSearch = (event) => {
     event.preventDefault();
     fetchTracking(query);
+  };
+
+  const handleUploadProof = async () => {
+    if (!activeOrderNumber) {
+      setError('No active order selected.');
+      return;
+    }
+    if (!proofPhone.trim()) {
+      setError('Enter the phone number used at checkout before uploading proof.');
+      return;
+    }
+    if (!proofFile) {
+      setError('Choose a payment proof file first.');
+      return;
+    }
+
+    setProofUploading(true);
+    setError('');
+    setProofMessage('');
+    try {
+      const formData = new FormData();
+      formData.append('order_number', activeOrderNumber);
+      formData.append('customer_phone', proofPhone.trim());
+      formData.append('proof', proofFile);
+      await api.post(ORDERS.PUBLIC_PAYMENT_PROOF, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setProofMessage('Payment proof uploaded successfully. We will verify your payment shortly.');
+      setTrackingData((current) => current ? {
+        ...current,
+        payment_proof_uploaded_at: new Date().toISOString(),
+      } : current);
+      setProofFile(null);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Failed to upload payment proof.');
+    } finally {
+      setProofUploading(false);
+    }
   };
 
   const currentStep = trackingData ? statusIndex(trackingData.status) : -1;
@@ -216,6 +260,69 @@ export default function Tracking() {
                 </div>
               ))}
             </div>
+
+            {trackingData.bank_account && trackingData.payment_status !== 'paid' && (
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-[1.05fr_0.95fr]">
+                <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5 shadow-sm">
+                  <h2 className="mb-3 text-sm font-bold text-amber-900">Payment Instructions</h2>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <p className="text-amber-700/80">Amount Due</p>
+                      <p className="font-bold text-amber-950">{formatCurrency(trackingData.total_amount || 0)}</p>
+                    </div>
+                    <div className="rounded-xl border border-amber-100 bg-white p-4">
+                      <p className="font-semibold text-gray-900">{trackingData.bank_account.bank_name}</p>
+                      <p className="text-gray-700">{trackingData.bank_account.account_name}</p>
+                      <p className="mt-1 font-mono text-base font-bold text-gray-900">{trackingData.bank_account.account_number}</p>
+                    </div>
+                    <p className="text-xs text-amber-800">
+                      Pay using bank transfer, then upload your proof below. Use <span className="font-mono font-semibold">#{activeOrderNumber}</span> as payment reference when possible.
+                    </p>
+                    {trackingData.payment_proof_uploaded_at ? (
+                      <p className="text-xs font-semibold text-emerald-700">
+                        Payment proof uploaded on {formatDate(trackingData.payment_proof_uploaded_at, true)}.
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+                  <h2 className="mb-3 text-sm font-bold text-gray-900">Upload Payment Proof</h2>
+                  {proofMessage ? (
+                    <div className="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
+                      {proofMessage}
+                    </div>
+                  ) : null}
+                  <div className="space-y-3">
+                    <input
+                      type="tel"
+                      value={proofPhone}
+                      onChange={(event) => setProofPhone(event.target.value)}
+                      placeholder="Phone number used at checkout"
+                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-amber-400 focus:outline-none"
+                    />
+                    <input
+                      type="file"
+                      accept=".jpg,.jpeg,.png,.webp,.pdf"
+                      onChange={(event) => setProofFile(event.target.files?.[0] || null)}
+                      className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-amber-100 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-amber-800 hover:file:bg-amber-200"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleUploadProof}
+                      disabled={proofUploading || Boolean(trackingData.payment_proof_uploaded_at)}
+                      className="w-full rounded-xl bg-amber-500 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:opacity-60"
+                    >
+                      {trackingData.payment_proof_uploaded_at
+                        ? 'Payment proof already uploaded'
+                        : proofUploading
+                          ? 'Uploading proof...'
+                          : 'Upload payment proof'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {trackingData.status === 'delivering' && (
               <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">

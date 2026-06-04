@@ -1,9 +1,16 @@
 import { NOGATU_PRODUCT_IMAGE_MAP } from './nogatuCatalog';
 
-const DEFAULT_API_BASE = 'http://localhost:5000/api/v1';
+const resolveDefaultApiBase = () => {
+  if (typeof window === 'undefined') {
+    return 'http://localhost:5000/api/v1';
+  }
+
+  const { protocol, hostname } = window.location;
+  return `${protocol}//${hostname}:5000/api/v1`;
+};
 
 function getApiOrigin() {
-  const apiBase = import.meta.env.VITE_API_BASE_URL || DEFAULT_API_BASE;
+  const apiBase = import.meta.env.VITE_API_BASE_URL || resolveDefaultApiBase();
   try {
     return new URL(apiBase).origin;
   } catch {

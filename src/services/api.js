@@ -1,7 +1,16 @@
 import axios from 'axios';
 
+const resolveDefaultApiBaseUrl = () => {
+  if (typeof window === 'undefined') {
+    return 'http://localhost:5000/api/v1';
+  }
+
+  const { protocol, hostname } = window.location;
+  return `${protocol}//${hostname}:5000/api/v1`;
+};
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000/api/v1',
+  baseURL: import.meta.env.VITE_API_BASE_URL || resolveDefaultApiBaseUrl(),
   withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
