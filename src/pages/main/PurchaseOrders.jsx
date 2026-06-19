@@ -112,7 +112,7 @@ export default function PurchaseOrders() {
         await api.patch(PURCHASE_ORDERS.APPROVE(order.id));
         showToast('Purchase order approved', 'success');
       } else if (action === 'reject') {
-        await api.patch(`/purchase-orders/${order.id}/reject`);
+        await api.patch(PURCHASE_ORDERS.REJECT(order.id));
         showToast('Purchase order rejected', 'info');
       }
       setConfirmTarget(null);

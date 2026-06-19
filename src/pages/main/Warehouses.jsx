@@ -17,6 +17,23 @@ const EMPTY_FORM = {
   capacity: '', manager_name: '', manager_phone: '', lat: '', lng: '',
 };
 
+const normalizeWarehouse = (raw = {}) => {
+  const location = raw.location || '';
+  const locationParts = location
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  return {
+    ...raw,
+    address: raw.address || locationParts[0] || '',
+    city: raw.city || locationParts[1] || '',
+    province: raw.province || locationParts[2] || '',
+    region: raw.region || locationParts[3] || '',
+    capacity: raw.capacity ?? raw.capacity_total ?? '',
+  };
+};
+
 export default function Warehouses() {
   const { toasts, showToast, dismiss } = useToast();
   const [warehouses, setWarehouses] = useState([]);
@@ -34,7 +51,7 @@ export default function Warehouses() {
     setLoading(true);
     try {
       const { data } = await api.get(WAREHOUSES.LIST, { params: { limit: 100 } });
-      setWarehouses(data.data || []);
+      setWarehouses((data.data || []).map(normalizeWarehouse));
     } catch {
       setWarehouses([]);
     } finally {
@@ -46,16 +63,24 @@ export default function Warehouses() {
 
   const openAdd = () => { setForm(EMPTY_FORM); setShowAddModal(true); };
   const openEdit = (w) => {
+    const normalized = normalizeWarehouse(w);
     setSelected(w);
     setForm({
-      name: w.name, type: w.type, address: w.address, city: w.city,
-      province: w.province, region: w.region, capacity: w.capacity || '',
-      manager_name: w.manager_name || '', manager_phone: w.manager_phone || '',
-      lat: w.lat || '', lng: w.lng || '',
+      name: normalized.name,
+      type: normalized.type,
+      address: normalized.address,
+      city: normalized.city,
+      province: normalized.province,
+      region: normalized.region,
+      capacity: normalized.capacity || '',
+      manager_name: normalized.manager_name || '',
+      manager_phone: normalized.manager_phone || '',
+      lat: normalized.lat || '',
+      lng: normalized.lng || '',
     });
     setShowEditModal(true);
   };
-  const openDetail = (w) => { setSelected(w); setShowDetailModal(true); };
+  const openDetail = (w) => { setSelected(normalizeWarehouse(w)); setShowDetailModal(true); };
 
   const handleAdd = async () => {
     setSubmitting(true);
@@ -107,48 +132,48 @@ export default function Warehouses() {
   };
 
   const WarehouseFormFields = () => (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div className="col-span-2">
         <Label value="Warehouse Name" className="mb-1" />
-        <TextInput value={form.name} onChange={fld('name')} placeholder="Metro Manila Hub" required />
+        <TextInput className="min-h-11" value={form.name} onChange={fld('name')} placeholder="Metro Manila Hub" required />
       </div>
       <div>
         <Label value="Type" className="mb-1" />
-        <Select value={form.type} onChange={fld('type')}>
+        <Select className="min-h-11" value={form.type} onChange={fld('type')}>
           {WAREHOUSE_TYPES.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
         </Select>
       </div>
       <div>
         <Label value="Capacity (units)" className="mb-1" />
-        <TextInput type="number" min="0" value={form.capacity} onChange={fld('capacity')} placeholder="5000" />
+        <TextInput className="min-h-11" type="number" min="0" value={form.capacity} onChange={fld('capacity')} placeholder="5000" />
       </div>
       <div className="col-span-2">
         <Label value="Address" className="mb-1" />
-        <TextInput value={form.address} onChange={fld('address')} placeholder="123 Main St." />
+        <TextInput className="min-h-11" value={form.address} onChange={fld('address')} placeholder="123 Main St." />
       </div>
       <div>
         <Label value="City" className="mb-1" />
-        <TextInput value={form.city} onChange={fld('city')} placeholder="Quezon City" />
+        <TextInput className="min-h-11" value={form.city} onChange={fld('city')} placeholder="Quezon City" />
       </div>
       <div>
         <Label value="Province" className="mb-1" />
-        <TextInput value={form.province} onChange={fld('province')} placeholder="Metro Manila" />
+        <TextInput className="min-h-11" value={form.province} onChange={fld('province')} placeholder="Metro Manila" />
       </div>
       <div>
         <Label value="Manager Name" className="mb-1" />
-        <TextInput value={form.manager_name} onChange={fld('manager_name')} placeholder="Juan Dela Cruz" />
+        <TextInput className="min-h-11" value={form.manager_name} onChange={fld('manager_name')} placeholder="Juan Dela Cruz" />
       </div>
       <div>
         <Label value="Manager Phone" className="mb-1" />
-        <TextInput value={form.manager_phone} onChange={fld('manager_phone')} placeholder="09xxxxxxxxx" />
+        <TextInput className="min-h-11" value={form.manager_phone} onChange={fld('manager_phone')} placeholder="09xxxxxxxxx" />
       </div>
       <div>
         <Label value="Latitude (optional)" className="mb-1" />
-        <TextInput value={form.lat} onChange={fld('lat')} placeholder="14.5995" />
+        <TextInput className="min-h-11" value={form.lat} onChange={fld('lat')} placeholder="14.5995" />
       </div>
       <div>
         <Label value="Longitude (optional)" className="mb-1" />
-        <TextInput value={form.lng} onChange={fld('lng')} placeholder="120.9842" />
+        <TextInput className="min-h-11" value={form.lng} onChange={fld('lng')} placeholder="120.9842" />
       </div>
     </div>
   );

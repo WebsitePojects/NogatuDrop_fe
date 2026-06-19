@@ -18,6 +18,8 @@ const EMPTY_FORM = {
   business_name: '', email: '', phone: '', address: '', region: '',
   stockist_level: 'city_stockist', parent_partner_id: '', discount_pct: '0',
 };
+// TODO: awaiting data - complete Stockist location list with assigned areas for city, provincial, and mobile coverage.
+// TODO: awaiting data - fixed package contents are still needed before voucher/package flows can be fully wired in UI.
 
 export default function Partners() {
   const { toasts, showToast, dismiss } = useToast();
@@ -130,30 +132,30 @@ export default function Partners() {
   };
 
   const PartnerFormFields = () => (
-    <div className="grid grid-cols-2 gap-4">
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
       <div className="col-span-2">
         <Label value="Business Name" className="mb-1" />
-        <TextInput value={form.business_name} onChange={fld('business_name')} placeholder="Juan Store" required />
+        <TextInput className="min-h-11" value={form.business_name} onChange={fld('business_name')} placeholder="Juan Store" required />
       </div>
       <div>
         <Label value="Email" className="mb-1" />
-        <TextInput type="email" value={form.email} onChange={fld('email')} placeholder="juan@store.com" required />
+        <TextInput className="min-h-11" type="email" value={form.email} onChange={fld('email')} placeholder="juan@store.com" required />
       </div>
       <div>
         <Label value="Phone" className="mb-1" />
-        <TextInput value={form.phone} onChange={fld('phone')} placeholder="09xxxxxxxxx" />
+        <TextInput className="min-h-11" value={form.phone} onChange={fld('phone')} placeholder="09xxxxxxxxx" />
       </div>
       <div className="col-span-2">
         <Label value="Address" className="mb-1" />
-        <TextInput value={form.address} onChange={fld('address')} placeholder="123 Main St." />
+        <TextInput className="min-h-11" value={form.address} onChange={fld('address')} placeholder="123 Main St." />
       </div>
       <div>
         <Label value="Region" className="mb-1" />
-        <TextInput value={form.region} onChange={fld('region')} placeholder="NCR" />
+        <TextInput className="min-h-11" value={form.region} onChange={fld('region')} placeholder="NCR" />
       </div>
       <div>
         <Label value="Level" className="mb-1" />
-        <Select value={form.stockist_level} onChange={fld('stockist_level')}>
+        <Select className="min-h-11" value={form.stockist_level} onChange={fld('stockist_level')}>
           <option value="provincial_stockist">Provincial Stockist</option>
           <option value="city_stockist">City Stockist</option>
         </Select>
@@ -161,7 +163,7 @@ export default function Partners() {
       {form.stockist_level === 'city_stockist' && (
         <div className="col-span-2">
           <Label value="Parent Provincial Stockist" className="mb-1" />
-          <Select value={form.parent_partner_id} onChange={fld('parent_partner_id')}>
+          <Select className="min-h-11" value={form.parent_partner_id} onChange={fld('parent_partner_id')}>
             <option value="">Select parent...</option>
             {allPartners.map((p) => <option key={p.id} value={p.id}>{p.business_name}</option>)}
           </Select>
@@ -169,7 +171,7 @@ export default function Partners() {
       )}
       <div>
         <Label value="Discount %" className="mb-1" />
-        <TextInput type="number" min="0" max="100" step="0.1" value={form.discount_pct} onChange={fld('discount_pct')} placeholder="0" />
+        <TextInput className="min-h-11" type="number" min="0" max="100" step="0.1" value={form.discount_pct} onChange={fld('discount_pct')} placeholder="0" />
       </div>
     </div>
   );
@@ -199,14 +201,16 @@ export default function Partners() {
         <div className="overflow-x-auto">
           <Table striped>
             <TableHead>
-              <TableHeadCell>Business Name</TableHeadCell>
-              <TableHeadCell>Email</TableHeadCell>
-              <TableHeadCell>Phone</TableHeadCell>
-              <TableHeadCell>Region</TableHeadCell>
-              <TableHeadCell>Level</TableHeadCell>
-              <TableHeadCell>Discount %</TableHeadCell>
-              <TableHeadCell>Status</TableHeadCell>
-              <TableHeadCell>Actions</TableHeadCell>
+              <TableRow>
+                <TableHeadCell>Business Name</TableHeadCell>
+                <TableHeadCell>Email</TableHeadCell>
+                <TableHeadCell>Phone</TableHeadCell>
+                <TableHeadCell>Region</TableHeadCell>
+                <TableHeadCell>Level</TableHeadCell>
+                <TableHeadCell>Discount %</TableHeadCell>
+                <TableHeadCell>Status</TableHeadCell>
+                <TableHeadCell>Actions</TableHeadCell>
+              </TableRow>
             </TableHead>
             <TableBody className="divide-y">
               {loading ? (

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Button, Card, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell,
   Tabs, TabItem, TextInput, Select, Label, Spinner,
@@ -14,6 +14,7 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
+import { exportElementToPdf } from '@/utils/exportElementToPdf';
 
 const CHART_COLORS = ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#06B6D4', '#F97316'];
 
@@ -488,26 +489,34 @@ function InventoryTab() {
 
 // ─── Main Reports Page ────────────────────────────────────────────────────────────
 export default function Reports() {
+  const reportRef = useRef(null);
+
+  const handleExportPDF = async () => {
+    await exportElementToPdf(reportRef.current, `nogatu-reports-${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
+
   return (
     <div className="page-enter">
       <PageHeader
         title="Reports"
         subtitle="Comprehensive system analytics and reports"
         actions={[
-          { label: 'Export PDF', icon: <HiOutlineDownload className="w-4 h-4" />, onClick: () => window.print(), color: 'light' },
+          { label: 'Export PDF', icon: <HiOutlineDownload className="w-4 h-4" />, onClick: handleExportPDF, color: 'light' },
         ]}
       />
 
-      <Card className="no-print-header">
-        <Tabs variant="underline">
-          <TabItem title="Revenue"><RevenueTab /></TabItem>
-          <TabItem title="Orders"><OrdersTab /></TabItem>
-          <TabItem title="Products"><ProductsTab /></TabItem>
-          <TabItem title="Stockists"><StockistsTab /></TabItem>
-          <TabItem title="Inventory"><InventoryTab /></TabItem>
-          <TabItem title="Movements"><MovementsTab /></TabItem>
-        </Tabs>
-      </Card>
+      <div ref={reportRef}>
+        <Card className="no-print-header">
+          <Tabs variant="underline">
+            <TabItem title="Revenue"><RevenueTab /></TabItem>
+            <TabItem title="Orders"><OrdersTab /></TabItem>
+            <TabItem title="Products"><ProductsTab /></TabItem>
+            <TabItem title="Stockists"><StockistsTab /></TabItem>
+            <TabItem title="Inventory"><InventoryTab /></TabItem>
+            <TabItem title="Movements"><MovementsTab /></TabItem>
+          </Tabs>
+        </Card>
+      </div>
     </div>
   );
 }

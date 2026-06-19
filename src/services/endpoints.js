@@ -112,6 +112,7 @@ export const PURCHASE_ORDERS = {
   CREATE:  '/purchase-orders',
   BY_ID:   (id) => `/purchase-orders/${id}`,
   APPROVE: (id) => `/purchase-orders/${id}/approve`,
+  REJECT:  (id) => `/purchase-orders/${id}/reject`,
 };
 
 export const GRN = {

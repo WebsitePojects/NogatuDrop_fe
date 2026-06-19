@@ -14,6 +14,7 @@ const EMPTY_FORM = {
   bank_name: '', account_name: '', account_number: '', warehouse_id: '',
   is_default: false, is_active: true, notes: '',
 };
+const PAYMENT_METHOD_OPTIONS = ['BDO', 'BPI', 'Metrobank', 'Landbank', 'PSBank', 'GCash'];
 
 export default function BankAccounts() {
   const { toasts, showToast, dismiss } = useToast();
@@ -110,26 +111,31 @@ export default function BankAccounts() {
     <div className="grid grid-cols-2 gap-4">
       <div>
         <Label value="Bank Name" className="mb-1" />
-        <TextInput value={form.bank_name} onChange={fld('bank_name')} placeholder="BDO, BPI, GCash..." required />
+        <Select className="min-h-11" value={form.bank_name} onChange={fld('bank_name')} required>
+          <option value="">Select payment method...</option>
+          {PAYMENT_METHOD_OPTIONS.map((option) => (
+            <option key={option} value={option}>{option}</option>
+          ))}
+        </Select>
       </div>
       <div>
         <Label value="Account Name" className="mb-1" />
-        <TextInput value={form.account_name} onChange={fld('account_name')} placeholder="Juan Dela Cruz" required />
+        <TextInput className="min-h-11" value={form.account_name} onChange={fld('account_name')} placeholder="Juan Dela Cruz" required />
       </div>
       <div className="col-span-2">
         <Label value="Account Number" className="mb-1" />
-        <TextInput value={form.account_number} onChange={fld('account_number')} placeholder="1234 5678 9012" required />
+        <TextInput className="min-h-11" value={form.account_number} onChange={fld('account_number')} placeholder="1234 5678 9012" required />
       </div>
       <div>
         <Label value="Assigned Warehouse (optional)" className="mb-1" />
-        <Select value={form.warehouse_id} onChange={fld('warehouse_id')}>
+        <Select className="min-h-11" value={form.warehouse_id} onChange={fld('warehouse_id')}>
           <option value="">Default (all warehouses)</option>
           {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
         </Select>
       </div>
       <div>
         <Label value="Notes (optional)" className="mb-1" />
-        <TextInput value={form.notes} onChange={fld('notes')} placeholder="Additional info..." />
+        <TextInput className="min-h-11" value={form.notes} onChange={fld('notes')} placeholder="Additional info..." />
       </div>
       <div className="col-span-2 flex gap-6">
         <label className="flex items-center gap-2 cursor-pointer">
@@ -172,13 +178,15 @@ export default function BankAccounts() {
           <div className="overflow-x-auto">
             <Table striped>
               <TableHead>
-                <TableHeadCell>Bank Name</TableHeadCell>
-                <TableHeadCell>Account Name</TableHeadCell>
-                <TableHeadCell>Account Number</TableHeadCell>
-                <TableHeadCell>Warehouse</TableHeadCell>
-                <TableHeadCell>Default</TableHeadCell>
-                <TableHeadCell>Status</TableHeadCell>
-                <TableHeadCell>Actions</TableHeadCell>
+                <TableRow>
+                  <TableHeadCell>Bank Name</TableHeadCell>
+                  <TableHeadCell>Account Name</TableHeadCell>
+                  <TableHeadCell>Account Number</TableHeadCell>
+                  <TableHeadCell>Warehouse</TableHeadCell>
+                  <TableHeadCell>Default</TableHeadCell>
+                  <TableHeadCell>Status</TableHeadCell>
+                  <TableHeadCell>Actions</TableHeadCell>
+                </TableRow>
               </TableHead>
               <TableBody className="divide-y">
                 {accounts.length === 0 ? (

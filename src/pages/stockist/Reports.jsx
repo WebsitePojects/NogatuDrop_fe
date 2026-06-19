@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { Tabs, TabItem, Spinner } from 'flowbite-react';
 import { HiDownload } from 'react-icons/hi';
 import {
@@ -11,6 +11,7 @@ import { REPORTS, ORDERS, INVENTORY } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
 import { CHART_COLORS } from '@/utils/constants';
+import { exportElementToPdf } from '@/utils/exportElementToPdf';
 
 const STATUS_PIE_COLORS = {
   pending: '#F59E0B',
@@ -31,6 +32,7 @@ export default function StockistReports() {
   const [loading, setLoading] = useState(true);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const reportRef = useRef(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -74,7 +76,9 @@ export default function StockistReports() {
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
-  const handleExportPDF = () => window.print();
+  const handleExportPDF = async () => {
+    await exportElementToPdf(reportRef.current, `nogatu-stockist-reports-${new Date().toISOString().slice(0, 10)}.pdf`);
+  };
 
   const DateFilter = () => (
     <div className="flex flex-wrap items-center gap-3 mb-5">
@@ -123,7 +127,7 @@ export default function StockistReports() {
         <p className="text-sm text-gray-500 mt-0.5">Your business performance (scoped to your account)</p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div ref={reportRef} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <Tabs aria-label="Reports tabs" variant="underline">
           {/* Revenue Tab */}
           <TabItem title="Revenue">
