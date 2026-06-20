@@ -21,6 +21,53 @@ const EMPTY_FORM = {
 // TODO: awaiting data - complete Stockist location list with assigned areas for city, provincial, and mobile coverage.
 // TODO: awaiting data - fixed package contents are still needed before voucher/package flows can be fully wired in UI.
 
+function PartnerFormFields({ form, allPartners, onFieldChange }) {
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="col-span-2">
+        <Label className="mb-1" >Business Name</Label>
+        <TextInput className="min-h-11" value={form.business_name} onChange={onFieldChange('business_name')} placeholder="Juan Store" required />
+      </div>
+      <div>
+        <Label className="mb-1" >Email</Label>
+        <TextInput className="min-h-11" type="email" value={form.email} onChange={onFieldChange('email')} placeholder="juan@store.com" required />
+      </div>
+      <div>
+        <Label className="mb-1" >Phone</Label>
+        <TextInput className="min-h-11" value={form.phone} onChange={onFieldChange('phone')} placeholder="09xxxxxxxxx" />
+      </div>
+      <div className="col-span-2">
+        <Label className="mb-1" >Address</Label>
+        <TextInput className="min-h-11" value={form.address} onChange={onFieldChange('address')} placeholder="123 Main St." />
+      </div>
+      <div>
+        <Label className="mb-1" >Region</Label>
+        <TextInput className="min-h-11" value={form.region} onChange={onFieldChange('region')} placeholder="NCR" />
+      </div>
+      <div>
+        <Label className="mb-1" >Level</Label>
+        <Select className="min-h-11" value={form.stockist_level} onChange={onFieldChange('stockist_level')}>
+          <option value="provincial_stockist">Provincial Stockist</option>
+          <option value="city_stockist">City Stockist</option>
+        </Select>
+      </div>
+      {form.stockist_level === 'city_stockist' && (
+        <div className="col-span-2">
+          <Label className="mb-1" >Parent Provincial Stockist</Label>
+          <Select className="min-h-11" value={form.parent_partner_id} onChange={onFieldChange('parent_partner_id')}>
+            <option value="">Select parent...</option>
+            {allPartners.map((p) => <option key={p.id} value={p.id}>{p.business_name}</option>)}
+          </Select>
+        </div>
+      )}
+      <div>
+        <Label className="mb-1" >Discount %</Label>
+        <TextInput className="min-h-11" type="number" min="0" max="100" step="0.1" value={form.discount_pct} onChange={onFieldChange('discount_pct')} placeholder="0" />
+      </div>
+    </div>
+  );
+}
+
 export default function Partners() {
   const { toasts, showToast, dismiss } = useToast();
   const [partners, setPartners] = useState([]);
@@ -131,51 +178,6 @@ export default function Partners() {
     return <span className="badge-inactive">{level?.replace(/_/g, ' ')}</span>;
   };
 
-  const PartnerFormFields = () => (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <div className="col-span-2">
-        <Label value="Business Name" className="mb-1" />
-        <TextInput className="min-h-11" value={form.business_name} onChange={fld('business_name')} placeholder="Juan Store" required />
-      </div>
-      <div>
-        <Label value="Email" className="mb-1" />
-        <TextInput className="min-h-11" type="email" value={form.email} onChange={fld('email')} placeholder="juan@store.com" required />
-      </div>
-      <div>
-        <Label value="Phone" className="mb-1" />
-        <TextInput className="min-h-11" value={form.phone} onChange={fld('phone')} placeholder="09xxxxxxxxx" />
-      </div>
-      <div className="col-span-2">
-        <Label value="Address" className="mb-1" />
-        <TextInput className="min-h-11" value={form.address} onChange={fld('address')} placeholder="123 Main St." />
-      </div>
-      <div>
-        <Label value="Region" className="mb-1" />
-        <TextInput className="min-h-11" value={form.region} onChange={fld('region')} placeholder="NCR" />
-      </div>
-      <div>
-        <Label value="Level" className="mb-1" />
-        <Select className="min-h-11" value={form.stockist_level} onChange={fld('stockist_level')}>
-          <option value="provincial_stockist">Provincial Stockist</option>
-          <option value="city_stockist">City Stockist</option>
-        </Select>
-      </div>
-      {form.stockist_level === 'city_stockist' && (
-        <div className="col-span-2">
-          <Label value="Parent Provincial Stockist" className="mb-1" />
-          <Select className="min-h-11" value={form.parent_partner_id} onChange={fld('parent_partner_id')}>
-            <option value="">Select parent...</option>
-            {allPartners.map((p) => <option key={p.id} value={p.id}>{p.business_name}</option>)}
-          </Select>
-        </div>
-      )}
-      <div>
-        <Label value="Discount %" className="mb-1" />
-        <TextInput className="min-h-11" type="number" min="0" max="100" step="0.1" value={form.discount_pct} onChange={fld('discount_pct')} placeholder="0" />
-      </div>
-    </div>
-  );
-
   return (
     <div className="page-enter">
       <PageHeader
@@ -269,7 +271,7 @@ export default function Partners() {
       {/* Add Modal */}
       <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Add Stockist</ModalHeader>
-        <ModalBody><PartnerFormFields /></ModalBody>
+        <ModalBody><PartnerFormFields form={form} allPartners={allPartners} onFieldChange={fld} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleAdd} disabled={submitting}>Add Stockist</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
@@ -279,7 +281,7 @@ export default function Partners() {
       {/* Edit Modal */}
       <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Edit Stockist — {selected?.business_name}</ModalHeader>
-        <ModalBody><PartnerFormFields /></ModalBody>
+        <ModalBody><PartnerFormFields form={form} allPartners={allPartners} onFieldChange={fld} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleEdit} disabled={submitting}>Save Changes</Button>
           <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>
@@ -315,7 +317,7 @@ export default function Partners() {
       <Modal show={showDiscountModal} onClose={() => setShowDiscountModal(false)} size="sm" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Update Discount — {selected?.business_name}</ModalHeader>
         <ModalBody>
-          <Label value="Discount Percentage (%)" className="mb-1" />
+          <Label className="mb-1" >Discount Percentage (%)</Label>
           <TextInput
             type="number"
             min="0"

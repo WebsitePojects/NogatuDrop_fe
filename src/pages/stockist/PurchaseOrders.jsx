@@ -221,11 +221,11 @@ export default function StockistPurchaseOrders() {
         <ModalBody className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="supplier" value="Supplier" />
+              <Label htmlFor="supplier" >Supplier</Label>
               <input id="supplier" className="mt-1 block w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900" value={form.supplier} onChange={e => setForm(f => ({ ...f, supplier: e.target.value }))} placeholder="Nogatu Manufacturing" />
             </div>
             <div>
-              <Label htmlFor="warehouse" value="Destination Warehouse" />
+              <Label htmlFor="warehouse" >Destination Warehouse</Label>
               <select id="warehouse" className="mt-1 block w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900" value={form.warehouse_id} onChange={e => setForm(f => ({ ...f, warehouse_id: e.target.value }))}>
                 <option value="">Select warehouse</option>
                 {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
@@ -234,7 +234,7 @@ export default function StockistPurchaseOrders() {
           </div>
 
           <div>
-            <Label value="Items" />
+            <Label >Items</Label>
             {form.items.map((item, i) => (
               <div key={i} className="flex gap-2 mt-2">
                 <select className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900" value={item.product_id} onChange={e => updateItem(i, 'product_id', e.target.value)}>
@@ -255,7 +255,7 @@ export default function StockistPurchaseOrders() {
           </div>
 
           <div>
-            <Label htmlFor="notes" value="Notes (optional)" />
+            <Label htmlFor="notes" >Notes (optional)</Label>
             <textarea rows={2} className="mt-1 block w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
           </div>
         </ModalBody>

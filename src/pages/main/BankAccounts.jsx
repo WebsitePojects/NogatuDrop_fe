@@ -16,6 +16,51 @@ const EMPTY_FORM = {
 };
 const PAYMENT_METHOD_OPTIONS = ['BDO', 'BPI', 'Metrobank', 'Landbank', 'PSBank', 'GCash'];
 
+function BankAccountFormFields({ form, warehouses, onFieldChange }) {
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <Label className="mb-1" >Bank Name</Label>
+        <Select className="min-h-11" value={form.bank_name} onChange={onFieldChange('bank_name')} required>
+          <option value="">Select payment method...</option>
+          {PAYMENT_METHOD_OPTIONS.map((option) => (
+            <option key={option} value={option}>{option}</option>
+          ))}
+        </Select>
+      </div>
+      <div>
+        <Label className="mb-1" >Account Name</Label>
+        <TextInput className="min-h-11" value={form.account_name} onChange={onFieldChange('account_name')} placeholder="Juan Dela Cruz" required />
+      </div>
+      <div className="col-span-2">
+        <Label className="mb-1" >Account Number</Label>
+        <TextInput className="min-h-11" value={form.account_number} onChange={onFieldChange('account_number')} placeholder="1234 5678 9012" required />
+      </div>
+      <div>
+        <Label className="mb-1" >Assigned Warehouse (optional)</Label>
+        <Select className="min-h-11" value={form.warehouse_id} onChange={onFieldChange('warehouse_id')}>
+          <option value="">Default (all warehouses)</option>
+          {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+        </Select>
+      </div>
+      <div>
+        <Label className="mb-1" >Notes (optional)</Label>
+        <TextInput className="min-h-11" value={form.notes} onChange={onFieldChange('notes')} placeholder="Additional info..." />
+      </div>
+      <div className="col-span-2 flex gap-6">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={form.is_default} onChange={onFieldChange('is_default')} className="w-4 h-4 text-amber-500" />
+          <span className="text-sm font-medium text-gray-700 dark:text-[var(--dark-text)]">Set as Default Account</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={form.is_active} onChange={onFieldChange('is_active')} className="w-4 h-4 text-amber-500" />
+          <span className="text-sm font-medium text-gray-700 dark:text-[var(--dark-text)]">Active</span>
+        </label>
+      </div>
+    </div>
+  );
+}
+
 export default function BankAccounts() {
   const { toasts, showToast, dismiss } = useToast();
   const [accounts, setAccounts] = useState([]);
@@ -106,49 +151,6 @@ export default function BankAccounts() {
     ...f,
     [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value,
   }));
-
-  const FormFields = () => (
-    <div className="grid grid-cols-2 gap-4">
-      <div>
-        <Label value="Bank Name" className="mb-1" />
-        <Select className="min-h-11" value={form.bank_name} onChange={fld('bank_name')} required>
-          <option value="">Select payment method...</option>
-          {PAYMENT_METHOD_OPTIONS.map((option) => (
-            <option key={option} value={option}>{option}</option>
-          ))}
-        </Select>
-      </div>
-      <div>
-        <Label value="Account Name" className="mb-1" />
-        <TextInput className="min-h-11" value={form.account_name} onChange={fld('account_name')} placeholder="Juan Dela Cruz" required />
-      </div>
-      <div className="col-span-2">
-        <Label value="Account Number" className="mb-1" />
-        <TextInput className="min-h-11" value={form.account_number} onChange={fld('account_number')} placeholder="1234 5678 9012" required />
-      </div>
-      <div>
-        <Label value="Assigned Warehouse (optional)" className="mb-1" />
-        <Select className="min-h-11" value={form.warehouse_id} onChange={fld('warehouse_id')}>
-          <option value="">Default (all warehouses)</option>
-          {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
-        </Select>
-      </div>
-      <div>
-        <Label value="Notes (optional)" className="mb-1" />
-        <TextInput className="min-h-11" value={form.notes} onChange={fld('notes')} placeholder="Additional info..." />
-      </div>
-      <div className="col-span-2 flex gap-6">
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={form.is_default} onChange={fld('is_default')} className="w-4 h-4 text-amber-500" />
-          <span className="text-sm font-medium text-gray-700 dark:text-[var(--dark-text)]">Set as Default Account</span>
-        </label>
-        <label className="flex items-center gap-2 cursor-pointer">
-          <input type="checkbox" checked={form.is_active} onChange={fld('is_active')} className="w-4 h-4 text-amber-500" />
-          <span className="text-sm font-medium text-gray-700 dark:text-[var(--dark-text)]">Active</span>
-        </label>
-      </div>
-    </div>
-  );
 
   return (
     <div className="page-enter">
@@ -242,7 +244,7 @@ export default function BankAccounts() {
       {/* Add Modal */}
       <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Add Bank Account</ModalHeader>
-        <ModalBody><FormFields /></ModalBody>
+        <ModalBody><BankAccountFormFields form={form} warehouses={warehouses} onFieldChange={fld} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleAdd} disabled={submitting}>Add Account</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
@@ -252,7 +254,7 @@ export default function BankAccounts() {
       {/* Edit Modal */}
       <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Edit Bank Account</ModalHeader>
-        <ModalBody><FormFields /></ModalBody>
+        <ModalBody><BankAccountFormFields form={form} warehouses={warehouses} onFieldChange={fld} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleEdit} disabled={submitting}>Save Changes</Button>
           <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>

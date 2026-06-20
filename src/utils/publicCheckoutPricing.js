@@ -3,7 +3,26 @@ export const PUBLIC_ORDER_SHIPPING_ZONES = {
   luzon: 180,
   visayas_mindanao: 250,
 };
-export const PUBLIC_ORDER_SYSTEM_FEE_RATE = 0.12;
+
+export const PUBLIC_ORDER_SHIPPING_ZONE_OPTIONS = [
+  {
+    value: 'metro_manila',
+    label: 'Metro Manila',
+    description: 'Best for NCR deliveries and nearby urban drop-offs.',
+  },
+  {
+    value: 'luzon',
+    label: 'Provincial Luzon',
+    description: 'Additional shipping fee applies for deliveries outside Metro Manila.',
+  },
+  {
+    value: 'visayas_mindanao',
+    label: 'Visayas / Mindanao',
+    description: 'Highest public checkout shipping tier based on longer delivery distance.',
+  },
+];
+
+export const PUBLIC_ORDER_VAT_RATE = 0.12;
 // TODO: awaiting data - confirm fixed zone rates for Metro Manila, Luzon, and Visayas/Mindanao.
 // TODO: awaiting data - confirm whether public shipping should stay zone-based or move to distance-based API pricing.
 // TODO: awaiting data - member discount verification flow needs the confirmed username-validation approach before checkout UI can auto-apply it.
@@ -24,8 +43,8 @@ export function getPublicOrderPricingTotals(merchandiseSubtotal, options = {}) {
   const shippingFee = discountedSubtotal > 0
     ? (PUBLIC_ORDER_SHIPPING_ZONES[shippingZone] ?? PUBLIC_ORDER_SHIPPING_ZONES.metro_manila)
     : 0;
-  const systemFee = discountedSubtotal > 0 ? roundCurrency(discountedSubtotal * PUBLIC_ORDER_SYSTEM_FEE_RATE) : 0;
-  const totalDue = roundCurrency(discountedSubtotal + shippingFee + systemFee);
+  const vatAmount = discountedSubtotal > 0 ? roundCurrency(discountedSubtotal * PUBLIC_ORDER_VAT_RATE) : 0;
+  const totalDue = roundCurrency(discountedSubtotal + shippingFee + vatAmount);
 
   return {
     merchandiseSubtotal: subtotal,
@@ -34,7 +53,8 @@ export function getPublicOrderPricingTotals(merchandiseSubtotal, options = {}) {
     discountedSubtotal,
     shippingZone,
     shippingFee,
-    systemFee,
+    vatAmount,
+    systemFee: vatAmount,
     totalDue,
   };
 }

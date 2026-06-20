@@ -17,6 +17,12 @@ const EMPTY_FORM = {
   capacity: '', manager_name: '', manager_phone: '', lat: '', lng: '',
 };
 
+const buildWarehousePayload = (form) => ({
+  ...form,
+  location: [form.address, form.city, form.province, form.region].filter(Boolean).join(', '),
+  capacity_total: form.capacity,
+});
+
 const normalizeWarehouse = (raw = {}) => {
   const location = raw.location || '';
   const locationParts = location
@@ -33,6 +39,55 @@ const normalizeWarehouse = (raw = {}) => {
     capacity: raw.capacity ?? raw.capacity_total ?? '',
   };
 };
+
+function WarehouseFormFields({ form, onFieldChange }) {
+  return (
+    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="col-span-2">
+        <Label className="mb-1" >Warehouse Name</Label>
+        <TextInput className="min-h-11" value={form.name} onChange={onFieldChange('name')} placeholder="Metro Manila Hub" required />
+      </div>
+      <div>
+        <Label className="mb-1" >Type</Label>
+        <Select className="min-h-11" value={form.type} onChange={onFieldChange('type')}>
+          {WAREHOUSE_TYPES.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
+        </Select>
+      </div>
+      <div>
+        <Label className="mb-1" >Capacity (units)</Label>
+        <TextInput className="min-h-11" type="number" min="0" value={form.capacity} onChange={onFieldChange('capacity')} placeholder="5000" />
+      </div>
+      <div className="col-span-2">
+        <Label className="mb-1" >Address</Label>
+        <TextInput className="min-h-11" value={form.address} onChange={onFieldChange('address')} placeholder="123 Main St." />
+      </div>
+      <div>
+        <Label className="mb-1" >City</Label>
+        <TextInput className="min-h-11" value={form.city} onChange={onFieldChange('city')} placeholder="Quezon City" />
+      </div>
+      <div>
+        <Label className="mb-1" >Province</Label>
+        <TextInput className="min-h-11" value={form.province} onChange={onFieldChange('province')} placeholder="Metro Manila" />
+      </div>
+      <div>
+        <Label className="mb-1" >Manager Name</Label>
+        <TextInput className="min-h-11" value={form.manager_name} onChange={onFieldChange('manager_name')} placeholder="Juan Dela Cruz" />
+      </div>
+      <div>
+        <Label className="mb-1" >Manager Phone</Label>
+        <TextInput className="min-h-11" value={form.manager_phone} onChange={onFieldChange('manager_phone')} placeholder="09xxxxxxxxx" />
+      </div>
+      <div>
+        <Label className="mb-1" >Latitude (optional)</Label>
+        <TextInput className="min-h-11" value={form.lat} onChange={onFieldChange('lat')} placeholder="14.5995" />
+      </div>
+      <div>
+        <Label className="mb-1" >Longitude (optional)</Label>
+        <TextInput className="min-h-11" value={form.lng} onChange={onFieldChange('lng')} placeholder="120.9842" />
+      </div>
+    </div>
+  );
+}
 
 export default function Warehouses() {
   const { toasts, showToast, dismiss } = useToast();
@@ -85,7 +140,7 @@ export default function Warehouses() {
   const handleAdd = async () => {
     setSubmitting(true);
     try {
-      await api.post(WAREHOUSES.CREATE, form);
+      await api.post(WAREHOUSES.CREATE, buildWarehousePayload(form));
       showToast('Warehouse added', 'success');
       setShowAddModal(false);
       fetchWarehouses();
@@ -99,7 +154,7 @@ export default function Warehouses() {
   const handleEdit = async () => {
     setSubmitting(true);
     try {
-      await api.put(WAREHOUSES.UPDATE(selected.id), form);
+      await api.put(WAREHOUSES.UPDATE(selected.id), buildWarehousePayload(form));
       showToast('Warehouse updated', 'success');
       setShowEditModal(false);
       fetchWarehouses();
@@ -130,53 +185,6 @@ export default function Warehouses() {
     const m = { provincial: 'warning', city: 'info', hub: 'success', storage: 'gray' };
     return m[type] || 'gray';
   };
-
-  const WarehouseFormFields = () => (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <div className="col-span-2">
-        <Label value="Warehouse Name" className="mb-1" />
-        <TextInput className="min-h-11" value={form.name} onChange={fld('name')} placeholder="Metro Manila Hub" required />
-      </div>
-      <div>
-        <Label value="Type" className="mb-1" />
-        <Select className="min-h-11" value={form.type} onChange={fld('type')}>
-          {WAREHOUSE_TYPES.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-        </Select>
-      </div>
-      <div>
-        <Label value="Capacity (units)" className="mb-1" />
-        <TextInput className="min-h-11" type="number" min="0" value={form.capacity} onChange={fld('capacity')} placeholder="5000" />
-      </div>
-      <div className="col-span-2">
-        <Label value="Address" className="mb-1" />
-        <TextInput className="min-h-11" value={form.address} onChange={fld('address')} placeholder="123 Main St." />
-      </div>
-      <div>
-        <Label value="City" className="mb-1" />
-        <TextInput className="min-h-11" value={form.city} onChange={fld('city')} placeholder="Quezon City" />
-      </div>
-      <div>
-        <Label value="Province" className="mb-1" />
-        <TextInput className="min-h-11" value={form.province} onChange={fld('province')} placeholder="Metro Manila" />
-      </div>
-      <div>
-        <Label value="Manager Name" className="mb-1" />
-        <TextInput className="min-h-11" value={form.manager_name} onChange={fld('manager_name')} placeholder="Juan Dela Cruz" />
-      </div>
-      <div>
-        <Label value="Manager Phone" className="mb-1" />
-        <TextInput className="min-h-11" value={form.manager_phone} onChange={fld('manager_phone')} placeholder="09xxxxxxxxx" />
-      </div>
-      <div>
-        <Label value="Latitude (optional)" className="mb-1" />
-        <TextInput className="min-h-11" value={form.lat} onChange={fld('lat')} placeholder="14.5995" />
-      </div>
-      <div>
-        <Label value="Longitude (optional)" className="mb-1" />
-        <TextInput className="min-h-11" value={form.lng} onChange={fld('lng')} placeholder="120.9842" />
-      </div>
-    </div>
-  );
 
   return (
     <div className="page-enter">
@@ -254,7 +262,7 @@ export default function Warehouses() {
       {/* Add Modal */}
       <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Add Warehouse</ModalHeader>
-        <ModalBody><WarehouseFormFields /></ModalBody>
+        <ModalBody><WarehouseFormFields form={form} onFieldChange={fld} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleAdd} disabled={submitting}>Add Warehouse</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
@@ -264,7 +272,7 @@ export default function Warehouses() {
       {/* Edit Modal */}
       <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Edit Warehouse — {selected?.name}</ModalHeader>
-        <ModalBody><WarehouseFormFields /></ModalBody>
+        <ModalBody><WarehouseFormFields form={form} onFieldChange={fld} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleEdit} disabled={submitting}>Save Changes</Button>
           <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>

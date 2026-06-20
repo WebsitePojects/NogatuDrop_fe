@@ -16,25 +16,50 @@ export async function exportElementToPdf(element, filename) {
     windowWidth: element.scrollWidth,
   });
 
-  const imageData = canvas.toDataURL('image/png');
   const pdf = new jsPDF('p', 'mm', 'a4');
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const margin = 10;
   const usableWidth = pageWidth - margin * 2;
-  const scaledHeight = (canvas.height * usableWidth) / canvas.width;
+  const usableHeight = pageHeight - margin * 2;
+  const pagePixelHeight = Math.floor((usableHeight * canvas.width) / usableWidth);
 
-  let remainingHeight = scaledHeight;
-  let positionY = margin;
+  let offsetY = 0;
+  let isFirstPage = true;
 
-  pdf.addImage(imageData, 'PNG', margin, positionY, usableWidth, scaledHeight);
-  remainingHeight -= pageHeight - margin * 2;
+  while (offsetY < canvas.height) {
+    const sliceHeight = Math.min(pagePixelHeight, canvas.height - offsetY);
+    const pageCanvas = document.createElement('canvas');
+    pageCanvas.width = canvas.width;
+    pageCanvas.height = sliceHeight;
 
-  while (remainingHeight > 0) {
-    positionY = remainingHeight - scaledHeight + margin;
-    pdf.addPage();
-    pdf.addImage(imageData, 'PNG', margin, positionY, usableWidth, scaledHeight);
-    remainingHeight -= pageHeight - margin * 2;
+    const pageContext = pageCanvas.getContext('2d');
+    if (!pageContext) {
+      throw new Error('Could not prepare PDF page');
+    }
+
+    pageContext.fillStyle = '#ffffff';
+    pageContext.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+    pageContext.drawImage(
+      canvas,
+      0,
+      offsetY,
+      canvas.width,
+      sliceHeight,
+      0,
+      0,
+      pageCanvas.width,
+      pageCanvas.height
+    );
+
+    const renderedHeight = (sliceHeight * usableWidth) / canvas.width;
+    if (!isFirstPage) {
+      pdf.addPage();
+    }
+
+    pdf.addImage(pageCanvas.toDataURL('image/png'), 'PNG', margin, margin, usableWidth, renderedHeight);
+    offsetY += sliceHeight;
+    isFirstPage = false;
   }
 
   pdf.save(filename);

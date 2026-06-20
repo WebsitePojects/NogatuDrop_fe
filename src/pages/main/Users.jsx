@@ -154,19 +154,19 @@ export default function Users() {
   const UserFormFields = () => (
     <div className="grid grid-cols-2 gap-4">
       <div className="col-span-2">
-        <Label value="Full Name" className="mb-1" />
+        <Label className="mb-1" >Full Name</Label>
         <TextInput value={form.name} onChange={fld('name')} placeholder="Juan Dela Cruz" required />
       </div>
       <div>
-        <Label value="Email" className="mb-1" />
+        <Label className="mb-1" >Email</Label>
         <TextInput type="email" value={form.email} onChange={fld('email')} placeholder="juan@example.com" required />
       </div>
       <div>
-        <Label value="Phone" className="mb-1" />
+        <Label className="mb-1" >Phone</Label>
         <TextInput value={form.phone} onChange={fld('phone')} placeholder="09xxxxxxxxx" />
       </div>
       <div>
-        <Label value="Role" className="mb-1" />
+        <Label className="mb-1" >Role</Label>
         <Select value={form.role_slug} onChange={fld('role_slug')} required>
           <option value="">Select role...</option>
           {formRoles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
@@ -176,7 +176,7 @@ export default function Users() {
         </p>
       </div>
       <div>
-        <Label value="Status" className="mb-1" />
+        <Label className="mb-1" >Status</Label>
         <Select value={form.status} onChange={fld('status')}>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
@@ -184,7 +184,7 @@ export default function Users() {
       </div>
       {needsPartner(form.role_slug) && (
         <div className="col-span-2">
-          <Label value="Stockist (Partner)" className="mb-1" />
+          <Label className="mb-1" >Stockist (Partner)</Label>
           <Select value={form.partner_id} onChange={fld('partner_id')}>
             <option value="">Select stockist...</option>
             {partners.map((p) => <option key={p.id} value={p.id}>{p.business_name}</option>)}
@@ -192,7 +192,7 @@ export default function Users() {
         </div>
       )}
       <div className="col-span-2">
-        <Label value="Password (leave blank to keep current)" className="mb-1" />
+        <Label className="mb-1" >Password (leave blank to keep current)</Label>
         <TextInput type="password" value={form.password} onChange={fld('password')} placeholder="••••••••" autoComplete="new-password" />
       </div>
     </div>
@@ -287,7 +287,7 @@ export default function Users() {
       {/* Add Modal */}
       <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Add User</ModalHeader>
-        <ModalBody><UserFormFields /></ModalBody>
+        <ModalBody>{UserFormFields()}</ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleAdd} disabled={submitting}>Create User</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
@@ -297,7 +297,7 @@ export default function Users() {
       {/* Edit Modal */}
       <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Edit User — {selected?.name}</ModalHeader>
-        <ModalBody><UserFormFields /></ModalBody>
+        <ModalBody>{UserFormFields()}</ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleEdit} disabled={submitting}>Save Changes</Button>
           <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>

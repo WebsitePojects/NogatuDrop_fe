@@ -663,11 +663,17 @@ export default function Orders() {
             </div>
             
             <div className="flex items-center gap-2 flex-wrap justify-end">
-               <Button
+                <Button
                   color="purple"
                   disabled={!canGenerateDeliveryLink || actionLoading}
                   onClick={() => handleGenerateDelivery(selectedOrder)}
-                  className="font-bold shadow-sm ring-1 ring-purple-200 dark:ring-purple-800"
+                  className={`font-bold shadow-sm ring-1 ${
+                    isTerminalStatus
+                      ? 'border border-[#dfb88c] bg-[#fff4e7] text-[#8a4d17] ring-[#f0d1ad] disabled:opacity-100 disabled:text-[#8a4d17] disabled:border-[#dfb88c] disabled:bg-[#fff4e7]'
+                      : !isPaymentVerified
+                        ? 'border border-[#e9c79d] bg-[#fff2df] text-[#7a4b22] hover:bg-[#ffe6c5] ring-[#f4d4ad] disabled:opacity-100 disabled:text-[#7a4b22] disabled:border-[#e9c79d] disabled:bg-[#fff2df]'
+                        : 'ring-purple-200 dark:ring-purple-800'
+                  }`}
                 >
                   <HiOutlinePaperAirplane className="w-4 h-4 mr-1.5 rotate-45 -mt-0.5" />
                   {isTerminalStatus ? 'Link unavailable' : isPaymentVerified ? (actionLoading ? 'Working...' : 'Send Delivery Link') : 'Payment required'}
@@ -706,7 +712,7 @@ export default function Orders() {
       <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} size="md" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Reject Order</ModalHeader>
         <ModalBody>
-          <Label htmlFor="rejectReason" value="Reason for rejection (optional)" className="mb-2" />
+          <Label htmlFor="rejectReason" className="mb-2" >Reason for rejection (optional)</Label>
           <Textarea
             id="rejectReason"
             value={rejectReason}

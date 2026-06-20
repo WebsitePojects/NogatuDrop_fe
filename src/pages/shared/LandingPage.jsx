@@ -452,25 +452,6 @@ const LandingPage = () => {
                         </div>
                         <h3 className="featured-title mt-3 text-2xl font-bold">{selectedProduct.name}</h3>
                         <p className="featured-description mt-2 text-sm text-[#6f4f36]">{selectedProduct.shortDescription}</p>
-                        <div className="featured-meta-grid mt-5">
-                          <div className="featured-price-card">
-                            <p className="featured-price-label">Wellness Price</p>
-                            <p className="featured-price-value">{formatPeso(selectedProduct.price)}</p>
-                            <p className="featured-price-note">Per featured retail pack</p>
-                          </div>
-                          <div className="featured-micro-stats">
-                            <div className="featured-stat-pill">
-                              <FiStar className="fill-current" />
-                              <span>{selectedProduct.rating} rating</span>
-                            </div>
-                            <div className="featured-stat-pill">
-                              <span>{selectedProduct.category}</span>
-                            </div>
-                            <div className="featured-stat-pill">
-                              <span>{selectedProduct.sku}</span>
-                            </div>
-                          </div>
-                        </div>
                       </div>
                       <div className="featured-image-frame">
                         <img
@@ -479,6 +460,25 @@ const LandingPage = () => {
                           className="featured-image"
                           style={{ '--featured-scale': selectedProduct.featuredScale || 1 }}
                         />
+                      </div>
+                      <div className="featured-meta-grid">
+                        <div className="featured-price-card">
+                          <p className="featured-price-label">Wellness Price</p>
+                          <p className="featured-price-value">{formatPeso(selectedProduct.price)}</p>
+                          <p className="featured-price-note">Per featured retail pack</p>
+                        </div>
+                        <div className="featured-micro-stats">
+                          <div className="featured-stat-pill">
+                            <FiStar className="fill-current" />
+                            <span>{selectedProduct.rating} rating</span>
+                          </div>
+                          <div className="featured-stat-pill">
+                            <span>{selectedProduct.category}</span>
+                          </div>
+                          <div className="featured-stat-pill">
+                            <span>{selectedProduct.sku}</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -538,7 +538,7 @@ const LandingPage = () => {
               {BUSINESS_PACKAGES.map((pkg) => (
                 <article
                   key={pkg.id}
-                  className={`relative overflow-hidden rounded-[1.8rem] border ${
+                  className={`package-card relative flex h-full flex-col overflow-hidden rounded-[1.8rem] border ${
                     pkg.featured ? 'border-amber-300/60 shadow-[0_20px_50px_-24px_rgba(251,191,36,0.45)]' : 'border-orange-100/18'
                   } bg-[#fff7ec] text-[#52290c] shadow-[0_24px_55px_-30px_rgba(0,0,0,0.42)]`}
                 >
@@ -556,7 +556,7 @@ const LandingPage = () => {
                     <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/80">Package Value</p>
                     <p className="mt-2 text-4xl font-black">₱ {pkg.price}</p>
                   </div>
-                  <div className="space-y-4 p-5">
+                  <div className="flex flex-1 flex-col gap-4 p-5">
                     <div className="space-y-3">
                       {pkg.items.map((item) => (
                         <div key={item} className="flex items-start gap-3 text-sm leading-6 text-[#6d3c13]">
@@ -567,7 +567,7 @@ const LandingPage = () => {
                     </div>
                     <button
                       onClick={() => scrollTo('contact')}
-                      className="w-full rounded-xl bg-[#5a2410] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#6d2c13]"
+                      className="package-cta-button mt-auto w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition"
                     >
                       Get Started
                     </button>
