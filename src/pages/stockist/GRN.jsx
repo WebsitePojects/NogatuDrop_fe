@@ -330,14 +330,14 @@ export default function StockistGRN() {
         <ModalBody className="space-y-4 max-h-[70vh] overflow-y-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <Label value="Warehouse *" className="mb-1.5" />
+              <Label className="mb-1.5" >Warehouse *</Label>
               <Select value={form.warehouse_id} onChange={e => setForm(f => ({ ...f, warehouse_id: e.target.value }))}>
                 <option value="">Select warehouse…</option>
                 {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
               </Select>
             </div>
             <div>
-              <Label value="Supplier" className="mb-1.5" />
+              <Label className="mb-1.5" >Supplier</Label>
               <TextInput
                 placeholder="Supplier name"
                 value={form.supplier}
@@ -345,7 +345,7 @@ export default function StockistGRN() {
               />
             </div>
             <div>
-              <Label value="Delivery Reference" className="mb-1.5" />
+              <Label className="mb-1.5" >Delivery Reference</Label>
               <TextInput
                 placeholder="Delivery reference / DR no."
                 value={form.delivery_reference}
@@ -353,7 +353,7 @@ export default function StockistGRN() {
               />
             </div>
             <div>
-              <Label value="Notes" className="mb-1.5" />
+              <Label className="mb-1.5" >Notes</Label>
               <TextInput
                 placeholder="Optional notes"
                 value={form.notes}
@@ -365,7 +365,7 @@ export default function StockistGRN() {
           {/* Items */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <Label value="Items *" />
+              <Label >Items *</Label>
               <button
                 type="button"
                 onClick={addItem}
@@ -398,7 +398,7 @@ export default function StockistGRN() {
                       </Select>
                     </div>
                     <div>
-                      <Label value="Expected Qty" className="text-xs mb-0.5" />
+                      <Label className="text-xs mb-0.5" >Expected Qty</Label>
                       <TextInput
                         type="number" min={0} sizing="sm"
                         placeholder="0"
@@ -407,7 +407,7 @@ export default function StockistGRN() {
                       />
                     </div>
                     <div>
-                      <Label value="Received Qty *" className="text-xs mb-0.5" />
+                      <Label className="text-xs mb-0.5" >Received Qty *</Label>
                       <TextInput
                         type="number" min={0} sizing="sm"
                         placeholder="0"
@@ -416,7 +416,7 @@ export default function StockistGRN() {
                       />
                     </div>
                     <div>
-                      <Label value="Unit Cost" className="text-xs mb-0.5" />
+                      <Label className="text-xs mb-0.5" >Unit Cost</Label>
                       <TextInput
                         type="number" min={0} step="0.01" sizing="sm"
                         placeholder="0.00"
@@ -425,7 +425,7 @@ export default function StockistGRN() {
                       />
                     </div>
                     <div>
-                      <Label value="Batch #" className="text-xs mb-0.5" />
+                      <Label className="text-xs mb-0.5" >Batch #</Label>
                       <TextInput
                         sizing="sm"
                         placeholder="Batch number"
@@ -434,7 +434,7 @@ export default function StockistGRN() {
                       />
                     </div>
                     <div>
-                      <Label value="Expiry Date" className="text-xs mb-0.5" />
+                      <Label className="text-xs mb-0.5" >Expiry Date</Label>
                       <TextInput
                         type="date" sizing="sm"
                         value={item.expiry_date}

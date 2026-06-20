@@ -37,28 +37,28 @@ function CourierFormFields({ form, onFieldChange, onOpenTrackingGuide }) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <div>
-        <Label value="Courier Name" className="mb-1" />
-        <TextInput value={form.name} onChange={onFieldChange('name')} placeholder="J&T Express" required />
+        <Label className="mb-1" >Courier Name</Label>
+        <TextInput className="min-h-11" value={form.name} onChange={onFieldChange('name')} placeholder="J&T Express" required />
       </div>
       <div>
-        <Label value="Code" className="mb-1" />
-        <TextInput value={form.code} onChange={onFieldChange('code')} placeholder="JT" required />
+        <Label className="mb-1" >Code</Label>
+        <TextInput className="min-h-11" value={form.code} onChange={onFieldChange('code')} placeholder="JT" required />
       </div>
       <div>
-        <Label value="Contact Person" className="mb-1" />
-        <TextInput value={form.contact_person} onChange={onFieldChange('contact_person')} placeholder="Area Manager" />
+        <Label className="mb-1" >Contact Person</Label>
+        <TextInput className="min-h-11" value={form.contact_person} onChange={onFieldChange('contact_person')} placeholder="Area Manager" />
       </div>
       <div>
-        <Label value="Contact Phone" className="mb-1" />
-        <TextInput value={form.contact_phone} onChange={onFieldChange('contact_phone')} placeholder="09xxxxxxxxx" />
+        <Label className="mb-1" >Contact Phone</Label>
+        <TextInput className="min-h-11" value={form.contact_phone} onChange={onFieldChange('contact_phone')} placeholder="09xxxxxxxxx" />
       </div>
       <div className="col-span-2">
-        <Label value="Contact Email (optional)" className="mb-1" />
-        <TextInput value={form.contact_email} onChange={onFieldChange('contact_email')} placeholder="ops@courier.com" />
+        <Label className="mb-1" >Contact Email (optional)</Label>
+        <TextInput className="min-h-11" value={form.contact_email} onChange={onFieldChange('contact_email')} placeholder="ops@courier.com" />
       </div>
       <div className="col-span-2">
         <div className="flex items-center justify-between mb-1">
-          <Label value="Tracking URL Template (optional)" />
+          <Label >Tracking URL Template (optional)</Label>
           <button
             type="button"
             onClick={onOpenTrackingGuide}
@@ -68,6 +68,7 @@ function CourierFormFields({ form, onFieldChange, onOpenTrackingGuide }) {
           </button>
         </div>
         <TextInput
+          className="min-h-11"
           value={form.tracking_url_template}
           onChange={onFieldChange('tracking_url_template')}
           placeholder="https://courier.com/track?num={tracking_number}"
@@ -77,8 +78,8 @@ function CourierFormFields({ form, onFieldChange, onOpenTrackingGuide }) {
         </p>
       </div>
       <div className="col-span-2">
-        <Label value="Courier Website (optional)" className="mb-1" />
-        <TextInput value={form.website_url} onChange={onFieldChange('website_url')} placeholder="https://www.courier.com" />
+        <Label className="mb-1" >Courier Website (optional)</Label>
+        <TextInput className="min-h-11" value={form.website_url} onChange={onFieldChange('website_url')} placeholder="https://www.courier.com" />
       </div>
       <label className="flex items-center gap-2 cursor-pointer">
         <input type="checkbox" checked={form.is_active} onChange={onFieldChange('is_active')} className="w-4 h-4 text-amber-500" />

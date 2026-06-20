@@ -262,7 +262,7 @@ export default function StockistInventory() {
             </div>
           )}
           <div>
-            <Label htmlFor="req-qty" value="Requested Quantity" className="mb-1.5" />
+            <Label htmlFor="req-qty" className="mb-1.5" >Requested Quantity</Label>
             <TextInput
               id="req-qty"
               type="number"
@@ -273,7 +273,7 @@ export default function StockistInventory() {
             />
           </div>
           <div>
-            <Label htmlFor="adj-reason" value="Reason" className="mb-1.5" />
+            <Label htmlFor="adj-reason" className="mb-1.5" >Reason</Label>
             <Textarea
               id="adj-reason"
               rows={3}

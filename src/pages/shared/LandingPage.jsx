@@ -37,6 +37,95 @@ const NAV_LINKS = [
 
 const PRODUCT_CATEGORIES = ['All', 'Coffee', 'Chocolate', 'Wellness', 'Supplements'];
 const PRODUCTS = NOGATU_PRODUCT_CATALOG;
+const PRODUCT_LOOKUP = Object.fromEntries(PRODUCTS.map((product) => [product.id, product]));
+const FEATURED_PRODUCTS = ['berry-nad-plus', 'nogatu-max-fuel', 'nogatu-barley-juice']
+  .map((id) => PRODUCT_LOOKUP[id])
+  .filter(Boolean);
+const ALL_PRODUCT_ROWS = [
+  ['berry-nad-plus', 'nogatu-max-fuel', 'nogatu-barley-juice'],
+  ['nogatu-coffee-mix', 'mangosteen-coffee-mix', 'nogatu-black-coffee'],
+  ['nogatu-glow', 'vitamins-zinc', 'collagen'],
+  ['chocolate-drink-mix'],
+].map((row) => row.map((id) => PRODUCT_LOOKUP[id]).filter(Boolean));
+const BUSINESS_PACKAGES = [
+  {
+    id: 'diamond',
+    name: 'Diamond',
+    price: '150,000',
+    accent: 'from-sky-500 to-blue-500',
+    items: [
+      'Diamond package products',
+      'Maximum earning potential',
+      'All income streams',
+      'Exclusive events access',
+      'Elite leadership ranking',
+    ],
+  },
+  {
+    id: 'garnet',
+    name: 'Garnet',
+    price: '50,000',
+    accent: 'from-rose-600 to-red-500',
+    items: [
+      'Garnet package products',
+      'Premium earning potential',
+      'All income streams',
+      'VIP support',
+      'Top leadership ranking',
+    ],
+  },
+  {
+    id: 'platinum',
+    name: 'Platinum',
+    price: '25,000',
+    accent: 'from-slate-600 to-slate-500',
+    items: [
+      'Platinum package products',
+      'Highest earning potential',
+      'All income streams',
+      'Priority support',
+      'Leadership ranking',
+    ],
+  },
+  {
+    id: 'gold',
+    name: 'Gold',
+    price: '10,000',
+    accent: 'from-amber-500 to-yellow-500',
+    items: [
+      'Gold package products',
+      'Maximum pairing bonus',
+      'Leadership bonus eligible',
+      'Hi-Five bonus eligible',
+      'Full income streams',
+    ],
+    featured: true,
+  },
+  {
+    id: 'silver',
+    name: 'Silver',
+    price: '5,000',
+    accent: 'from-slate-400 to-slate-500',
+    items: [
+      'Silver package products',
+      'Higher pairing bonus',
+      'Direct referral bonus',
+      'Unilevel income',
+    ],
+  },
+  {
+    id: 'bronze',
+    name: 'Bronze',
+    price: '2,500',
+    accent: 'from-orange-500 to-amber-700',
+    items: [
+      'Entry package products',
+      'Binary genealogy placement',
+      'Direct referral bonus',
+      'Basic member portal',
+    ],
+  },
+];
 
 const METRICS = [
   { value: '120k+', label: 'Monthly Orders' },
@@ -92,19 +181,26 @@ const TESTIMONIALS = [
 const formatPeso = (value) =>
   new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 2 }).format(value);
 
+const getCatalogRowClassName = (count) => {
+  if (count === 1) return 'mx-auto grid max-w-sm gap-5';
+  if (count === 2) return 'grid gap-5 sm:grid-cols-2';
+  if (count === 3) return 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3';
+  return 'grid gap-5 sm:grid-cols-2 xl:grid-cols-4';
+};
+
 const LandingPage = () => {
   const navigate = useNavigate();
 
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
-  const [selectedProductId, setSelectedProductId] = useState(PRODUCTS[0].id);
+  const [selectedProductId, setSelectedProductId] = useState(FEATURED_PRODUCTS[0]?.id ?? PRODUCTS[0]?.id);
   const [cart, setCart] = useState([]);
 
   const revealRefs = useRef([]);
 
   const selectedProduct = useMemo(
-    () => PRODUCTS.find((product) => product.id === selectedProductId) || PRODUCTS[0],
+    () => FEATURED_PRODUCTS.find((product) => product.id === selectedProductId) || FEATURED_PRODUCTS[0] || PRODUCTS[0],
     [selectedProductId]
   );
 
@@ -112,6 +208,11 @@ const LandingPage = () => {
     if (activeCategory === 'All') return PRODUCTS;
     return PRODUCTS.filter((product) => product.category === activeCategory);
   }, [activeCategory]);
+
+  const filteredProductRows = useMemo(() => {
+    if (activeCategory === 'All') return ALL_PRODUCT_ROWS;
+    return filteredProducts.length ? [filteredProducts] : [];
+  }, [activeCategory, filteredProducts]);
 
   const cartItems = useMemo(() => {
     return cart
@@ -351,18 +452,6 @@ const LandingPage = () => {
                         </div>
                         <h3 className="featured-title mt-3 text-2xl font-bold">{selectedProduct.name}</h3>
                         <p className="featured-description mt-2 text-sm text-[#6f4f36]">{selectedProduct.shortDescription}</p>
-                        <div className="mt-4 flex items-end justify-between gap-4">
-                          <div>
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#a27143]">
-                              Wellness Price
-                            </p>
-                            <p className="mt-1 text-2xl font-black">{formatPeso(selectedProduct.price)}</p>
-                          </div>
-                          <div className="inline-flex items-center gap-1 rounded-full bg-[#fff7eb] px-3 py-1.5 text-sm text-[#bd6f21] shadow-[inset_0_0_0_1px_rgba(189,111,33,0.14)]">
-                            <FiStar className="fill-current" />
-                            {selectedProduct.rating}
-                          </div>
-                        </div>
                       </div>
                       <div className="featured-image-frame">
                         <img
@@ -372,10 +461,29 @@ const LandingPage = () => {
                           style={{ '--featured-scale': selectedProduct.featuredScale || 1 }}
                         />
                       </div>
+                      <div className="featured-meta-grid">
+                        <div className="featured-price-card">
+                          <p className="featured-price-label">Wellness Price</p>
+                          <p className="featured-price-value">{formatPeso(selectedProduct.price)}</p>
+                          <p className="featured-price-note">Per featured retail pack</p>
+                        </div>
+                        <div className="featured-micro-stats">
+                          <div className="featured-stat-pill">
+                            <FiStar className="fill-current" />
+                            <span>{selectedProduct.rating} rating</span>
+                          </div>
+                          <div className="featured-stat-pill">
+                            <span>{selectedProduct.category}</span>
+                          </div>
+                          <div className="featured-stat-pill">
+                            <span>{selectedProduct.sku}</span>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="grid grid-cols-4 gap-3">
-                    {PRODUCTS.slice(0, 4).map((product) => (
+                  <div className="grid grid-cols-3 gap-3">
+                    {FEATURED_PRODUCTS.map((product) => (
                       <button
                         key={product.id}
                         onClick={() => setSelectedProductId(product.id)}
@@ -384,6 +492,7 @@ const LandingPage = () => {
                             ? 'border-[#c96f1f] bg-[#ffe9cb] shadow-[0_8px_20px_rgba(177,94,28,0.18)]'
                             : 'border-[#d8b085]/90 bg-[#fff8ea] hover:bg-[#fff2d8]'
                         }`}
+                        aria-pressed={selectedProduct.id === product.id}
                       >
                         <div className="featured-thumb-frame">
                           <img
@@ -392,6 +501,10 @@ const LandingPage = () => {
                             className="featured-thumb-image"
                             style={{ '--thumb-scale': product.thumbScale || 1 }}
                           />
+                        </div>
+                        <div className="featured-thumb-copy">
+                          <p className="featured-thumb-title">{product.name}</p>
+                          <p className="featured-thumb-price">{formatPeso(product.price)}</p>
                         </div>
                       </button>
                     ))}
@@ -409,12 +522,68 @@ const LandingPage = () => {
           </div>
         </section>
 
+        <section className="relative px-4 py-16 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent via-[#673b15] to-[#9c621d]">
+          <div className="mx-auto w-[min(1180px,100%)]">
+            <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.2em] text-orange-200/80">Business Packages</p>
+                <h2 className="font-heading mt-2 text-3xl text-white sm:text-4xl">Start with the package that fits your business goals</h2>
+                <p className="mt-3 max-w-2xl text-sm text-orange-50/78">
+                  Package options now appear before the product catalog, following the Diamond-to-Bronze order from your reference.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-6 xl:grid-cols-3 md:grid-cols-2">
+              {BUSINESS_PACKAGES.map((pkg) => (
+                <article
+                  key={pkg.id}
+                  className={`package-card relative flex h-full flex-col overflow-hidden rounded-[1.8rem] border ${
+                    pkg.featured ? 'border-amber-300/60 shadow-[0_20px_50px_-24px_rgba(251,191,36,0.45)]' : 'border-orange-100/18'
+                  } bg-[#fff7ec] text-[#52290c] shadow-[0_24px_55px_-30px_rgba(0,0,0,0.42)]`}
+                >
+                  <div className={`bg-gradient-to-r ${pkg.accent} px-5 py-5 text-white`}>
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-[#7a4617]">
+                        {pkg.name}
+                      </span>
+                      {pkg.featured && (
+                        <span className="rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
+                          Popular
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/80">Package Value</p>
+                    <p className="mt-2 text-4xl font-black">₱ {pkg.price}</p>
+                  </div>
+                  <div className="flex flex-1 flex-col gap-4 p-5">
+                    <div className="space-y-3">
+                      {pkg.items.map((item) => (
+                        <div key={item} className="flex items-start gap-3 text-sm leading-6 text-[#6d3c13]">
+                          <FiCheck className="mt-1 shrink-0 text-[#c0781e]" />
+                          <span>{item}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => scrollTo('contact')}
+                      className="package-cta-button mt-auto w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition"
+                    >
+                      Get Started
+                    </button>
+                  </div>
+                </article>
+              ))}
+            </div>
+          </div>
+        </section>
+
         <section id="shop" className="relative px-4 py-16 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent to-[#e9a629]">
           <div className="mx-auto w-[min(1180px,100%)]">
             <div ref={setRevealRef(2)} className="reveal-block mb-8 flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-orange-200/80">Catalog</p>
-                <h2 className="font-heading mt-2 text-3xl text-white sm:text-4xl">Nine Signature Wellness Products</h2>
+                <h2 className="font-heading mt-2 text-3xl text-white sm:text-4xl">Ten Signature Wellness Product</h2>
                 <p className="mt-3 max-w-2xl text-sm text-orange-50/78">
                   A tighter storefront lineup with updated product visuals, clearer pricing, and a more premium product frame that stays consistent as featured items switch.
                 </p>
@@ -436,54 +605,57 @@ const LandingPage = () => {
               </div>
             </div>
 
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredProducts.map((product, index) => (
-                <article
-                  key={product.id}
-                  ref={setRevealRef(3 + index)}
-                  className="reveal-block card-float liquid-card flex flex-col overflow-hidden rounded-[1.75rem] border p-4"
-                >
-                  <div className="product-showcase-frame relative overflow-hidden rounded-[1.4rem]">
-                    <img src={product.image} alt={product.name} className="product-showcase-image transition duration-500 hover:scale-105" />
-                    <span
-                      className={`absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-semibold ${
-                        product.badge === 'Best Seller'
-                          ? 'bg-rose-900/90 text-rose-100 ring-1 ring-rose-400/50'
-                          : product.badge === 'Featured'
-                            ? 'bg-amber-900/90 text-amber-100 ring-1 ring-amber-400/50'
-                            : product.badge === 'Wellness Pick'
-                              ? 'bg-emerald-900/90 text-emerald-100 ring-1 ring-emerald-400/50'
-                              : product.badge === 'Glow Care'
-                                ? 'bg-lime-900/90 text-lime-100 ring-1 ring-lime-400/50'
-                                : 'bg-[#2f1909] text-orange-100 ring-1 ring-orange-500/50'
-                      }`}
+            <div className="space-y-5">
+              {filteredProductRows.map((row, rowIndex) => (
+                <div key={`${activeCategory}-${rowIndex}`} className={getCatalogRowClassName(row.length)}>
+                  {row.map((product) => (
+                    <article
+                      key={product.id}
+                      className="card-float liquid-card flex flex-col overflow-hidden rounded-[1.75rem] border p-4"
                     >
-                      {product.badge}
-                    </span>
-                  </div>
-                  <div className="mt-4 flex flex-1 flex-col">
-                    <div className="mb-2 flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-[11px] uppercase tracking-[0.22em] text-orange-200/55">{product.category}</p>
-                        <h3 className="mt-1 text-lg font-bold text-white">{product.name}</h3>
+                      <div className="product-showcase-frame relative overflow-hidden rounded-[1.4rem]">
+                        <img src={product.image} alt={product.name} className="product-showcase-image transition duration-500 hover:scale-105" />
+                        <span
+                          className={`absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-semibold ${
+                            product.badge === 'Best Seller'
+                              ? 'bg-rose-900/90 text-rose-100 ring-1 ring-rose-400/50'
+                              : product.badge === 'Featured'
+                                ? 'bg-amber-900/90 text-amber-100 ring-1 ring-amber-400/50'
+                                : product.badge === 'Wellness Pick'
+                                  ? 'bg-emerald-900/90 text-emerald-100 ring-1 ring-emerald-400/50'
+                                  : product.badge === 'Glow Care'
+                                    ? 'bg-lime-900/90 text-lime-100 ring-1 ring-lime-400/50'
+                                    : 'bg-[#2f1909] text-orange-100 ring-1 ring-orange-500/50'
+                          }`}
+                        >
+                          {product.badge}
+                        </span>
                       </div>
-                      <span className="inline-flex items-center gap-1 rounded-full bg-white/6 px-2.5 py-1 text-sm text-orange-300">
-                        <FiStar className="fill-current" />
-                        {product.rating}
-                      </span>
-                    </div>
-                    <p className="min-h-[3.25rem] text-sm leading-6 text-orange-50/80">{product.shortDescription}</p>
-                    <div className="mt-auto pt-4 flex items-center justify-between">
-                      <p className="text-xl font-black text-orange-100">{formatPeso(product.price)}</p>
-                      <button
-                        onClick={() => addToCart(product)}
-                        className="rounded-lg bg-gradient-to-r from-[#f7a340] to-[#de7a26] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
-                      >
-                        Add to Cart
-                      </button>
-                    </div>
-                  </div>
-                </article>
+                      <div className="mt-4 flex flex-1 flex-col">
+                        <div className="mb-2 flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-[11px] uppercase tracking-[0.22em] text-orange-200/55">{product.category}</p>
+                            <h3 className="mt-1 text-lg font-bold text-white">{product.name}</h3>
+                          </div>
+                          <span className="inline-flex items-center gap-1 rounded-full bg-white/6 px-2.5 py-1 text-sm text-orange-300">
+                            <FiStar className="fill-current" />
+                            {product.rating}
+                          </span>
+                        </div>
+                        <p className="min-h-[3.25rem] text-sm leading-6 text-orange-50/80">{product.shortDescription}</p>
+                        <div className="mt-auto flex items-center justify-between pt-4">
+                          <p className="text-xl font-black text-orange-100">{formatPeso(product.price)}</p>
+                          <button
+                            onClick={() => addToCart(product)}
+                            className="rounded-lg bg-gradient-to-r from-[#f7a340] to-[#de7a26] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
+                          >
+                            Add to Cart
+                          </button>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
               ))}
             </div>
           </div>
@@ -707,7 +879,7 @@ const LandingPage = () => {
 
         <div className="relative mx-auto mt-8 flex w-[min(1180px,100%)] flex-col gap-3 border-t border-orange-100/10 pt-5 text-xs text-orange-200/58 sm:flex-row sm:items-center sm:justify-between">
           <p>┬⌐ {new Date().getFullYear()} Nogatu Alliance. All rights reserved.</p>
-          <p>Mon-Sat: 11AM - 11PM | Sunday: Closed</p>
+          <p>Mon-Sat: 11AM - 8PM | Sunday: Closed</p>
         </div>
       </footer>
 

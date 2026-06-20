@@ -438,7 +438,7 @@ export default function Orders() {
             )}
           </div>
         </ModalHeader>
-        <ModalBody className="px-6 py-6 custom-scrollbar">
+        <ModalBody className="custom-scrollbar px-6 py-6 text-[#121212]">
           {detailLoading ? (
             <div className="flex justify-center items-center py-20">
               <Spinner size="xl" color="warning" />
@@ -451,7 +451,7 @@ export default function Orders() {
                   <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5 whitespace-nowrap">
                     <HiOutlineUser className="w-3.5 h-3.5" /> Stockist
                   </p>
-                  <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2">
+                  <p className="text-sm font-bold text-[#121212] line-clamp-2">
                     {selectedOrder.partner_name || selectedOrder.business_name || 'N/A'}
                   </p>
                 </div>
@@ -459,7 +459,7 @@ export default function Orders() {
                   <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5 whitespace-nowrap">
                     <HiOutlineCalendar className="w-3.5 h-3.5" /> Date Ordered
                   </p>
-                  <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2">
+                  <p className="text-sm font-bold text-[#121212] line-clamp-2">
                     {formatDateTime(selectedOrder.created_at)}
                   </p>
                 </div>
@@ -485,7 +485,7 @@ export default function Orders() {
                 <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5">
                   Placed By
                 </p>
-                <p className="font-bold text-gray-900 dark:text-white text-sm">
+                <p className="text-sm font-bold text-[#121212]">
                   {selectedOrder.placed_by_name || selectedOrder.customer_name || 'Unknown'}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
@@ -497,11 +497,11 @@ export default function Orders() {
               {/* Items Section */}
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
                 <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
-                  <h3 className="text-sm font-bold tracking-wider text-gray-700 dark:text-gray-300 uppercase">Order Items</h3>
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-[#121212]">Order Items</h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm text-gray-600 dark:text-gray-400 tracking-wide">
-                    <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">
+                  <table className="w-full text-left text-sm tracking-wide text-[#121212]">
+                    <thead className="bg-gray-50 text-xs font-semibold uppercase text-[#121212]">
                       <tr>
                         <th className="px-5 py-3 rounded-bl-none">Product</th>
                         <th className="px-5 py-3 text-center">Qty</th>
@@ -509,13 +509,13 @@ export default function Orders() {
                         <th className="px-5 py-3 text-right tracking-widest rounded-br-none">Subtotal</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
-                      {(selectedOrder.items || []).map((item, i) => (
-                        <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
-                          <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-200">{item.product_name}</td>
-                          <td className="px-5 py-4 text-center font-bold">{item.quantity}</td>
-                          <td className="px-5 py-4 text-right">{formatCurrency(item.unit_price)}</td>
-                          <td className="px-5 py-4 text-right font-black text-gray-900 dark:text-white">
+                      <tbody className="divide-y divide-gray-100">
+                        {(selectedOrder.items || []).map((item, i) => (
+                        <tr key={i} className="transition-colors hover:bg-gray-50/50">
+                          <td className="px-5 py-4 font-medium text-[#121212]">{item.product_name}</td>
+                          <td className="px-5 py-4 text-center font-bold text-[#121212]">{item.quantity}</td>
+                          <td className="px-5 py-4 text-right text-[#121212]">{formatCurrency(item.unit_price)}</td>
+                          <td className="px-5 py-4 text-right font-black text-[#121212]">
                             {formatCurrency(item.subtotal || item.quantity * item.unit_price)}
                           </td>
                         </tr>
@@ -524,8 +524,8 @@ export default function Orders() {
                   </table>
                 </div>
                 <div className="px-6 py-4 bg-gradient-to-r from-[#fff8f0] to-[#fff2df] dark:from-gray-800/90 dark:to-gray-800/70 border-t border-[#efd8bd] dark:border-gray-700 flex justify-end items-center gap-4">
-                  <span className="text-sm font-bold text-[#9a6d45] dark:text-gray-400 uppercase tracking-[0.18em]">Total Amount</span>
-                  <span className="text-3xl font-black text-[#6d2f0f] dark:text-[#ffd8ae] tracking-tight">
+                  <span className="text-sm font-bold uppercase tracking-[0.18em] text-[#7c4b24]">Total Amount</span>
+                  <span className="text-3xl font-black tracking-tight text-[#6d2f0f]">
                     {formatCurrency(selectedOrder.total_amount)}
                   </span>
                 </div>
@@ -663,11 +663,17 @@ export default function Orders() {
             </div>
             
             <div className="flex items-center gap-2 flex-wrap justify-end">
-               <Button
+                <Button
                   color="purple"
                   disabled={!canGenerateDeliveryLink || actionLoading}
                   onClick={() => handleGenerateDelivery(selectedOrder)}
-                  className="font-bold shadow-sm ring-1 ring-purple-200 dark:ring-purple-800"
+                  className={`font-bold shadow-sm ring-1 ${
+                    isTerminalStatus
+                      ? 'border border-[#dfb88c] bg-[#fff4e7] text-[#8a4d17] ring-[#f0d1ad] disabled:opacity-100 disabled:text-[#8a4d17] disabled:border-[#dfb88c] disabled:bg-[#fff4e7]'
+                      : !isPaymentVerified
+                        ? 'border border-[#e9c79d] bg-[#fff2df] text-[#7a4b22] hover:bg-[#ffe6c5] ring-[#f4d4ad] disabled:opacity-100 disabled:text-[#7a4b22] disabled:border-[#e9c79d] disabled:bg-[#fff2df]'
+                        : 'ring-purple-200 dark:ring-purple-800'
+                  }`}
                 >
                   <HiOutlinePaperAirplane className="w-4 h-4 mr-1.5 rotate-45 -mt-0.5" />
                   {isTerminalStatus ? 'Link unavailable' : isPaymentVerified ? (actionLoading ? 'Working...' : 'Send Delivery Link') : 'Payment required'}
@@ -706,7 +712,7 @@ export default function Orders() {
       <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} size="md" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Reject Order</ModalHeader>
         <ModalBody>
-          <Label htmlFor="rejectReason" value="Reason for rejection (optional)" className="mb-2" />
+          <Label htmlFor="rejectReason" className="mb-2" >Reason for rejection (optional)</Label>
           <Textarea
             id="rejectReason"
             value={rejectReason}

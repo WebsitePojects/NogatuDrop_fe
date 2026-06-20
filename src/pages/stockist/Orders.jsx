@@ -640,7 +640,7 @@ export default function StockistOrders() {
             </span>
           )}
         </ModalHeader>
-        <ModalBody className="space-y-5">
+        <ModalBody className="space-y-5 text-[#121212]">
           {detailLoading ? (
             <div className="flex justify-center py-8">
               <Spinner size="lg" color="warning" />
@@ -660,14 +660,14 @@ export default function StockistOrders() {
                 ].map(({ label, value }) => (
                   <div key={label} className="rounded-xl bg-gray-50 p-3 dark:bg-[var(--dark-card2)]">
                     <p className="mb-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">{label}</p>
-                    <div className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)]">{value}</div>
+                  <div className="text-sm font-semibold text-[#121212]">{value}</div>
                   </div>
                 ))}
               </div>
 
               <div className="rounded-xl bg-gray-50 p-3 dark:bg-[var(--dark-card2)]">
                 <p className="mb-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">Placed By</p>
-                <div className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)]">
+                <div className="text-sm font-semibold text-[#121212]">
                   {detail.placed_by_name || detail.customer_name || 'Unknown'}
                 </div>
                 <div className="mt-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
@@ -678,27 +678,27 @@ export default function StockistOrders() {
 
               <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-[var(--dark-border)]">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-[var(--dark-card)]">
+                  <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)]">Product</th>
-                      <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)]">Qty</th>
-                      <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)]">Price</th>
-                      <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)]">Subtotal</th>
+                      <th className="px-4 py-2.5 text-left text-xs font-semibold text-[#121212]">Product</th>
+                      <th className="px-4 py-2.5 text-center text-xs font-semibold text-[#121212]">Qty</th>
+                      <th className="px-4 py-2.5 text-right text-xs font-semibold text-[#121212]">Price</th>
+                      <th className="px-4 py-2.5 text-right text-xs font-semibold text-[#121212]">Subtotal</th>
                     </tr>
                   </thead>
                   <tbody>
                     {(detail.items || []).map((item, index) => (
-                      <tr key={`${item.product_id}-${index}`} className="border-t border-gray-50 dark:border-[var(--dark-border)]">
-                        <td className="px-4 py-2.5 font-medium text-gray-800 dark:text-[var(--dark-text)]">{item.product_name}</td>
-                        <td className="px-4 py-2.5 text-center text-gray-600 dark:text-[var(--dark-muted)]">{item.quantity}</td>
-                        <td className="px-4 py-2.5 text-right text-gray-600 dark:text-[var(--dark-muted)]">{formatCurrency(item.unit_price)}</td>
-                        <td className="px-4 py-2.5 text-right font-semibold text-gray-900 dark:text-[var(--dark-text)]">
+                      <tr key={`${item.product_id}-${index}`} className="border-t border-gray-50">
+                        <td className="px-4 py-2.5 font-medium text-[#121212]">{item.product_name}</td>
+                        <td className="px-4 py-2.5 text-center text-[#121212]">{item.quantity}</td>
+                        <td className="px-4 py-2.5 text-right text-[#121212]">{formatCurrency(item.unit_price)}</td>
+                        <td className="px-4 py-2.5 text-right font-semibold text-[#121212]">
                           {formatCurrency(item.subtotal ?? (item.quantity * item.unit_price))}
                         </td>
                       </tr>
                     ))}
-                    <tr className="border-t-2 border-gray-200 bg-gray-50 dark:border-[var(--dark-border)] dark:bg-[var(--dark-card2)]">
-                      <td colSpan={3} className="px-4 py-3 text-right font-bold text-gray-900 dark:text-[var(--dark-text)]">Total</td>
+                    <tr className="border-t-2 border-gray-200 bg-gray-50">
+                      <td colSpan={3} className="px-4 py-3 text-right font-bold text-[#121212]">Total</td>
                       <td className="px-4 py-3 text-right text-base font-bold text-amber-600">
                         {formatCurrency(detail.total_amount)}
                       </td>
