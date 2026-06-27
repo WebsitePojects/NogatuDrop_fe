@@ -1,28 +1,17 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { HiSearch, HiTruck, HiLocationMarker, HiCalendar, HiCheckCircle } from 'react-icons/hi';
+import { HiSearch, HiTruck, HiLocationMarker, HiCalendar, HiHome } from 'react-icons/hi';
 import { FiArrowLeft } from 'react-icons/fi';
 import { Spinner } from 'flowbite-react';
 import { GoogleMap, LoadScriptNext, MarkerF } from '@react-google-maps/api';
 import OpenDeliveryMap from '@/components/OpenDeliveryMap';
 import StatusBadge from '@/components/StatusBadge';
+import OrderStatusTimeline from '@/components/OrderStatusTimeline';
 import api from '@/services/api';
 import { ORDERS, TRACKING } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { isGoogleMapsFeatureEnabled, shouldAttemptGoogleMaps } from '@/utils/deliveryMapRuntime';
-
-const STATUS_TIMELINE = [
-  { key: 'pending', label: 'Order Placed' },
-  { key: 'approved', label: 'Approved' },
-  { key: 'delivering', label: 'Out for Delivery' },
-  { key: 'delivered', label: 'Delivered' },
-];
-
-const statusIndex = (status) => {
-  const idx = STATUS_TIMELINE.findIndex((step) => step.key === status);
-  return idx === -1 ? 0 : idx;
-};
 
 export default function Tracking() {
   const { orderNumber: urlOrderNumber } = useParams();
@@ -141,12 +130,19 @@ export default function Tracking() {
     }
   };
 
-  const currentStep = trackingData ? statusIndex(trackingData.status) : -1;
-  const mapCenter = latestPing && Number.isFinite(latestPing.latitude) && Number.isFinite(latestPing.longitude)
+  // Compute map points from courier GPS and source warehouse origin
+  const latestPingPoint = latestPing && Number.isFinite(latestPing.latitude) && Number.isFinite(latestPing.longitude)
     ? { lat: latestPing.latitude, lng: latestPing.longitude }
-    : { lat: 14.5995, lng: 120.9842 };
-  const canRenderGoogleMap = mapsConfigured && Boolean(latestPing) && !mapLoadFailed;
-  const canRenderOpenMap = Boolean(latestPing) && !canRenderGoogleMap;
+    : null;
+  const sourceWarehouse = trackingData?.source_warehouse || null;
+  const sourcePoint = sourceWarehouse && Number.isFinite(Number(sourceWarehouse.lat)) && Number.isFinite(Number(sourceWarehouse.lng))
+    ? { lat: Number(sourceWarehouse.lat), lng: Number(sourceWarehouse.lng) }
+    : null;
+
+  const mapCenter = latestPingPoint || sourcePoint || { lat: 14.5995, lng: 120.9842 };
+  const hasMapPoints = Boolean(latestPingPoint || sourcePoint);
+  const canRenderGoogleMap = mapsConfigured && hasMapPoints && !mapLoadFailed;
+  const canRenderOpenMap = hasMapPoints && !canRenderGoogleMap;
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
@@ -200,32 +196,7 @@ export default function Tracking() {
                 <StatusBadge status={trackingData.status} />
               </div>
 
-              <div className="relative">
-                <div className="absolute bottom-4 left-4 top-4 w-0.5 bg-gray-100" />
-                <div className="space-y-4">
-                  {STATUS_TIMELINE.map((step, index) => {
-                    const isDone = index <= currentStep;
-                    const isCurrent = index === currentStep;
-                    return (
-                      <div key={step.key} className="flex items-center gap-3 pl-2">
-                        <div className={`relative z-10 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full transition-colors ${
-                          isDone ? 'bg-emerald-500' : 'bg-gray-200'
-                        }`}>
-                          {isDone && <HiCheckCircle className="h-4 w-4 text-white" />}
-                        </div>
-                        <span className={`text-sm font-medium ${isCurrent ? 'text-amber-600' : isDone ? 'text-emerald-700' : 'text-gray-400'}`}>
-                          {step.label}
-                        </span>
-                        {isCurrent && (
-                          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-600">
-                            Current
-                          </span>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              <OrderStatusTimeline status={trackingData.status} paymentStatus={trackingData.payment_status} />
             </div>
 
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
@@ -332,17 +303,24 @@ export default function Tracking() {
                 <div className="flex items-center gap-2 border-b border-gray-100 p-4">
                   <HiLocationMarker className="h-4 w-4 text-orange-500" />
                   <span className="text-sm font-semibold text-gray-900">Live Tracking</span>
-                  <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-600">
-                    Live
-                  </span>
+                  {latestPingPoint && (
+                    <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-600">
+                      Live
+                    </span>
+                  )}
+                  {sourcePoint && !latestPingPoint && (
+                    <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-600">
+                      Origin
+                    </span>
+                  )}
                 </div>
                 <div className="flex items-center justify-center bg-gray-100" style={{ height: '280px' }}>
-                  {latestPing ? (
+                  {hasMapPoints ? (
                     canRenderGoogleMap ? (
                       <LoadScriptNext googleMapsApiKey={mapsApiKey} onError={() => setMapLoadFailed(true)}>
                         <GoogleMap
                           mapContainerStyle={{ width: '100%', height: '100%' }}
-                          zoom={13}
+                          zoom={latestPingPoint && sourcePoint ? 8 : 13}
                           center={mapCenter}
                           options={{
                             streetViewControl: false,
@@ -350,25 +328,43 @@ export default function Tracking() {
                             mapTypeControl: false,
                           }}
                         >
-                          <MarkerF position={mapCenter} />
+                          {sourcePoint && (
+                            <MarkerF
+                              position={sourcePoint}
+                              title={sourceWarehouse?.name || 'Origin Warehouse'}
+                            />
+                          )}
+                          {latestPingPoint && (
+                            <MarkerF
+                              position={latestPingPoint}
+                              title={trackingData.courier ? `${trackingData.courier} — Courier` : 'Courier'}
+                            />
+                          )}
                         </GoogleMap>
                       </LoadScriptNext>
                     ) : canRenderOpenMap ? (
                       <OpenDeliveryMap
                         center={mapCenter}
-                        zoom={13}
+                        zoom={latestPingPoint && sourcePoint ? 8 : 13}
                         markers={[
-                          {
+                          ...(sourcePoint ? [{
+                            key: 'source',
+                            position: sourcePoint,
+                            label: sourceWarehouse?.name || 'Origin Warehouse',
+                            description: sourceWarehouse?.location || 'Origin',
+                            color: '#2563eb',
+                          }] : []),
+                          ...(latestPingPoint ? [{
                             key: 'current',
-                            position: mapCenter,
+                            position: latestPingPoint,
                             label: activeOrderNumber || 'Current location',
                             description: trackingData.courier || 'Courier location',
                             color: '#f97316',
-                          },
+                          }] : []),
                         ]}
                       />
                     ) : (
-                      <div className="text-center">
+                      <div className="text-center p-4">
                         <HiLocationMarker className="mx-auto mb-2 h-12 w-12 text-orange-400" />
                         <p className="text-sm font-medium text-gray-700">Rider is on the way</p>
                         <p className="mt-0.5 text-xs text-gray-400">
@@ -378,9 +374,16 @@ export default function Tracking() {
                               ? 'Map key unavailable or invalid. Showing coordinates instead.'
                               : 'Google Maps is disabled here. Showing coordinates instead.'}
                         </p>
-                        <p className="mt-1 font-mono text-xs text-gray-500">
-                          {Number(latestPing.latitude).toFixed(4)}, {Number(latestPing.longitude).toFixed(4)}
-                        </p>
+                        {latestPingPoint && (
+                          <p className="mt-1 font-mono text-xs text-gray-500">
+                            Courier: {latestPingPoint.lat.toFixed(4)}, {latestPingPoint.lng.toFixed(4)}
+                          </p>
+                        )}
+                        {sourcePoint && (
+                          <p className="mt-0.5 font-mono text-xs text-gray-500">
+                            Origin: {sourcePoint.lat.toFixed(4)}, {sourcePoint.lng.toFixed(4)}
+                          </p>
+                        )}
                       </div>
                     )
                   ) : (
@@ -395,9 +398,12 @@ export default function Tracking() {
           </div>
         )}
 
-        <div className="mt-8 text-center">
-          <Link to="/shop" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600">
+        <div className="mt-8 flex items-center justify-center gap-5 text-center">
+          <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600">
             <FiArrowLeft size={14} />
+            Back to Home
+          </Link>
+          <Link to="/shop" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600">
             Back to Shop
           </Link>
         </div>

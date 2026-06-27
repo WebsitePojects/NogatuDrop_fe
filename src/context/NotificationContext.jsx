@@ -39,9 +39,12 @@ export const NotificationProvider = ({ children }) => {
       setNotifications(fetched);
 
       if (isInitialLoadRef.current) {
-        // First load: just record existing notification IDs so we don't spam toasts
+        // First load: record existing IDs so we don't spam toasts, AND force the
+        // notification drawer open once if anything is unread (first-login popup
+        // the user must close) — instead of toasting constantly during the session.
         fetched.forEach((n) => notifiedIdsRef.current.add(n.id));
         isInitialLoadRef.current = false;
+        if (fetched.some((n) => !n.is_read)) announceNotificationPopup();
       } else {
         // Subsequent polling: trigger toast for previously unseen, unread notifications
         const newNotifs = fetched.filter((n) => !notifiedIdsRef.current.has(n.id) && !n.is_read);

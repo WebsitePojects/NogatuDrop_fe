@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Spinner } from 'flowbite-react';
 import {
   HiOutlineCheckCircle,
@@ -6,6 +7,9 @@ import {
   HiOutlinePhotograph,
   HiOutlineUser,
 } from 'react-icons/hi';
+import { GoogleMap, LoadScriptNext, MarkerF } from '@react-google-maps/api';
+import OpenDeliveryMap from '@/components/OpenDeliveryMap';
+import { isGoogleMapsFeatureEnabled, shouldAttemptGoogleMaps } from '@/utils/deliveryMapRuntime';
 import { formatDateTime } from '@/utils/formatDate';
 
 function CoordinateText({ lat, lng }) {
@@ -17,6 +21,63 @@ function CoordinateText({ lat, lng }) {
     <span className="font-mono text-xs text-gray-600 dark:text-gray-300">
       {Number(lat).toFixed(5)}, {Number(lng).toFixed(5)}
     </span>
+  );
+}
+
+/**
+ * Small inline map showing where the courier was when the POD was submitted.
+ * Falls back to OpenDeliveryMap (OpenStreetMap) when Google Maps is not configured,
+ * and to coordinate text alone when no coordinates are present.
+ */
+function PodGpsMap({ lat, lng }) {
+  const mapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+  const mapsFeatureEnabled = isGoogleMapsFeatureEnabled(import.meta.env.VITE_ENABLE_GOOGLE_MAPS);
+  const mapsConfigured = mapsFeatureEnabled && shouldAttemptGoogleMaps(mapsApiKey);
+  const [mapFailed, setMapFailed] = useState(false);
+
+  const latNum = Number(lat);
+  const lngNum = Number(lng);
+  if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) {
+    return (
+      <div className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-xs text-gray-400">
+        No GPS coordinates captured
+      </div>
+    );
+  }
+
+  const center = { lat: latNum, lng: lngNum };
+
+  if (mapsConfigured && !mapFailed) {
+    return (
+      <div className="overflow-hidden rounded-lg border border-gray-100" style={{ height: 140 }}>
+        <LoadScriptNext googleMapsApiKey={mapsApiKey} onError={() => setMapFailed(true)}>
+          <GoogleMap
+            mapContainerStyle={{ width: '100%', height: '100%' }}
+            zoom={14}
+            center={center}
+            options={{ streetViewControl: false, fullscreenControl: false, mapTypeControl: false, zoomControl: false }}
+          >
+            <MarkerF position={center} title="Delivery GPS location" />
+          </GoogleMap>
+        </LoadScriptNext>
+      </div>
+    );
+  }
+
+  return (
+    <div className="overflow-hidden rounded-lg border border-gray-100" style={{ height: 140 }}>
+      <OpenDeliveryMap
+        center={center}
+        zoom={14}
+        markers={[{
+          key: 'pod',
+          position: center,
+          label: 'Delivery location',
+          description: `${latNum.toFixed(5)}, ${lngNum.toFixed(5)}`,
+          color: '#16a34a',
+        }]}
+      />
+    </div>
   );
 }
 
@@ -101,6 +162,17 @@ export default function ProofOfDeliveryPanel({
                   <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">{value}</div>
                 </div>
               ))}
+
+              {/* Delivery GPS map — where the courier was when POD was submitted */}
+              {(proof.gps_lat != null && proof.gps_lng != null) && (
+                <div className="rounded-xl border border-white/80 bg-white p-3 dark:border-gray-800 dark:bg-gray-900/70 sm:col-span-2 lg:col-span-1">
+                  <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                    <HiOutlineLocationMarker className="h-3.5 w-3.5" />
+                    Delivery Map
+                  </p>
+                  <PodGpsMap lat={proof.gps_lat} lng={proof.gps_lng} />
+                </div>
+              )}
             </div>
           </div>
 
@@ -119,7 +191,7 @@ export default function ProofOfDeliveryPanel({
                 <div>
                   <span className="font-semibold text-gray-900 dark:text-gray-100">Destination:</span>{' '}
                   <span className="text-gray-600 dark:text-gray-300">
-                    {proof.target_warehouse_name || proof.partner_name || 'Not recorded'}
+                    {proof.target_warehouse_name || proof.partner_name || proof.customer_name || proof.customer_address || 'Not recorded'}
                   </span>
                 </div>
                 {proof.courier_tracking_number && (

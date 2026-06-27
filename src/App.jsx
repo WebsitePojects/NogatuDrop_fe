@@ -7,6 +7,8 @@ import { NotificationProvider } from '@/context/NotificationContext';
 import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 import { ROLE_SLUGS } from '@/utils/constants';
 import { PERMISSIONS, can, normalizeRoleSlug } from '@/utils/permissions';
+import CookieConsent from '@/components/CookieConsent';
+import WarehouseRequiredAlert from '@/components/WarehouseRequiredAlert';
 
 const MainLayout = lazy(() => import('./layouts/MainLayout.jsx'));
 const StockistLayout = lazy(() => import('./layouts/StockistLayout.jsx'));
@@ -54,12 +56,8 @@ const StockistCycleCounts = lazy(() => import('./pages/stockist/CycleCounts.jsx'
 const StockistSettlements = lazy(() => import('./pages/stockist/Settlements.jsx'));
 const StockistDeliveryLive = lazy(() => import('./pages/stockist/DeliveryLive.jsx'));
 
-const MobileDashboard = lazy(() => import('./pages/mobile/Dashboard.jsx'));
-const MobileCatalog = lazy(() => import('./pages/mobile/Catalog.jsx'));
-const MobileCart = lazy(() => import('./pages/mobile/Cart.jsx'));
-const MobileOrders = lazy(() => import('./pages/mobile/Orders.jsx'));
+const MobileInventory = lazy(() => import('./pages/mobile/Inventory.jsx'));
 const MobileProfile = lazy(() => import('./pages/mobile/Profile.jsx'));
-const MobileDeliveryLive = lazy(() => import('./pages/mobile/DeliveryLive.jsx'));
 
 const LoadingScreen = () => (
   <div className="flex min-h-screen items-center justify-center bg-gray-50">
@@ -80,13 +78,13 @@ const ProtectedRoute = ({ children, allowedRoles, requiredPermission }) => {
 
   if (allowedRoles && !allowedRoles.includes(normalizedRole)) {
     if (normalizedRole === ROLE_SLUGS.SUPER_ADMIN) return <Navigate to="/main/dashboard" replace />;
-    if (normalizedRole === ROLE_SLUGS.MOBILE_STOCKIST) return <Navigate to="/mobile/dashboard" replace />;
+    if (normalizedRole === ROLE_SLUGS.MOBILE_STOCKIST) return <Navigate to="/mobile/inventory" replace />;
     return <Navigate to="/stockist/dashboard" replace />;
   }
 
   if (requiredPermission && !can(normalizedRole, requiredPermission)) {
     if (normalizedRole === ROLE_SLUGS.SUPER_ADMIN) return <Navigate to="/main/dashboard" replace />;
-    if (normalizedRole === ROLE_SLUGS.MOBILE_STOCKIST) return <Navigate to="/mobile/dashboard" replace />;
+    if (normalizedRole === ROLE_SLUGS.MOBILE_STOCKIST) return <Navigate to="/mobile/inventory" replace />;
     return <Navigate to="/stockist/dashboard" replace />;
   }
 
@@ -141,16 +139,8 @@ const AppRoutes = () => {
           <Route index element={<Navigate to="dashboard" replace />} />
           <Route path="dashboard" element={<MainDashboard />} />
           <Route path="orders" element={<MainOrders />} />
-          <Route path="operations/control-tower" element={<Navigate to="/main/orders" replace />} />
-          <Route path="operations/dispatch-board" element={<Navigate to="/main/stock-transfers" replace />} />
-          <Route path="operations/exceptions" element={<Navigate to="/main/orders" replace />} />
           <Route path="delivery/live" element={<MainDeliveryLive />} />
-          <Route path="payments/queue" element={<Navigate to="/main/orders" replace />} />
-          <Route path="payments/routing" element={<Navigate to="/main/bank-accounts" replace />} />
           <Route path="payments/settlements" element={<MainSettlements />} />
-          <Route path="stock/replenishment" element={<Navigate to="/main/inventory" replace />} />
-          <Route path="stock/expiry-risk" element={<Navigate to="/main/inventory" replace />} />
-          <Route path="stock/capacity" element={<Navigate to="/main/warehouses" replace />} />
           <Route path="cycle-counts" element={<MainCycleCounts />} />
           <Route path="inventory" element={<MainInventory />} />
           <Route path="stock-movements" element={<MainStockMovements />} />
@@ -194,13 +184,8 @@ const AppRoutes = () => {
             }
           />
           <Route path="orders" element={<StockistOrders />} />
-          <Route path="orders/board" element={<Navigate to="/stockist/orders" replace />} />
-          <Route path="orders/payments" element={<Navigate to="/stockist/orders" replace />} />
-          <Route path="orders/dispatch" element={<Navigate to="/stockist/orders" replace />} />
           <Route path="orders/:id" element={<StockistOrders />} />
           <Route path="delivery/live" element={<StockistDeliveryLive />} />
-          <Route path="delivery/couriers" element={<Navigate to="/stockist/delivery/live" replace />} />
-          <Route path="delivery/pod" element={<Navigate to="/stockist/orders" replace />} />
           <Route path="inventory" element={<StockistInventory />} />
           <Route
             path="cycle-counts"
@@ -228,30 +213,6 @@ const AppRoutes = () => {
             }
           />
           <Route
-            path="mobile-stockists/segments"
-            element={
-              <ProtectedRoute requiredPermission={PERMISSIONS.MOBILE_STOCKISTS_MANAGE}>
-                <Navigate to="/stockist/mobile-stockists" replace />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="mobile-stockists/activity"
-            element={
-              <ProtectedRoute requiredPermission={PERMISSIONS.MOBILE_STOCKISTS_MANAGE}>
-                <Navigate to="/stockist/mobile-stockists" replace />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="mobile-stockists/risk-signals"
-            element={
-              <ProtectedRoute requiredPermission={PERMISSIONS.MOBILE_STOCKISTS_MANAGE}>
-                <Navigate to="/stockist/mobile-stockists" replace />
-              </ProtectedRoute>
-            }
-          />
-          <Route
             path="stock-transfers"
             element={
               <ProtectedRoute requiredPermission={PERMISSIONS.STOCK_TRANSFERS_CREATE}>
@@ -270,7 +231,7 @@ const AppRoutes = () => {
           <Route
             path="warehouses"
             element={
-              <ProtectedRoute allowedRoles={[ROLE_SLUGS.PROVINCIAL_STOCKIST, ROLE_SLUGS.CITY_STOCKIST]}>
+              <ProtectedRoute requiredPermission={PERMISSIONS.WAREHOUSES_MANAGE}>
                 <StockistWarehouses />
               </ProtectedRoute>
             }
@@ -303,14 +264,8 @@ const AppRoutes = () => {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Navigate to="dashboard" replace />} />
-          <Route path="dashboard" element={<MobileDashboard />} />
-          <Route path="catalog" element={<MobileCatalog />} />
-          <Route path="cart" element={<MobileCart />} />
-          <Route path="orders" element={<MobileOrders />} />
-          <Route path="reorder" element={<Navigate to="/mobile/catalog" replace />} />
-          <Route path="delivery" element={<MobileDeliveryLive />} />
-          <Route path="account" element={<Navigate to="/mobile/profile" replace />} />
+          <Route index element={<Navigate to="inventory" replace />} />
+          <Route path="inventory" element={<MobileInventory />} />
           <Route path="profile" element={<MobileProfile />} />
         </Route>
 
@@ -320,7 +275,7 @@ const AppRoutes = () => {
             normalizedRole === ROLE_SLUGS.SUPER_ADMIN
               ? <Navigate to="/main/dashboard" replace />
               : normalizedRole === ROLE_SLUGS.MOBILE_STOCKIST
-                ? <Navigate to="/mobile/dashboard" replace />
+                ? <Navigate to="/mobile/inventory" replace />
                 : <Navigate to="/stockist/dashboard" replace />
           }
         />
@@ -337,6 +292,8 @@ const App = () => (
     <AuthProvider>
       <NotificationProvider>
         <AppRoutes />
+        <CookieConsent />
+        <WarehouseRequiredAlert />
       </NotificationProvider>
     </AuthProvider>
   </ThemeProvider>

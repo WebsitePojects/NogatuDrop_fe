@@ -60,7 +60,7 @@ function RevenueTab() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ChartCard title="Revenue Over Time" loading={loading}>
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={trend} margin={{ left: -20, right: 8, top: 4 }}>
+            <LineChart data={trend} margin={{ left: 8, right: 14, top: 14, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3e8d6" />
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} />
@@ -71,7 +71,7 @@ function RevenueTab() {
         </ChartCard>
         <ChartCard title="Revenue by Warehouse" loading={loading}>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={byWarehouse} margin={{ left: -20, right: 8, top: 4 }}>
+            <BarChart data={byWarehouse} margin={{ left: 8, right: 14, top: 14, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3e8d6" />
               <XAxis dataKey="warehouse_name" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 11 }} />
@@ -146,7 +146,7 @@ function OrdersTab() {
         </ChartCard>
         <ChartCard title="Orders Over Time" loading={loading}>
           <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={trend} margin={{ left: -20, right: 8, top: 4 }}>
+            <LineChart data={trend} margin={{ left: 8, right: 14, top: 14, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3e8d6" />
               <XAxis dataKey="label" tick={{ fontSize: 11 }} />
               <YAxis tick={{ fontSize: 11 }} />
@@ -343,7 +343,7 @@ function StockistsTab() {
       <ChartCard title="Top Stockists by Order Volume" loading={loading}>
         {data.length > 0 ? (
           <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={data.slice(0, 10)} margin={{ left: -20, right: 8, top: 4 }}>
+            <BarChart data={data.slice(0, 10)} margin={{ left: 8, right: 14, top: 14, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3e8d6" />
               <XAxis dataKey="partner_name" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 11 }} />
@@ -422,7 +422,7 @@ function InventoryTab() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ChartCard title="Stock Levels by Warehouse" loading={loading}>
           <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={byWarehouse} margin={{ left: -20, right: 8, top: 4 }}>
+            <BarChart data={byWarehouse} margin={{ left: 8, right: 14, top: 14, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3e8d6" />
               <XAxis dataKey="name" tick={{ fontSize: 10 }} />
               <YAxis tick={{ fontSize: 11 }} />

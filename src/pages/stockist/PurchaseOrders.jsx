@@ -18,8 +18,10 @@ import StatusBadge from '@/components/StatusBadge';
 import ConfirmModal from '@/components/ConfirmModal';
 import { ToastContainer, useToast } from '@/components/Toast';
 import PageHeader from '@/components/PageHeader';
+import { useAuth } from '@/context/AuthContext';
 
 export default function StockistPurchaseOrders() {
+  const { user } = useAuth();
   const { toasts, showToast, dismiss } = useToast();
   const [pos, setPos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -30,6 +32,7 @@ export default function StockistPurchaseOrders() {
   const [createModal, setCreateModal] = useState(false);
   const [products, setProducts] = useState([]);
   const [warehouses, setWarehouses] = useState([]);
+  const [workflowLoading, setWorkflowLoading] = useState(false);
 
   const fetchPOs = useCallback(async () => {
     setLoading(true);
@@ -83,11 +86,39 @@ export default function StockistPurchaseOrders() {
     }
   };
 
+  const handleWorkflowAction = async (action) => {
+    if (!selected) return;
+    setWorkflowLoading(true);
+    try {
+      const endpoint = action === 'submit'
+        ? PURCHASE_ORDERS.SUBMIT(selected.id)
+        : action === 'accept'
+          ? PURCHASE_ORDERS.APPROVE(selected.id)
+          : PURCHASE_ORDERS.REJECT(selected.id);
+      await api.patch(endpoint);
+      showToast(action === 'submit' ? 'Purchase order submitted to parent' : action === 'accept' ? 'Supply request accepted' : 'Purchase order rejected', 'success');
+      setViewModal(false);
+      await fetchPOs();
+    } catch (error) {
+      showToast(error?.response?.data?.message || 'Purchase-order action failed', 'error');
+    } finally {
+      setWorkflowLoading(false);
+    }
+  };
+
+  const normalizedRole = user?.role_slug === 'admin' ? 'provincial_stockist' : user?.role_slug;
+  const canSubmitSelected = selected?.status === 'awaiting_owner_approval'
+    && normalizedRole !== 'staff'
+    && Number(selected?.requester_partner_id) === Number(user?.partner_id);
+  const canAcceptSelected = selected?.status === 'submitted'
+    && normalizedRole === 'provincial_stockist'
+    && Number(selected?.supplier_partner_id) === Number(user?.partner_id);
+
   return (
     <div className="page-enter">
       <PageHeader
         title="Purchase Orders"
-        subtitle="Request stock from Goldenstar / main supplier"
+        subtitle="Prepare and submit replenishment requests only to your direct parent Stockist"
         actions={[
           {
             label: 'Create PO',
@@ -108,7 +139,7 @@ export default function StockistPurchaseOrders() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          {['all', 'pending', 'approved', 'rejected', 'completed'].map((s) => (
+          {['all', 'awaiting_owner_approval', 'submitted', 'accepted', 'rejected', 'completed'].map((s) => (
             <button
               key={s}
               onClick={() => setActiveTab(s)}
@@ -211,6 +242,21 @@ export default function StockistPurchaseOrders() {
           )}
         </ModalBody>
         <ModalFooter>
+          {canSubmitSelected ? (
+            <Button color="success" onClick={() => handleWorkflowAction('submit')} isProcessing={workflowLoading} disabled={workflowLoading}>
+              Submit to parent
+            </Button>
+          ) : null}
+          {canAcceptSelected ? (
+            <Button color="success" onClick={() => handleWorkflowAction('accept')} isProcessing={workflowLoading} disabled={workflowLoading}>
+              Accept supply request
+            </Button>
+          ) : null}
+          {(canSubmitSelected || canAcceptSelected) ? (
+            <Button color="failure" outline onClick={() => handleWorkflowAction('reject')} disabled={workflowLoading}>
+              Reject
+            </Button>
+          ) : null}
           <Button color="light" onClick={() => setViewModal(false)}>Close</Button>
         </ModalFooter>
       </Modal>
@@ -260,7 +306,7 @@ export default function StockistPurchaseOrders() {
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button className="bg-amber-500 hover:bg-amber-600 text-white" onClick={handleCreate} disabled={creating || !form.supplier}>
+          <Button className="bg-amber-500 hover:bg-amber-600 text-white" onClick={handleCreate} disabled={creating || form.items.some((item) => !item.product_id || Number(item.quantity) < 1)}>
             {creating ? <Spinner size="sm" className="mr-2" /> : null}Submit PO
           </Button>
           <Button color="light" onClick={() => setCreateModal(false)}>Cancel</Button>

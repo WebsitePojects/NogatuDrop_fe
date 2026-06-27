@@ -38,6 +38,59 @@ const roleBadge = (role) => {
   return <span className={m[role] || 'badge-inactive'}>{label}</span>;
 };
 
+const needsPartner = (role) =>
+  ['provincial_stockist', 'city_stockist', 'staff', 'mobile_stockist'].includes(role);
+
+// Hoisted to module scope — stable identity prevents input focus loss on each keystroke.
+function UserFormFields({ form, fld, formRoles, partners }) {
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="col-span-2">
+        <Label value="Full Name" className="mb-1" />
+        <TextInput value={form.name} onChange={fld('name')} placeholder="Juan Dela Cruz" required />
+      </div>
+      <div>
+        <Label value="Email" className="mb-1" />
+        <TextInput type="email" value={form.email} onChange={fld('email')} placeholder="juan@example.com" required />
+      </div>
+      <div>
+        <Label value="Phone" className="mb-1" />
+        <TextInput value={form.phone} onChange={fld('phone')} placeholder="09xxxxxxxxx" />
+      </div>
+      <div>
+        <Label value="Role" className="mb-1" />
+        <Select value={form.role_slug} onChange={fld('role_slug')} required>
+          <option value="">Select role...</option>
+          {formRoles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+        </Select>
+        <p className="mt-1 text-xs text-gray-500">
+          Mobile Stockist accounts are provisioned from the Mobile Stockists module so their user and field profile stay linked.
+        </p>
+      </div>
+      <div>
+        <Label value="Status" className="mb-1" />
+        <Select value={form.status} onChange={fld('status')}>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </Select>
+      </div>
+      {needsPartner(form.role_slug) && (
+        <div className="col-span-2">
+          <Label value="Stockist (Partner)" className="mb-1" />
+          <Select value={form.partner_id} onChange={fld('partner_id')}>
+            <option value="">Select stockist...</option>
+            {partners.map((p) => <option key={p.id} value={p.id}>{p.business_name}</option>)}
+          </Select>
+        </div>
+      )}
+      <div className="col-span-2">
+        <Label value="Password (leave blank to keep current)" className="mb-1" />
+        <TextInput type="password" value={form.password} onChange={fld('password')} placeholder="••••••••" autoComplete="new-password" />
+      </div>
+    </div>
+  );
+}
+
 export default function Users() {
   const { toasts, showToast, dismiss } = useToast();
   const [users, setUsers] = useState([]);
@@ -143,60 +196,11 @@ export default function Users() {
 
   const fld = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
-  const needsPartner = (role) => ['provincial_stockist', 'city_stockist', 'staff', 'mobile_stockist'].includes(role);
-
   const formRoles = (
     selected?.role_slug === 'mobile_stockist' && !FORM_ROLES.some((role) => role.value === 'mobile_stockist')
   )
     ? [...FORM_ROLES, ROLES.find((role) => role.value === 'mobile_stockist')]
     : FORM_ROLES;
-
-  const UserFormFields = () => (
-    <div className="grid grid-cols-2 gap-4">
-      <div className="col-span-2">
-        <Label value="Full Name" className="mb-1" />
-        <TextInput value={form.name} onChange={fld('name')} placeholder="Juan Dela Cruz" required />
-      </div>
-      <div>
-        <Label value="Email" className="mb-1" />
-        <TextInput type="email" value={form.email} onChange={fld('email')} placeholder="juan@example.com" required />
-      </div>
-      <div>
-        <Label value="Phone" className="mb-1" />
-        <TextInput value={form.phone} onChange={fld('phone')} placeholder="09xxxxxxxxx" />
-      </div>
-      <div>
-        <Label value="Role" className="mb-1" />
-        <Select value={form.role_slug} onChange={fld('role_slug')} required>
-          <option value="">Select role...</option>
-          {formRoles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
-        </Select>
-        <p className="mt-1 text-xs text-gray-500">
-          Mobile Stockist accounts are provisioned from the Mobile Stockists module so their user and field profile stay linked.
-        </p>
-      </div>
-      <div>
-        <Label value="Status" className="mb-1" />
-        <Select value={form.status} onChange={fld('status')}>
-          <option value="active">Active</option>
-          <option value="inactive">Inactive</option>
-        </Select>
-      </div>
-      {needsPartner(form.role_slug) && (
-        <div className="col-span-2">
-          <Label value="Stockist (Partner)" className="mb-1" />
-          <Select value={form.partner_id} onChange={fld('partner_id')}>
-            <option value="">Select stockist...</option>
-            {partners.map((p) => <option key={p.id} value={p.id}>{p.business_name}</option>)}
-          </Select>
-        </div>
-      )}
-      <div className="col-span-2">
-        <Label value="Password (leave blank to keep current)" className="mb-1" />
-        <TextInput type="password" value={form.password} onChange={fld('password')} placeholder="••••••••" autoComplete="new-password" />
-      </div>
-    </div>
-  );
 
   return (
     <div className="page-enter">
@@ -287,7 +291,7 @@ export default function Users() {
       {/* Add Modal */}
       <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Add User</ModalHeader>
-        <ModalBody><UserFormFields /></ModalBody>
+        <ModalBody><UserFormFields form={form} fld={fld} formRoles={formRoles} partners={partners} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleAdd} disabled={submitting}>Create User</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
@@ -297,7 +301,7 @@ export default function Users() {
       {/* Edit Modal */}
       <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Edit User — {selected?.name}</ModalHeader>
-        <ModalBody><UserFormFields /></ModalBody>
+        <ModalBody><UserFormFields form={form} fld={fld} formRoles={formRoles} partners={partners} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleEdit} disabled={submitting}>Save Changes</Button>
           <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>

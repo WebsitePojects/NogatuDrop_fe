@@ -31,7 +31,7 @@ export const NOGATU_PRODUCT_CATALOG = [
     sku: 'NKT-GLW-001',
     category: 'Supplements',
     image: '/assets/Glow-Pill.png',
-    price: 550,
+    price: 580,
     rating: 4.7,
     badge: 'Glow Care',
     shortDescription: 'L-reduced glutathione support designed for everyday radiance.',

@@ -1,5 +1,6 @@
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Badge, Card, Spinner, Tabs, TabItem, TextInput, Select, Label, Textarea, Pagination } from 'flowbite-react';
 import {
@@ -14,12 +15,14 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate, formatDateTime } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
 import StatusBadge from '@/components/StatusBadge';
+import OrderStatusTimeline from '@/components/OrderStatusTimeline';
 import ConfirmModal from '@/components/ConfirmModal';
 import PageHeader from '@/components/PageHeader';
 import ProofOfDeliveryPanel from '@/components/ProofOfDeliveryPanel';
 import { ToastContainer, useToast } from '@/components/Toast';
+import OrderPricingBreakdown from '@/components/OrderPricingBreakdown';
 
-const STATUSES = ['all', 'pending', 'approved', 'delivering', 'delivered', 'cancelled'];
+const STATUSES = ['all', 'pending', 'approved', 'delivering', 'delivered', 'cancelled', 'archived'];
 const toStatusKey = (value) => String(value || '').trim().toLowerCase();
 const roleLabel = (roleSlug) => {
   const normalized = String(roleSlug || '').trim().toLowerCase();
@@ -57,13 +60,28 @@ export default function Orders() {
   const [deliveryLinkInfo, setDeliveryLinkInfo] = useState(null); // { orderId, magicLink, expiresAt }
   const [copiedOrderId, setCopiedOrderId] = useState(null);
 
-  const statusFilter = STATUSES[activeTab] === 'all' ? '' : STATUSES[activeTab];
+  // Notification deep-link: ?highlight=<orderId> glows that row briefly.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const highlightId = searchParams.get('highlight');
+  useEffect(() => {
+    if (!highlightId) return undefined;
+    const t = setTimeout(() => {
+      const next = new URLSearchParams(searchParams);
+      next.delete('highlight');
+      setSearchParams(next, { replace: true });
+    }, 4000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightId]);
+
+  const isArchivedTab = STATUSES[activeTab] === 'archived';
+  const statusFilter = (STATUSES[activeTab] === 'all' || isArchivedTab) ? '' : STATUSES[activeTab];
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
       const { data } = await api.get(ORDERS.LIST, {
-        params: { page, search: search || undefined, status: statusFilter || undefined, limit: 15 },
+        params: { page, search: search || undefined, status: statusFilter || undefined, archived: isArchivedTab ? 'true' : undefined, limit: 15 },
       });
       setOrders(data.data || []);
       setTotalPages(data.pagination?.pages || 1);
@@ -72,9 +90,39 @@ export default function Orders() {
     } finally {
       setLoading(false);
     }
-  }, [page, search, statusFilter]);
+  }, [page, search, statusFilter, isArchivedTab]);
 
   useEffect(() => { fetchOrders(); }, [fetchOrders]);
+
+  // Realtime-ish: refresh the list every 30s so new orders appear without a manual
+  // reload. Paused while a detail modal is open so it doesn't disrupt the user.
+  useEffect(() => {
+    const id = setInterval(() => { if (!showDetail) fetchOrders(); }, 30000);
+    return () => clearInterval(id);
+  }, [fetchOrders, showDetail]);
+
+  // Order Archive — "delete" archives (record + revenue kept for accurate reports).
+  const handleArchive = async (order) => {
+    try {
+      await api.patch(ORDERS.ARCHIVE(order.id));
+      setShowDetail(false);
+      showToast('Order archived. Record kept for reports.', 'success');
+      fetchOrders();
+    } catch {
+      showToast('Failed to archive order.', 'warning');
+    }
+  };
+
+  const handleUnarchive = async (order) => {
+    try {
+      await api.patch(ORDERS.UNARCHIVE(order.id));
+      setShowDetail(false);
+      showToast('Order restored to the active list.', 'success');
+      fetchOrders();
+    } catch {
+      showToast('Failed to restore order.', 'warning');
+    }
+  };
 
   const openDetail = async (order) => {
     setCopiedOrderId(null);
@@ -382,11 +430,17 @@ export default function Orders() {
                       </TableRow>
                     ) : (
                       orders.map((order) => (
-                        <TableRow key={order.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(order)}>
+                        <TableRow key={order.id} className={`cursor-pointer transition-all ${highlightId && String(order.id) === highlightId ? 'ring-2 ring-inset ring-amber-400 bg-amber-100/70 animate-pulse' : 'hover:bg-amber-50/30'}`} onClick={() => openDetail(order)}>
                           <TableCell className="font-mono font-medium text-gray-900 dark:text-[var(--dark-text)] text-xs">
                             {order.order_number}
                           </TableCell>
-                          <TableCell className="text-xs">{order.partner_name || order.business_name || 'N/A'}</TableCell>
+                          <TableCell className="text-xs">
+                            {order.is_public ? (
+                              <span className="flex flex-col gap-0.5">
+                                <span className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{order.customer_name || 'Public Customer'}</span>
+                                <span className="text-[10px] bg-orange-100 text-orange-700 rounded px-1 py-0.5 w-fit font-semibold uppercase tracking-wide">Public Order</span>
+                              </span>
+                            ) : (order.partner_name || order.business_name || 'N/A')}</TableCell>
                           <TableCell className="text-xs">{order.items_count ?? order.items?.length ?? '—'}</TableCell>
                           <TableCell className="font-semibold text-xs">{formatCurrency(order.total_amount)}</TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
@@ -445,15 +499,28 @@ export default function Orders() {
             </div>
           ) : selectedOrder ? (
             <div className="space-y-8">
+              <OrderStatusTimeline status={selectedOrder.status} paymentStatus={selectedOrder.payment_status} />
               {/* Order Info Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
                   <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5 whitespace-nowrap">
-                    <HiOutlineUser className="w-3.5 h-3.5" /> Stockist
+                    <HiOutlineUser className="w-3.5 h-3.5" />
+                    {selectedOrder.is_public ? 'Customer' : 'Stockist'}
                   </p>
-                  <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2">
-                    {selectedOrder.partner_name || selectedOrder.business_name || 'N/A'}
-                  </p>
+                  {selectedOrder.is_public ? (
+                    <div>
+                      <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2">
+                        {selectedOrder.customer_name || 'Public Customer'}
+                      </p>
+                      <span className="mt-1 inline-block text-[10px] bg-orange-100 text-orange-700 rounded px-1.5 py-0.5 font-bold uppercase tracking-wide">
+                        Public Order
+                      </span>
+                    </div>
+                  ) : (
+                    <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2">
+                      {selectedOrder.partner_name || selectedOrder.business_name || 'N/A'}
+                    </p>
+                  )}
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
                   <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5 whitespace-nowrap">
@@ -481,18 +548,56 @@ export default function Orders() {
                 </div>
               </div>
 
-              <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5">
-                  Placed By
-                </p>
-                <p className="font-bold text-gray-900 dark:text-white text-sm">
-                  {selectedOrder.placed_by_name || selectedOrder.customer_name || 'Unknown'}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                  {roleLabel(selectedOrder.placed_by_role_slug)}
-                  {selectedOrder.placed_by_email ? ` - ${selectedOrder.placed_by_email}` : ''}
-                </p>
-              </div>
+              {/* Ordered By / Public Customer block */}
+              {selectedOrder.is_public ? (
+                <div className="bg-orange-50 dark:bg-orange-900/10 border border-orange-100 dark:border-orange-800 p-4 rounded-xl shadow-sm space-y-2">
+                  <p className="text-xs font-bold text-orange-700 dark:text-orange-300 tracking-wider uppercase mb-1">
+                    Public Customer Order
+                  </p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <span className="text-xs text-gray-500 dark:text-gray-400">Name</span>
+                      <p className="font-semibold text-gray-900 dark:text-white">{selectedOrder.customer_name || '—'}</p>
+                    </div>
+                    {selectedOrder.customer_phone && (
+                      <div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Phone</span>
+                        <p className="font-semibold text-gray-900 dark:text-white">{selectedOrder.customer_phone}</p>
+                      </div>
+                    )}
+                    {selectedOrder.customer_email && (
+                      <div>
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Email</span>
+                        <p className="font-semibold text-gray-900 dark:text-white">{selectedOrder.customer_email}</p>
+                      </div>
+                    )}
+                    {selectedOrder.customer_address && (
+                      <div className="sm:col-span-2">
+                        <span className="text-xs text-gray-500 dark:text-gray-400">Delivery Address</span>
+                        <p className="font-semibold text-gray-900 dark:text-white">{selectedOrder.customer_address}</p>
+                      </div>
+                    )}
+                  </div>
+                  {selectedOrder.partner_name && (
+                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 pt-2 border-t border-orange-100 dark:border-orange-800/50">
+                      Fulfilled by Stockist: <span className="font-medium text-gray-600 dark:text-gray-300">{selectedOrder.partner_name}</span>
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5">
+                    Placed By
+                  </p>
+                  <p className="font-bold text-gray-900 dark:text-white text-sm">
+                    {selectedOrder.placed_by_name || 'Unknown'}
+                  </p>
+                  <p className="text-xs text-gray-900 dark:text-gray-200 mt-1">
+                    {roleLabel(selectedOrder.placed_by_role_slug)}
+                    {selectedOrder.placed_by_email ? ` - ${selectedOrder.placed_by_email}` : ''}
+                  </p>
+                </div>
+              )}
 
               {/* Items Section */}
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
@@ -500,7 +605,7 @@ export default function Orders() {
                   <h3 className="text-sm font-bold tracking-wider text-gray-700 dark:text-gray-300 uppercase">Order Items</h3>
                 </div>
                 <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm text-gray-600 dark:text-gray-400 tracking-wide">
+                  <table className="w-full text-left text-sm tracking-wide">
                     <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">
                       <tr>
                         <th className="px-5 py-3 rounded-bl-none">Product</th>
@@ -513,8 +618,8 @@ export default function Orders() {
                       {(selectedOrder.items || []).map((item, i) => (
                         <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-gray-800/30 transition-colors">
                           <td className="px-5 py-4 font-medium text-gray-900 dark:text-gray-200">{item.product_name}</td>
-                          <td className="px-5 py-4 text-center font-bold">{item.quantity}</td>
-                          <td className="px-5 py-4 text-right">{formatCurrency(item.unit_price)}</td>
+                          <td className="px-5 py-4 text-center font-bold text-gray-900 dark:text-gray-100">{item.quantity}</td>
+                          <td className="px-5 py-4 text-right text-gray-900 dark:text-gray-100">{formatCurrency(item.unit_price)}</td>
                           <td className="px-5 py-4 text-right font-black text-gray-900 dark:text-white">
                             {formatCurrency(item.subtotal || item.quantity * item.unit_price)}
                           </td>
@@ -523,31 +628,45 @@ export default function Orders() {
                     </tbody>
                   </table>
                 </div>
-                <div className="px-6 py-4 bg-gradient-to-r from-[#fff8f0] to-[#fff2df] dark:from-gray-800/90 dark:to-gray-800/70 border-t border-[#efd8bd] dark:border-gray-700 flex justify-end items-center gap-4">
-                  <span className="text-sm font-bold text-[#9a6d45] dark:text-gray-400 uppercase tracking-[0.18em]">Total Amount</span>
-                  <span className="text-3xl font-black text-[#6d2f0f] dark:text-[#ffd8ae] tracking-tight">
-                    {formatCurrency(selectedOrder.total_amount)}
-                  </span>
-                </div>
               </div>
+
+              <OrderPricingBreakdown
+                breakdown={selectedOrder.pricing_breakdown}
+                fallbackTotal={selectedOrder.total_amount}
+              />
 
               {/* Extra Details Row: Proof + Deadline */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {selectedOrder.payment_proof_url && (
-                  <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 p-4 rounded-xl flex items-center justify-between shadow-sm transition-all hover:bg-blue-50 dark:hover:bg-blue-900/20">
-                    <div className="flex items-center gap-3">
-                      <div className="p-2 bg-blue-100 dark:bg-blue-800/50 rounded-lg">
-                        <HiOutlinePhotograph className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                  <div className="bg-blue-50/50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-800 p-4 rounded-xl shadow-sm transition-all hover:bg-blue-50 dark:hover:bg-blue-900/20 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-blue-100 dark:bg-blue-800/50 rounded-lg">
+                          <HiOutlinePhotograph className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div>
+                          <p className="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wider mb-0.5">Payment Proof</p>
+                          <p className="text-xs text-blue-600/80 dark:text-blue-400/80">
+                            {selectedOrder.payment_proof_uploaded_at
+                              ? `Uploaded ${formatDateTime(selectedOrder.payment_proof_uploaded_at)}`
+                              : 'Attached document'}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs font-bold text-blue-800 dark:text-blue-300 uppercase tracking-wider mb-0.5">Payment Proof</p>
-                        <p className="text-xs text-blue-600/80 dark:text-blue-400/80">Attached document</p>
-                      </div>
+                      <a href={selectedOrder.payment_proof_url} target="_blank" rel="noopener noreferrer"
+                        className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow transition-colors inline-flex items-center gap-1.5 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800">
+                        Open
+                        <HiOutlineExternalLink className="w-3 h-3" />
+                      </a>
                     </div>
-                    <a href={selectedOrder.payment_proof_url} target="_blank" rel="noopener noreferrer"
-                      className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-lg shadow transition-colors inline-flex items-center gap-1.5 focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800">
-                      View File
-                      <HiOutlineExternalLink className="w-3.5 h-3.5" />
+                    {/* Inline image preview for admin to review without leaving the modal */}
+                    <a href={selectedOrder.payment_proof_url} target="_blank" rel="noopener noreferrer" className="block">
+                      <img
+                        src={selectedOrder.payment_proof_url}
+                        alt="Payment proof"
+                        className="w-full max-h-56 object-contain rounded-lg border border-blue-100 dark:border-blue-800 bg-white dark:bg-gray-900 cursor-zoom-in"
+                        onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                      />
                     </a>
                   </div>
                 )}
@@ -652,7 +771,7 @@ export default function Orders() {
                  color={selectedOrder.payment_proof_url ? "success" : "light"}
                  disabled={!selectedOrder.payment_proof_url || actionLoading}
                  onClick={() => handleVerifyPayment(selectedOrder)}
-                 className="font-bold shadow-sm ring-1 ring-emerald-200 dark:ring-emerald-800"
+                 className="bg-emerald-600 text-white font-bold shadow-sm ring-2 ring-emerald-700 hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 disabled:bg-amber-500 disabled:text-amber-950 disabled:opacity-100"
                >
                  <HiOutlineCheckCircle className="w-4 h-4 mr-1.5" />
                  {selectedOrder.payment_proof_url
@@ -667,7 +786,9 @@ export default function Orders() {
                   color="purple"
                   disabled={!canGenerateDeliveryLink || actionLoading}
                   onClick={() => handleGenerateDelivery(selectedOrder)}
-                  className="font-bold shadow-sm ring-1 ring-purple-200 dark:ring-purple-800"
+                  className={canGenerateDeliveryLink
+                    ? 'font-bold bg-purple-600 text-white shadow-sm ring-2 ring-purple-700 hover:bg-purple-700 focus:ring-4 focus:ring-purple-300'
+                    : 'font-bold bg-amber-400 text-amber-950 border-amber-500 shadow-sm ring-2 ring-amber-500 disabled:opacity-100 dark:bg-amber-400 dark:text-amber-950'}
                 >
                   <HiOutlinePaperAirplane className="w-4 h-4 mr-1.5 rotate-45 -mt-0.5" />
                   {isTerminalStatus ? 'Link unavailable' : isPaymentVerified ? (actionLoading ? 'Working...' : 'Send Delivery Link') : 'Payment required'}
@@ -676,6 +797,15 @@ export default function Orders() {
                 {!['delivered', 'cancelled', 'rejected'].includes(selectedStatusKey) && (
                   <Button color="failure" outline onClick={() => { setShowDetail(false); handleCancel(selectedOrder); }} className="font-bold bg-white text-[#8a3b12] border-[#e8c29a] hover:bg-[#fff3e2] dark:bg-transparent dark:text-orange-200 dark:border-orange-800">
                     Cancel Task
+                  </Button>
+                )}
+                {selectedOrder.is_archived ? (
+                  <Button color="light" onClick={() => handleUnarchive(selectedOrder)} className="font-bold">
+                    Restore
+                  </Button>
+                ) : (
+                  <Button color="light" onClick={() => handleArchive(selectedOrder)} className="font-bold">
+                    Archive
                   </Button>
                 )}
                 <Button color="gray" onClick={() => setShowDetail(false)} className="font-bold shadow-sm bg-[#374151] text-white hover:bg-[#1f2937] dark:bg-gray-700 dark:hover:bg-gray-600">

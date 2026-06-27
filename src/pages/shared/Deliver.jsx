@@ -5,17 +5,34 @@ import {
 } from 'react-icons/hi';
 import { FiPackage } from 'react-icons/fi';
 import { Spinner } from 'flowbite-react';
+import { GoogleMap, LoadScriptNext, MarkerF } from '@react-google-maps/api';
+import OpenDeliveryMap from '@/components/OpenDeliveryMap';
+import { isGoogleMapsFeatureEnabled, shouldAttemptGoogleMaps } from '@/utils/deliveryMapRuntime';
 import api from '@/services/api';
 import { DELIVERY_TOKENS, TRACKING } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
+import { computeLiveEstimate, formatKm, formatDuration } from '@/utils/deliveryRouting';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
+
+// Build a point object from lat/lng — returns null when coords are missing/invalid
+function toMapPoint(lat, lng) {
+  const la = Number(lat);
+  const lo = Number(lng);
+  if (!Number.isFinite(la) || !Number.isFinite(lo)) return null;
+  return { lat: la, lng: lo };
+}
 
 export default function Deliver() {
   const { token } = useParams();
   const canvasRef = useRef(null);
   const signatureWrapperRef = useRef(null);
   const drawingRef = useRef(false);
+
+  const mapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
+  const mapsFeatureEnabled = isGoogleMapsFeatureEnabled(import.meta.env.VITE_ENABLE_GOOGLE_MAPS);
+  const mapsConfigured = mapsFeatureEnabled && shouldAttemptGoogleMaps(mapsApiKey);
+  const [mapLoadFailed, setMapLoadFailed] = useState(false);
 
   const [info, setInfo] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -313,6 +330,118 @@ export default function Deliver() {
             </div>
           )}
         </div>
+
+        {/* Route map — shows origin warehouse + live courier GPS + destination */}
+        {(() => {
+          const sourcePoint = info?.source_warehouse
+            ? toMapPoint(info.source_warehouse.lat, info.source_warehouse.lng)
+            : null;
+          // Use the current live GPS if already captured, else fall back to last server ping
+          const livePoint = gpsCoords
+            ? { lat: gpsCoords.lat, lng: gpsCoords.lng }
+            : (info?.latest_gps ? toMapPoint(info.latest_gps.latitude, info.latest_gps.longitude) : null);
+
+          const destPoint = info?.destination && Number.isFinite(Number(info.destination.lat))
+            ? toMapPoint(info.destination.lat, info.destination.lng)
+            : null;
+
+          const availablePoints = [sourcePoint, livePoint, destPoint].filter(Boolean);
+          if (availablePoints.length === 0) return null;
+
+          // Live distance + ETA from the courier (or warehouse) to the destination.
+          const estimate = computeLiveEstimate({ origin: sourcePoint, courier: livePoint, destination: destPoint });
+
+          // Map centers on courier GPS if available, else on the warehouse
+          const mapCenter = livePoint || destPoint || sourcePoint;
+          const canRenderGoogle = mapsConfigured && !mapLoadFailed;
+
+          const warehouseLabel = info?.source_warehouse?.name || 'Origin Warehouse';
+          const destLabel = info?.customer_address || 'Delivery Destination';
+
+          return (
+            <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-gray-100 p-3">
+                <div className="flex items-center gap-2">
+                  <HiLocationMarker className="h-4 w-4 text-orange-500" />
+                  <span className="text-xs font-semibold text-gray-700">Delivery Route</span>
+                </div>
+                {livePoint && (
+                  <span className="rounded-full bg-green-100 px-2 py-0.5 text-[11px] font-medium text-green-700">
+                    GPS Active
+                  </span>
+                )}
+              </div>
+              <div style={{ height: 200 }}>
+                {canRenderGoogle ? (
+                  <LoadScriptNext googleMapsApiKey={mapsApiKey} onError={() => setMapLoadFailed(true)}>
+                    <GoogleMap
+                      mapContainerStyle={{ width: '100%', height: '100%' }}
+                      zoom={availablePoints.length >= 2 ? 8 : 12}
+                      center={mapCenter}
+                      options={{ streetViewControl: false, fullscreenControl: false, mapTypeControl: false }}
+                    >
+                      {sourcePoint && (
+                        <MarkerF
+                          position={sourcePoint}
+                          title={warehouseLabel}
+                        />
+                      )}
+                      {livePoint && (
+                        <MarkerF
+                          position={livePoint}
+                          title="Current Location"
+                        />
+                      )}
+                    </GoogleMap>
+                  </LoadScriptNext>
+                ) : (
+                  <OpenDeliveryMap
+                    center={mapCenter}
+                    zoom={availablePoints.length >= 2 ? 8 : 12}
+                    polyline={[sourcePoint, livePoint, destPoint].filter(Boolean)}
+                    markers={[
+                      ...(sourcePoint ? [{
+                        key: 'source',
+                        position: sourcePoint,
+                        label: warehouseLabel,
+                        description: 'Origin warehouse',
+                        color: '#2563eb',
+                      }] : []),
+                      ...(livePoint ? [{
+                        key: 'courier',
+                        position: livePoint,
+                        label: 'Courier',
+                        description: 'Current location',
+                        color: '#f97316',
+                      }] : []),
+                      ...(destPoint ? [{
+                        key: 'dest',
+                        position: destPoint,
+                        label: 'Destination',
+                        description: destLabel,
+                        color: '#16a34a',
+                      }] : []),
+                    ]}
+                  />
+                )}
+              </div>
+              <div className="space-y-1 px-3 py-2 text-[11px] text-gray-500">
+                <div>
+                  <span className="font-medium">From:</span> {warehouseLabel}
+                  <span className="mx-2 text-gray-300">|</span>
+                  <span className="font-medium">To:</span> {destLabel}
+                </div>
+                {estimate.etaMinutes != null && (
+                  <div className="flex items-center gap-2 font-semibold text-emerald-700">
+                    <span>~{formatKm(estimate.remainingKm)} away</span>
+                    <span className="text-gray-300">|</span>
+                    <span>ETA {formatDuration(estimate.etaMinutes)}{estimate.etaClock ? ` (≈ ${estimate.etaClock})` : ''}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
         <div className="space-y-4 rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
           <h3 className="text-sm font-semibold text-gray-900">Confirm Delivery</h3>

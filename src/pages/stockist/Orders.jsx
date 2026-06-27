@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { Button, Spinner } from 'flowbite-react';
 import {
@@ -16,6 +17,7 @@ import {
 import { FiPackage } from 'react-icons/fi';
 import ConfirmModal from '@/components/ConfirmModal';
 import StatusBadge from '@/components/StatusBadge';
+import OrderStatusTimeline from '@/components/OrderStatusTimeline';
 import StatusProgressBar from '@/components/StatusProgressBar';
 import PaymentCountdownTimer from '@/components/PaymentCountdownTimer';
 import ProofOfDeliveryPanel from '@/components/ProofOfDeliveryPanel';
@@ -25,6 +27,7 @@ import { ORDERS, BANK_ACCOUNTS, DELIVERY_TOKENS } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate, formatDateTime } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
+import OrderPricingBreakdown from '@/components/OrderPricingBreakdown';
 
 const STATUS_STEPS = ['pending', 'approved', 'delivering', 'delivered'];
 const TAB_STATUSES = {
@@ -151,7 +154,7 @@ function EmptyState({ label }) {
   );
 }
 
-function OrderTable({ list, onOpenDetail }) {
+function OrderTable({ list, onOpenDetail, highlightId }) {
   if (list.length === 0) {
     return null;
   }
@@ -180,22 +183,35 @@ function OrderTable({ list, onOpenDetail }) {
             return (
               <tr
                 key={order.id}
-                className="cursor-pointer border-t border-gray-50 transition-colors hover:bg-amber-50/30 dark:border-[var(--dark-border)] dark:hover:bg-white/5"
+                className={`cursor-pointer border-t border-gray-50 transition-all dark:border-[var(--dark-border)] ${highlightId && String(order.id) === highlightId ? 'ring-2 ring-inset ring-amber-400 bg-amber-100/70 animate-pulse' : 'hover:bg-amber-50/30 dark:hover:bg-white/5'}`}
                 onClick={() => onOpenDetail(order)}
               >
                 <td className="px-4 py-3 font-mono text-xs font-semibold text-gray-900 dark:text-[var(--dark-text)]">
                   {order.order_number}
                 </td>
                 <td className="px-4 py-3">
-                  <div className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">
-                    {order.placed_by_name || order.customer_name || 'Unknown'}
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">
-                    {order.partner_name || 'Stockist'}
-                  </div>
+                  {order.is_public ? (
+                    <>
+                      <div className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">
+                        {order.customer_name || 'Public Customer'}
+                      </div>
+                      <span className="inline-block mt-0.5 text-[10px] bg-orange-100 text-orange-700 rounded px-1.5 py-0.5 font-bold uppercase tracking-wide">
+                        Public Order
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <div className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">
+                        {order.placed_by_name || 'Unknown'}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">
+                        {order.partner_name || 'Stockist'}
+                      </div>
+                    </>
+                  )}
                 </td>
                 <td className="px-4 py-3 text-xs text-gray-600 dark:text-[var(--dark-muted)]">
-                  {roleLabel(order.placed_by_role_slug)}
+                  {order.is_public ? 'Public' : roleLabel(order.placed_by_role_slug)}
                 </td>
                 <td className="px-4 py-3 font-semibold text-gray-900 dark:text-[var(--dark-text)]">
                   {formatCurrency(order.total_amount)}
@@ -243,6 +259,8 @@ export default function StockistOrders() {
   const titles = getSectionTitles(viewerRole);
 
   const [orders, setOrders] = useState([]);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const highlightId = searchParams.get('highlight');
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
   const [selectedOrder, setSelectedOrder] = useState(null);
@@ -279,6 +297,24 @@ export default function StockistOrders() {
   useEffect(() => {
     fetchOrders();
   }, [fetchOrders]);
+
+  // Realtime-ish: refresh the list every 30s (paused while a detail modal is open).
+  useEffect(() => {
+    const id = setInterval(() => { if (!selectedOrder) fetchOrders(); }, 30000);
+    return () => clearInterval(id);
+  }, [fetchOrders, selectedOrder]);
+
+  // Notification deep-link: clear the ?highlight after the glow plays.
+  useEffect(() => {
+    if (!highlightId) return undefined;
+    const t = setTimeout(() => {
+      const next = new URLSearchParams(searchParams);
+      next.delete('highlight');
+      setSearchParams(next, { replace: true });
+    }, 4000);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [highlightId]);
 
   const hydrateDeliveryLinkForOrder = useCallback(async (orderLike) => {
     if (!orderLike?.id || !isManagedChildOrder(orderLike, viewerRole)) {
@@ -614,7 +650,7 @@ export default function StockistOrders() {
             {ownOrders.length === 0 ? (
               <EmptyState label={titles.ownEmpty} />
             ) : (
-              <OrderTable list={ownOrders} onOpenDetail={openDetail} />
+              <OrderTable list={ownOrders} onOpenDetail={openDetail} highlightId={highlightId} />
             )}
           </section>
 
@@ -624,7 +660,7 @@ export default function StockistOrders() {
               {childOrders.length === 0 ? (
                 <EmptyState label={titles.childEmpty} />
               ) : (
-                <OrderTable list={childOrders} onOpenDetail={openDetail} />
+                <OrderTable list={childOrders} onOpenDetail={openDetail} highlightId={highlightId} />
               )}
             </section>
           ) : null}
@@ -647,9 +683,7 @@ export default function StockistOrders() {
             </div>
           ) : !detail ? null : (
             <>
-              {!['cancelled', 'rejected'].includes(detail.status) && (
-                <StatusProgressBar steps={STATUS_STEPS} current={detail.status} />
-              )}
+              <OrderStatusTimeline status={detail.status} paymentStatus={detail.payment_status} />
 
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {[
@@ -665,16 +699,54 @@ export default function StockistOrders() {
                 ))}
               </div>
 
-              <div className="rounded-xl bg-gray-50 p-3 dark:bg-[var(--dark-card2)]">
-                <p className="mb-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">Placed By</p>
-                <div className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)]">
-                  {detail.placed_by_name || detail.customer_name || 'Unknown'}
+              {detail.is_public ? (
+                <div className="rounded-xl bg-orange-50 border border-orange-100 dark:bg-orange-900/10 dark:border-orange-800/40 p-3 space-y-2">
+                  <div className="flex items-center gap-2">
+                    <p className="text-xs font-bold text-orange-700 dark:text-orange-300 uppercase tracking-wider">Public Customer Order</p>
+                    <span className="text-[10px] bg-orange-100 text-orange-700 dark:bg-orange-800/30 dark:text-orange-200 rounded px-1.5 py-0.5 font-bold uppercase">Public</span>
+                  </div>
+                  <div className="grid grid-cols-2 gap-2 text-sm">
+                    <div>
+                      <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Name</p>
+                      <p className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{detail.customer_name || '—'}</p>
+                    </div>
+                    {detail.customer_phone && (
+                      <div>
+                        <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Phone</p>
+                        <p className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{detail.customer_phone}</p>
+                      </div>
+                    )}
+                    {detail.customer_email && (
+                      <div>
+                        <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Email</p>
+                        <p className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{detail.customer_email}</p>
+                      </div>
+                    )}
+                    {detail.customer_address && (
+                      <div className="col-span-2">
+                        <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Delivery Address</p>
+                        <p className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{detail.customer_address}</p>
+                      </div>
+                    )}
+                  </div>
+                  {detail.partner_name && (
+                    <p className="text-xs text-gray-400 dark:text-gray-500 pt-2 border-t border-orange-100 dark:border-orange-800/30">
+                      Fulfilled by Stockist: <span className="font-medium text-gray-600 dark:text-gray-300">{detail.partner_name}</span>
+                    </p>
+                  )}
                 </div>
-                <div className="mt-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
-                  {roleLabel(detail.placed_by_role_slug)}
-                  {detail.placed_by_email ? ` - ${detail.placed_by_email}` : ''}
+              ) : (
+                <div className="rounded-xl bg-gray-50 p-3 dark:bg-[var(--dark-card2)]">
+                  <p className="mb-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">Placed By</p>
+                  <div className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)]">
+                    {detail.placed_by_name || 'Unknown'}
+                  </div>
+                  <div className="mt-0.5 text-xs text-gray-900 dark:text-[var(--dark-text)]">
+                    {roleLabel(detail.placed_by_role_slug)}
+                    {detail.placed_by_email ? ` - ${detail.placed_by_email}` : ''}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="overflow-hidden rounded-xl border border-gray-100 dark:border-[var(--dark-border)]">
                 <table className="w-full text-sm">
@@ -690,8 +762,8 @@ export default function StockistOrders() {
                     {(detail.items || []).map((item, index) => (
                       <tr key={`${item.product_id}-${index}`} className="border-t border-gray-50 dark:border-[var(--dark-border)]">
                         <td className="px-4 py-2.5 font-medium text-gray-800 dark:text-[var(--dark-text)]">{item.product_name}</td>
-                        <td className="px-4 py-2.5 text-center text-gray-600 dark:text-[var(--dark-muted)]">{item.quantity}</td>
-                        <td className="px-4 py-2.5 text-right text-gray-600 dark:text-[var(--dark-muted)]">{formatCurrency(item.unit_price)}</td>
+                        <td className="px-4 py-2.5 text-center text-gray-900 dark:text-[var(--dark-text)]">{item.quantity}</td>
+                        <td className="px-4 py-2.5 text-right text-gray-900 dark:text-[var(--dark-text)]">{formatCurrency(item.unit_price)}</td>
                         <td className="px-4 py-2.5 text-right font-semibold text-gray-900 dark:text-[var(--dark-text)]">
                           {formatCurrency(item.subtotal ?? (item.quantity * item.unit_price))}
                         </td>
@@ -707,27 +779,43 @@ export default function StockistOrders() {
                 </table>
               </div>
 
+              <OrderPricingBreakdown
+                breakdown={detail.pricing_breakdown}
+                fallbackTotal={detail.total_amount}
+              />
+
               {detail.payment_proof_url && (
-                <div className="flex items-center justify-between rounded-xl border border-blue-100 bg-blue-50 p-4 dark:border-blue-500/20 dark:bg-blue-500/10">
-                  <div className="flex items-center gap-3">
-                    <div className="rounded-lg bg-blue-100 p-2 text-blue-600 dark:bg-blue-500/10 dark:text-blue-200">
-                      <HiOutlinePhotograph className="h-5 w-5" />
+                <div className="rounded-xl border border-blue-100 bg-blue-50 dark:border-blue-500/20 dark:bg-blue-500/10 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-lg bg-blue-100 p-2 text-blue-600 dark:bg-blue-500/10 dark:text-blue-200">
+                        <HiOutlinePhotograph className="h-5 w-5" />
+                      </div>
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-800 dark:text-blue-200">Payment Proof</p>
+                        <p className="text-xs text-blue-700/80 dark:text-blue-200/80">
+                          {detail.payment_proof_uploaded_at ? `Uploaded ${formatDateTime(detail.payment_proof_uploaded_at)}` : 'Proof uploaded'}
+                        </p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-800 dark:text-blue-200">Payment Proof</p>
-                      <p className="text-xs text-blue-700/80 dark:text-blue-200/80">
-                        {detail.payment_proof_uploaded_at ? `Uploaded ${formatDateTime(detail.payment_proof_uploaded_at)}` : 'Proof uploaded'}
-                      </p>
-                    </div>
+                    <a
+                      href={detail.payment_proof_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
+                    >
+                      Open
+                      <HiOutlineExternalLink className="h-3.5 w-3.5" />
+                    </a>
                   </div>
-                  <a
-                    href={detail.payment_proof_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-2 text-xs font-semibold text-white hover:bg-blue-700"
-                  >
-                    View Proof
-                    <HiOutlineExternalLink className="h-3.5 w-3.5" />
+                  {/* Inline image preview so reviewer can see the proof without leaving the modal */}
+                  <a href={detail.payment_proof_url} target="_blank" rel="noreferrer" className="block">
+                    <img
+                      src={detail.payment_proof_url}
+                      alt="Payment proof"
+                      className="w-full max-h-56 object-contain rounded-lg border border-blue-100 dark:border-blue-800/40 bg-white dark:bg-gray-900 cursor-zoom-in"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
                   </a>
                 </div>
               )}
@@ -829,7 +917,7 @@ export default function StockistOrders() {
                   </>
                 )}
                 {canVerifyChildPayment && (
-                  <Button color="success" onClick={handleVerifyPayment} isProcessing={verifyingPayment} disabled={verifyingPayment}>
+                  <Button color="success" onClick={handleVerifyPayment} isProcessing={verifyingPayment} disabled={verifyingPayment} className="bg-emerald-600 text-white font-bold shadow-sm ring-2 ring-emerald-700 hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 disabled:opacity-60">
                     <HiCheckCircle className="mr-2 h-4 w-4" />
                     Verify Payment
                   </Button>
