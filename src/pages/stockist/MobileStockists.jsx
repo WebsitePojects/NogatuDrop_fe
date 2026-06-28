@@ -108,7 +108,7 @@ export default function StockistMobileStockists() {
 
   const f = (label, key, type = 'text', required = false) => (
     <div key={key}>
-      <Label className="mb-1.5" >{label + (required ? ' *' : '')}</Label>
+      <Label value={label + (required ? ' *' : '')} className="mb-1.5" />
       <TextInput
         type={type}
         value={form[key]}
@@ -220,7 +220,7 @@ export default function StockistMobileStockists() {
           {f('Region / Area', 'region')}
           {modal === 'edit' && (
             <div>
-              <Label className="mb-1.5" >Status</Label>
+              <Label value="Status" className="mb-1.5" />
               <Select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value }))}>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>

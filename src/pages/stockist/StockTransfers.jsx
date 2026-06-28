@@ -313,7 +313,7 @@ export default function StockistStockTransfers() {
         <ModalBody className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label htmlFor="from_wh" >From Warehouse</Label>
+              <Label htmlFor="from_wh" value="From Warehouse" />
               <select
                 id="from_wh"
                 className="mt-1 block w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900 focus:ring-amber-300 focus:border-amber-400"
@@ -325,7 +325,7 @@ export default function StockistStockTransfers() {
               </select>
             </div>
             <div>
-              <Label htmlFor="to_wh" >To Warehouse</Label>
+              <Label htmlFor="to_wh" value="To Warehouse" />
               <select
                 id="to_wh"
                 className="mt-1 block w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900 focus:ring-amber-300 focus:border-amber-400"
@@ -339,7 +339,7 @@ export default function StockistStockTransfers() {
           </div>
 
           <div>
-            <Label >Items</Label>
+            <Label value="Items" />
             {form.items.map((item, i) => (
               <div key={i} className="flex gap-2 mt-2">
                 <select
@@ -367,7 +367,7 @@ export default function StockistStockTransfers() {
           </div>
 
           <div>
-            <Label htmlFor="notes" >Notes (optional)</Label>
+            <Label htmlFor="notes" value="Notes (optional)" />
             <textarea
               id="notes"
               rows={3}

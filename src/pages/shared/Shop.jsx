@@ -4,7 +4,7 @@ import {
   HiShoppingCart, HiSearch, HiX, HiPlus, HiMinus,
   HiChevronRight, HiCheckCircle,
 } from 'react-icons/hi';
-import { FiPackage, FiUser, FiPhone, FiMail, FiMapPin, FiLock, FiChevronLeft, FiTruck } from 'react-icons/fi';
+import { FiPackage, FiUser, FiPhone, FiMail, FiMapPin, FiCreditCard, FiLock, FiChevronLeft } from 'react-icons/fi';
 import { Spinner } from 'flowbite-react';
 import api from '@/services/api';
 import { ORDERS, PRODUCTS } from '@/services/endpoints';
@@ -15,7 +15,6 @@ import { getPublicOrderPricingTotals } from '@/utils/publicCheckoutPricing';
 import LocationPicker from '@/components/LocationPicker';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
-const DEFAULT_SHIPPING_ZONE = 'metro_manila';
 
 const normalizeLookupValue = (value) => String(value || '').trim().toLowerCase();
 
@@ -203,7 +202,7 @@ export default function Shop() {
   }, [catalogProducts]);
 
   const cartTotal = cart.reduce((s, i) => s + i.quantity * i.unit_price, 0);
-  const pricingTotals = getPublicOrderPricingTotals(cartTotal, { shippingZone: customer.shipping_zone || DEFAULT_SHIPPING_ZONE });
+  const pricingTotals = getPublicOrderPricingTotals(cartTotal);
   const shippingFee = pricingTotals.shippingFee;
   const systemFee = pricingTotals.systemFee;
   const totalDue = pricingTotals.totalDue;
@@ -314,8 +313,6 @@ export default function Shop() {
   if (step === 'success') {
     const bankAccount = paymentContext?.bank_account || null;
     const paymentTotal = paymentContext?.total_amount ?? totalDue;
-    const paymentShippingFee = paymentContext?.shipping_fee ?? shippingFee;
-    const paymentVatAmount = paymentContext?.system_fee ?? vatAmount;
 
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 py-10" style={{ colorScheme: 'light' }}>
@@ -337,7 +334,7 @@ export default function Shop() {
               <div className="text-right">
                 <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Total Due</p>
                 <p className="text-xl font-extrabold text-amber-700">{formatCurrency(paymentTotal)}</p>
-                <p className="text-[11px] text-amber-700/70">Includes {formatCurrency(paymentShippingFee)} shipping and {formatCurrency(paymentVatAmount)} VAT</p>
+                <p className="text-[11px] text-amber-700/70">VAT and System Fee Included</p>
               </div>
             </div>
 
@@ -404,7 +401,7 @@ export default function Shop() {
               onClick={() => {
                 setCart([]);
                 setStep('browse');
-                setCustomer({ name: '', phone: '', email: '', address: '', shipping_zone: DEFAULT_SHIPPING_ZONE });
+                setCustomer({ name: '', phone: '', email: '', address: '' });
                 setOrderNumber('');
                 setPaymentContext(null);
                 setProofFile(null);
@@ -497,7 +494,7 @@ export default function Shop() {
                   return (
                     <div
                       key={product.id}
-                      className="overflow-hidden rounded-[1.6rem] border border-[#ecd9c2] bg-[linear-gradient(180deg,#fffdf9_0%,#fff6eb_100%)] shadow-[0_18px_40px_-34px_rgba(92,47,14,0.35)] transition-all hover:-translate-y-1 hover:shadow-[0_24px_50px_-34px_rgba(92,47,14,0.45)]"
+                      className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all"
                     >
                       <div className="aspect-square overflow-hidden bg-[radial-gradient(circle_at_top,rgba(255,219,174,0.65),transparent_58%),linear-gradient(180deg,#fffaf3_0%,#f8ecdf_100%)]">
                         <img
@@ -507,24 +504,21 @@ export default function Shop() {
                           className="h-full w-full object-contain p-4 transition-transform duration-300 hover:scale-105"
                         />
                       </div>
-                      <div className="p-4">
-                        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#a26d3b]">
-                          {product.category || 'Wellness'}
-                        </p>
-                        <h3 className="min-h-[2.5rem] text-sm font-semibold text-[#41210d] line-clamp-2 mb-1">
+                      <div className="p-3">
+                        <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 mb-1 min-h-[2.5rem]">
                           {product.name}
                         </h3>
-                        <p className="mb-1.5 text-base font-black text-[#c26a18]">
+                        <p className="text-amber-500 font-bold text-sm mb-1.5">
                           {formatCurrency(getPublicCatalogPrice(product))}
                         </p>
-                        <div className="mb-4 text-xs font-medium">
+                        <div className="text-xs mb-3 font-medium">
                           {stockMap[product.id] !== undefined ? (
                             stockMap[product.id] <= 0 ? (
                               <span className="text-red-500 font-semibold">Out of Stock</span>
                             ) : stockMap[product.id] <= 5 ? (
                               <span className="text-amber-500 font-semibold">Only {stockMap[product.id]} left</span>
                             ) : (
-                              <span className="text-[#8d6a4d]">Stock: {stockMap[product.id]} available</span>
+                              <span className="text-gray-500">Stock: {stockMap[product.id]} available</span>
                             )
                           ) : (
                             <span className="text-gray-400">Checking stock...</span>
@@ -603,23 +597,21 @@ export default function Shop() {
                 <span className="text-gray-400">Order Completed</span>
               </div>
 
-              <div className="grid gap-6 lg:grid-cols-[1.12fr_0.88fr] items-start">
+              <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] items-start">
                 {/* Left Column: Billing & Delivery Details */}
-                <div className="overflow-hidden rounded-[1.75rem] border border-[#ecd9c2] bg-[linear-gradient(180deg,#fffdfa_0%,#fff7ee_100%)] shadow-[0_24px_60px_-36px_rgba(92,47,14,0.35)]">
-                  <div className="border-b border-[#f1dfcb] bg-[radial-gradient(circle_at_top_left,rgba(255,196,112,0.18),transparent_48%),linear-gradient(135deg,rgba(255,250,244,0.98),rgba(255,241,224,0.95))] px-6 py-5">
-                    <h2 className="flex items-center gap-2 text-lg font-bold text-[#41210d]">
-                      <FiPackage className="text-amber-600" /> Delivery Details
-                    </h2>
-                    <p className="mt-1 text-xs text-[#8d6a4d]">We only ship within the Philippines. Fields marked with * are required.</p>
-                  </div>
+                <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
+                  <h2 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
+                    <FiPackage className="text-amber-500" /> Delivery Details
+                  </h2>
+                  <p className="text-xs text-gray-400 mb-6">We only ship within the Philippines. Fields marked with * are required.</p>
 
                   {formError && (
-                    <div className="mx-6 mt-6 rounded-xl border border-red-100 bg-red-50 p-3 text-sm font-medium text-red-600">
+                    <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium">
                       {formError}
                     </div>
                   )}
 
-                  <form onSubmit={handlePlaceOrder} className="space-y-4 px-6 py-6">
+                  <form onSubmit={handlePlaceOrder} className="space-y-4">
                     <div>
                       <label htmlFor="customerName" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
                         Full Name *
@@ -712,8 +704,8 @@ export default function Shop() {
                     <LocationPicker value={pinnedLocation} onChange={setPinnedLocation} />
 
                     <div className="pt-2">
-                      <div className="flex items-start gap-2 rounded-2xl border border-[#f0d6b6] bg-[linear-gradient(180deg,#fff9ef,#fff1df)] p-4 text-xs text-[#7a4b22]">
-                        <FiLock className="mt-0.5 h-4 w-4 shrink-0 text-amber-500" />
+                      <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 text-xs text-amber-800 flex items-start gap-2">
+                        <FiLock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                         <div>
                           <p className="font-semibold mb-1">Payment Method: Bank Transfer Only</p>
                           <p className="leading-relaxed">After placing your order, we will show you our bank account details. Please transfer the total amount and upload the screenshot of your receipt/payment proof.</p>
@@ -749,9 +741,9 @@ export default function Shop() {
 
                 {/* Right Column: Order Summary */}
                 <div className="lg:sticky lg:top-24 space-y-4">
-                  <div className="rounded-[1.75rem] border border-[#ecd9c2] bg-[linear-gradient(180deg,#fffdf9_0%,#fff6eb_100%)] p-6 shadow-[0_24px_60px_-36px_rgba(92,47,14,0.35)]">
+                  <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
                     <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
-                      <h3 className="font-bold text-[#41210d]">Order Summary</h3>
+                      <h3 className="font-bold text-gray-900">Order Summary</h3>
                       <button
                         type="button"
                         onClick={() => setStep('browse')}
@@ -795,7 +787,7 @@ export default function Shop() {
                       })}
                     </div>
 
-                    <div className="border-t border-[#f1dfcb] pt-3 space-y-2 text-xs">
+                    <div className="border-t border-gray-100 pt-3 space-y-2 text-xs">
                       <div className="flex justify-between text-gray-500">
                         <span>Subtotal</span>
                         <span className="font-semibold text-gray-800">{formatCurrency(cartTotal)}</span>
@@ -808,11 +800,7 @@ export default function Shop() {
                         <span>Shipping</span>
                         <span className="font-semibold text-gray-800">{formatCurrency(shippingFee)}</span>
                       </div>
-                      <div className="flex justify-between text-gray-500">
-                        <span>VAT (12%)</span>
-                        <span className="font-semibold text-gray-800">{formatCurrency(vatAmount)}</span>
-                      </div>
-                      <div className="flex justify-between text-base font-bold text-gray-900 border-t border-dashed border-[#edd9c1] pt-3 mt-2">
+                      <div className="flex justify-between text-base font-bold text-gray-900 border-t border-dashed border-gray-100 pt-3 mt-2">
                         <div>
                           <span>Total Due</span>
                           <p className="text-[11px] font-medium text-gray-400">All charges shown above</p>
@@ -841,22 +829,22 @@ export default function Shop() {
                         </button>
                       </div>
 
-                      <div className="border-t border-[#f1dfcb] pt-3 flex items-center justify-center gap-2 text-[10px] font-medium text-[#8d6a4d]">
-                        <FiLock className="h-3.5 w-3.5 text-emerald-500" />
+                      <div className="border-t border-gray-100 pt-3 flex items-center justify-center gap-2 text-[10px] text-gray-400 font-medium">
+                        <FiLock className="w-3.5 h-3.5 text-emerald-500" />
                         <span>Secure Checkout • 256-Bit SSL Encryption</span>
                       </div>
                     </div>
                   </div>
 
                   {/* Guarantees */}
-                  <div className="rounded-2xl border border-[#ecd9c2] bg-[linear-gradient(180deg,#fffdf9_0%,#fff6eb_100%)] p-4 shadow-[0_18px_40px_-34px_rgba(92,47,14,0.35)] space-y-3 text-xs text-[#8d6a4d]">
+                  <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm space-y-3 text-xs text-gray-500">
                     <div className="flex gap-2.5 items-start">
                       <div className="w-5 h-5 bg-orange-50 rounded-full flex items-center justify-center text-orange-500 shrink-0">
                         <FiPackage className="w-3 h-3" />
                       </div>
                       <div>
-                        <p className="font-bold text-[#41210d]">Official Product Guarantee</p>
-                        <p className="mt-0.5 leading-relaxed text-[11px]">Direct shipment from accredited city or provincial Stockists to guarantee authentic formulations.</p>
+                        <p className="font-bold text-gray-700">Official Product Guarantee</p>
+                        <p className="mt-0.5 leading-relaxed text-[11px]">Direct shipment from accredited municipal/city Stockists to guarantee authentic formulations.</p>
                       </div>
                     </div>
                   </div>
@@ -1001,19 +989,18 @@ export default function Shop() {
                     <span className="font-extrabold text-gray-900">{formatCurrency(cartTotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 font-medium">Shipping ({PUBLIC_ORDER_SHIPPING_ZONE_OPTIONS.find((option) => option.value === customer.shipping_zone)?.label})</span>
+                    <span className="text-gray-500 font-medium">Shipping</span>
                     <span className="font-semibold text-gray-900">{formatCurrency(shippingFee)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 font-medium">VAT (12%)</span>
-                    <span className="font-semibold text-gray-900">{formatCurrency(vatAmount)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <div>
                       <span className="font-semibold text-gray-900">Total Due</span>
-                      <p className="text-[10px] text-gray-400">J&amp;T prioritized. Final routing is confirmed during checkout.</p>
+                      <p className="text-[10px] text-gray-400">VAT and System Fee Included</p>
                     </div>
                     <span className="font-extrabold text-amber-600">{formatCurrency(totalDue)}</span>
+                  </div>
+                  <div className="text-[10px] text-gray-400 leading-normal">
+                    Final warehouse routing is confirmed during checkout.
                   </div>
                   <button
                     type="button"

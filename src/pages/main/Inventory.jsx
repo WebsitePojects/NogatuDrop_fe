@@ -437,7 +437,7 @@ export default function Inventory() {
           </p>
           <div className="space-y-3">
             <div>
-              <Label className="mb-1" >Adjustment Type</Label>
+              <Label value="Adjustment Type" className="mb-1" />
               <Select value={adjustType} onChange={(e) => setAdjustType(e.target.value)}>
                 <option value="add">Add Stock</option>
                 <option value="subtract">Remove Stock</option>
@@ -445,11 +445,11 @@ export default function Inventory() {
               </Select>
             </div>
             <div>
-              <Label className="mb-1" >Quantity</Label>
+              <Label value="Quantity" className="mb-1" />
               <TextInput type="number" min="0" value={adjustQty} onChange={(e) => setAdjustQty(e.target.value)} placeholder="0" />
             </div>
             <div>
-              <Label className="mb-1" >Reason</Label>
+              <Label value="Reason" className="mb-1" />
               <TextInput value={adjustNote} onChange={(e) => setAdjustNote(e.target.value)} placeholder="Reason for adjustment..." />
             </div>
           </div>

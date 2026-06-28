@@ -492,7 +492,7 @@ export default function Orders() {
             )}
           </div>
         </ModalHeader>
-        <ModalBody className="custom-scrollbar px-6 py-6 text-[#121212]">
+        <ModalBody className="px-6 py-6 custom-scrollbar">
           {detailLoading ? (
             <div className="flex justify-center items-center py-20">
               <Spinner size="xl" color="warning" />
@@ -526,7 +526,7 @@ export default function Orders() {
                   <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5 whitespace-nowrap">
                     <HiOutlineCalendar className="w-3.5 h-3.5" /> Date Ordered
                   </p>
-                  <p className="text-sm font-bold text-[#121212] line-clamp-2">
+                  <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2">
                     {formatDateTime(selectedOrder.created_at)}
                   </p>
                 </div>
@@ -602,7 +602,7 @@ export default function Orders() {
               {/* Items Section */}
               <div className="bg-white dark:bg-gray-900 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
                 <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
-                  <h3 className="text-sm font-bold uppercase tracking-wider text-[#121212]">Order Items</h3>
+                  <h3 className="text-sm font-bold tracking-wider text-gray-700 dark:text-gray-300 uppercase">Order Items</h3>
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm tracking-wide">
@@ -782,7 +782,7 @@ export default function Orders() {
             </div>
             
             <div className="flex items-center gap-2 flex-wrap justify-end">
-                <Button
+               <Button
                   color="purple"
                   disabled={!canGenerateDeliveryLink || actionLoading}
                   onClick={() => handleGenerateDelivery(selectedOrder)}
@@ -836,7 +836,7 @@ export default function Orders() {
       <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} size="md" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Reject Order</ModalHeader>
         <ModalBody>
-          <Label htmlFor="rejectReason" className="mb-2" >Reason for rejection (optional)</Label>
+          <Label htmlFor="rejectReason" value="Reason for rejection (optional)" className="mb-2" />
           <Textarea
             id="rejectReason"
             value={rejectReason}

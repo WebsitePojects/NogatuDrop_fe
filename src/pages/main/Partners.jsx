@@ -18,55 +18,6 @@ const EMPTY_FORM = {
   business_name: '', email: '', phone: '', address: '', region: '',
   stockist_level: 'city_stockist', parent_partner_id: '', discount_pct: '0',
 };
-// TODO: awaiting data - complete Stockist location list with assigned areas for city, provincial, and mobile coverage.
-// TODO: awaiting data - fixed package contents are still needed before voucher/package flows can be fully wired in UI.
-
-function PartnerFormFields({ form, allPartners, onFieldChange }) {
-  return (
-    <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-      <div className="col-span-2">
-        <Label className="mb-1" >Business Name</Label>
-        <TextInput className="min-h-11" value={form.business_name} onChange={onFieldChange('business_name')} placeholder="Juan Store" required />
-      </div>
-      <div>
-        <Label className="mb-1" >Email</Label>
-        <TextInput className="min-h-11" type="email" value={form.email} onChange={onFieldChange('email')} placeholder="juan@store.com" required />
-      </div>
-      <div>
-        <Label className="mb-1" >Phone</Label>
-        <TextInput className="min-h-11" value={form.phone} onChange={onFieldChange('phone')} placeholder="09xxxxxxxxx" />
-      </div>
-      <div className="col-span-2">
-        <Label className="mb-1" >Address</Label>
-        <TextInput className="min-h-11" value={form.address} onChange={onFieldChange('address')} placeholder="123 Main St." />
-      </div>
-      <div>
-        <Label className="mb-1" >Region</Label>
-        <TextInput className="min-h-11" value={form.region} onChange={onFieldChange('region')} placeholder="NCR" />
-      </div>
-      <div>
-        <Label className="mb-1" >Level</Label>
-        <Select className="min-h-11" value={form.stockist_level} onChange={onFieldChange('stockist_level')}>
-          <option value="provincial_stockist">Provincial Stockist</option>
-          <option value="city_stockist">City Stockist</option>
-        </Select>
-      </div>
-      {form.stockist_level === 'city_stockist' && (
-        <div className="col-span-2">
-          <Label className="mb-1" >Parent Provincial Stockist</Label>
-          <Select className="min-h-11" value={form.parent_partner_id} onChange={onFieldChange('parent_partner_id')}>
-            <option value="">Select parent...</option>
-            {allPartners.map((p) => <option key={p.id} value={p.id}>{p.business_name}</option>)}
-          </Select>
-        </div>
-      )}
-      <div>
-        <Label className="mb-1" >Discount %</Label>
-        <TextInput className="min-h-11" type="number" min="0" max="100" step="0.1" value={form.discount_pct} onChange={onFieldChange('discount_pct')} placeholder="0" />
-      </div>
-    </div>
-  );
-}
 
 // Hoisted to module scope — stable identity prevents input focus loss on each keystroke.
 function PartnerFormFields({ form, fld, allPartners }) {
@@ -251,16 +202,14 @@ export default function Partners() {
         <div className="overflow-x-auto">
           <Table striped>
             <TableHead>
-              <TableRow>
-                <TableHeadCell>Business Name</TableHeadCell>
-                <TableHeadCell>Email</TableHeadCell>
-                <TableHeadCell>Phone</TableHeadCell>
-                <TableHeadCell>Region</TableHeadCell>
-                <TableHeadCell>Level</TableHeadCell>
-                <TableHeadCell>Discount %</TableHeadCell>
-                <TableHeadCell>Status</TableHeadCell>
-                <TableHeadCell>Actions</TableHeadCell>
-              </TableRow>
+              <TableHeadCell>Business Name</TableHeadCell>
+              <TableHeadCell>Email</TableHeadCell>
+              <TableHeadCell>Phone</TableHeadCell>
+              <TableHeadCell>Region</TableHeadCell>
+              <TableHeadCell>Level</TableHeadCell>
+              <TableHeadCell>Discount %</TableHeadCell>
+              <TableHeadCell>Status</TableHeadCell>
+              <TableHeadCell>Actions</TableHeadCell>
             </TableHead>
             <TableBody className="divide-y">
               {loading ? (
@@ -365,7 +314,7 @@ export default function Partners() {
       <Modal show={showDiscountModal} onClose={() => setShowDiscountModal(false)} size="sm" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Update Discount — {selected?.business_name}</ModalHeader>
         <ModalBody>
-          <Label className="mb-1" >Discount Percentage (%)</Label>
+          <Label value="Discount Percentage (%)" className="mb-1" />
           <TextInput
             type="number"
             min="0"

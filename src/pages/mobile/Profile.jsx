@@ -115,7 +115,7 @@ export default function MobileProfile() {
           {editing ? (
             <div className="space-y-3">
               <div>
-                <Label className="mb-1.5 text-xs" >Full Name</Label>
+                <Label value="Full Name" className="mb-1.5 text-xs" />
                 <TextInput
                   value={form.name}
                   onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
@@ -124,7 +124,7 @@ export default function MobileProfile() {
                 />
               </div>
               <div>
-                <Label className="mb-1.5 text-xs" >Phone Number</Label>
+                <Label value="Phone Number" className="mb-1.5 text-xs" />
                 <TextInput
                   type="tel"
                   value={form.phone}

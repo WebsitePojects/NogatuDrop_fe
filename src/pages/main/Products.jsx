@@ -108,7 +108,7 @@ export default function Products() {
       const { data } = await api.get(PRODUCTS.LIST, {
         params: { page, search: search || undefined, limit: 16 },
       });
-      setProducts((data.data || []).map(normalizeProduct));
+      setProducts(data.data || []);
       setTotalPages(data.pagination?.pages || 1);
     } catch {
       setProducts([]);
@@ -127,8 +127,7 @@ export default function Products() {
   };
 
   const openDetail = (p) => {
-    const normalized = normalizeProduct(p);
-    setSelected(normalized);
+    setSelected(p);
     setForm({
       name: p.name, sku: p.sku, category: p.category,
       retail_price: p.retail_price, partner_price: p.partner_price,
@@ -138,7 +137,7 @@ export default function Products() {
       is_active: p.is_active !== false && p.is_active !== 0,
     });
     setImageFile(null);
-    setImagePreview(normalized.image_url || null);
+    setImagePreview(p.image_url || null);
     setIsEditing(false);
     setShowDetailModal(true);
   };

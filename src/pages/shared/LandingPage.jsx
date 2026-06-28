@@ -209,13 +209,6 @@ const TESTIMONIALS = [
 const formatPeso = (value) =>
   new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', maximumFractionDigits: 2 }).format(value);
 
-const getCatalogRowClassName = (count) => {
-  if (count === 1) return 'mx-auto grid max-w-sm gap-5';
-  if (count === 2) return 'grid gap-5 sm:grid-cols-2';
-  if (count === 3) return 'grid gap-5 sm:grid-cols-2 lg:grid-cols-3';
-  return 'grid gap-5 sm:grid-cols-2 xl:grid-cols-4';
-};
-
 const LandingPage = () => {
   const navigate = useNavigate();
 
@@ -304,11 +297,6 @@ const LandingPage = () => {
     if (activeCategory === 'All') return products;
     return products.filter((product) => product.category === activeCategory);
   }, [activeCategory, products]);
-
-  const filteredProductRows = useMemo(() => {
-    if (activeCategory === 'All') return ALL_PRODUCT_ROWS;
-    return filteredProducts.length ? [filteredProducts] : [];
-  }, [activeCategory, filteredProducts]);
 
   const cartItems = useMemo(() => {
     return cart
@@ -556,6 +544,18 @@ const LandingPage = () => {
                         </div>
                         <h3 className="featured-title mt-3 text-2xl font-bold">{selectedProduct.name}</h3>
                         <p className="featured-description mt-2 text-sm text-[#6f4f36]">{selectedProduct.shortDescription}</p>
+                        <div className="mt-4 flex items-end justify-between gap-4">
+                          <div>
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#a27143]">
+                              Wellness Price
+                            </p>
+                            <p className="mt-1 text-2xl font-black">{formatPeso(selectedProduct.price)}</p>
+                          </div>
+                          <div className="inline-flex items-center gap-1 rounded-full bg-[#fff7eb] px-3 py-1.5 text-sm text-[#bd6f21] shadow-[inset_0_0_0_1px_rgba(189,111,33,0.14)]">
+                            <FiStar className="fill-current" />
+                            {selectedProduct.rating}
+                          </div>
+                        </div>
                       </div>
                       <div className="featured-image-frame">
                         <img
@@ -564,25 +564,6 @@ const LandingPage = () => {
                           className="featured-image"
                           style={{ '--featured-scale': selectedProduct.featuredScale || 1 }}
                         />
-                      </div>
-                      <div className="featured-meta-grid">
-                        <div className="featured-price-card">
-                          <p className="featured-price-label">Wellness Price</p>
-                          <p className="featured-price-value">{formatPeso(selectedProduct.price)}</p>
-                          <p className="featured-price-note">Per featured retail pack</p>
-                        </div>
-                        <div className="featured-micro-stats">
-                          <div className="featured-stat-pill">
-                            <FiStar className="fill-current" />
-                            <span>{selectedProduct.rating} rating</span>
-                          </div>
-                          <div className="featured-stat-pill">
-                            <span>{selectedProduct.category}</span>
-                          </div>
-                          <div className="featured-stat-pill">
-                            <span>{selectedProduct.sku}</span>
-                          </div>
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -596,7 +577,6 @@ const LandingPage = () => {
                             ? 'border-[#c96f1f] bg-[#ffe9cb] shadow-[0_8px_20px_rgba(177,94,28,0.18)]'
                             : 'border-[#d8b085]/90 bg-[#fff8ea] hover:bg-[#fff2d8]'
                         }`}
-                        aria-pressed={selectedProduct.id === product.id}
                       >
                         <div className="featured-thumb-frame">
                           <img
@@ -605,10 +585,6 @@ const LandingPage = () => {
                             className="featured-thumb-image"
                             style={{ '--thumb-scale': product.thumbScale || 1 }}
                           />
-                        </div>
-                        <div className="featured-thumb-copy">
-                          <p className="featured-thumb-title">{product.name}</p>
-                          <p className="featured-thumb-price">{formatPeso(product.price)}</p>
                         </div>
                       </button>
                     ))}
@@ -755,49 +731,32 @@ const LandingPage = () => {
                                 : 'bg-[#2f1909] text-orange-100 ring-1 ring-orange-500/50'
                       }`}
                     >
-                      <div className="product-showcase-frame relative overflow-hidden rounded-[1.4rem]">
-                        <img src={product.image} alt={product.name} className="product-showcase-image transition duration-500 hover:scale-105" />
-                        <span
-                          className={`absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-semibold ${
-                            product.badge === 'Best Seller'
-                              ? 'bg-rose-900/90 text-rose-100 ring-1 ring-rose-400/50'
-                              : product.badge === 'Featured'
-                                ? 'bg-amber-900/90 text-amber-100 ring-1 ring-amber-400/50'
-                                : product.badge === 'Wellness Pick'
-                                  ? 'bg-emerald-900/90 text-emerald-100 ring-1 ring-emerald-400/50'
-                                  : product.badge === 'Glow Care'
-                                    ? 'bg-lime-900/90 text-lime-100 ring-1 ring-lime-400/50'
-                                    : 'bg-[#2f1909] text-orange-100 ring-1 ring-orange-500/50'
-                          }`}
-                        >
-                          {product.badge}
-                        </span>
+                      {product.badge}
+                    </span>
+                  </div>
+                  <div className="mt-4 flex flex-1 flex-col">
+                    <div className="mb-2 flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] uppercase tracking-[0.22em] text-orange-200/55">{product.category}</p>
+                        <h3 className="mt-1 text-lg font-bold text-white">{product.name}</h3>
                       </div>
-                      <div className="mt-4 flex flex-1 flex-col">
-                        <div className="mb-2 flex items-start justify-between gap-3">
-                          <div>
-                            <p className="text-[11px] uppercase tracking-[0.22em] text-orange-200/55">{product.category}</p>
-                            <h3 className="mt-1 text-lg font-bold text-white">{product.name}</h3>
-                          </div>
-                          <span className="inline-flex items-center gap-1 rounded-full bg-white/6 px-2.5 py-1 text-sm text-orange-300">
-                            <FiStar className="fill-current" />
-                            {product.rating}
-                          </span>
-                        </div>
-                        <p className="min-h-[3.25rem] text-sm leading-6 text-orange-50/80">{product.shortDescription}</p>
-                        <div className="mt-auto flex items-center justify-between pt-4">
-                          <p className="text-xl font-black text-orange-100">{formatPeso(product.price)}</p>
-                          <button
-                            onClick={() => addToCart(product)}
-                            className="rounded-lg bg-gradient-to-r from-[#f7a340] to-[#de7a26] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
-                          >
-                            Add to Cart
-                          </button>
-                        </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
+                      <span className="inline-flex items-center gap-1 rounded-full bg-white/6 px-2.5 py-1 text-sm text-orange-300">
+                        <FiStar className="fill-current" />
+                        {product.rating}
+                      </span>
+                    </div>
+                    <p className="min-h-[3.25rem] text-sm leading-6 text-orange-50/80">{product.shortDescription}</p>
+                    <div className="mt-auto pt-4 flex items-center justify-between">
+                      <p className="text-xl font-black text-orange-100">{formatPeso(product.price)}</p>
+                      <button
+                        onClick={() => addToCart(product)}
+                        className="rounded-lg bg-gradient-to-r from-[#f7a340] to-[#de7a26] px-4 py-2 text-sm font-semibold text-white transition hover:brightness-110"
+                      >
+                        Add to Cart
+                      </button>
+                    </div>
+                  </div>
+                </article>
               ))}
             </div>
             )}
@@ -1020,7 +979,7 @@ const LandingPage = () => {
 
         <div className="relative mx-auto mt-8 flex w-[min(1180px,100%)] flex-col gap-3 border-t border-orange-100/10 pt-5 text-xs text-orange-200/58 sm:flex-row sm:items-center sm:justify-between">
           <p>┬⌐ {new Date().getFullYear()} Nogatu Alliance. All rights reserved.</p>
-          <p>Mon-Sat: 11AM - 8PM | Sunday: Closed</p>
+          <p>Mon-Sat: 11AM - 11PM | Sunday: Closed</p>
         </div>
       </footer>
 
