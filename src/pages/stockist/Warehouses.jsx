@@ -2,14 +2,14 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/Animate
 /**
  * Stockist: My Warehouses — view warehouses associated with this stockist
  */
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card, Button, Badge } from 'flowbite-react';
 import {
   HiOutlineOfficeBuilding, HiOutlineLocationMarker, HiOutlineUser,
   HiOutlinePhone, HiOutlineMail, HiOutlineEye, HiOutlineRefresh,
 } from 'react-icons/hi';
 import api from '@/services/api';
-import { WAREHOUSES, INVENTORY } from '@/services/endpoints';
+import { WAREHOUSES, INVENTORY, MOBILE_INVENTORY } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
 import StatusBadge from '@/components/StatusBadge';
 import { ToastContainer, useToast } from '@/components/Toast';
@@ -19,31 +19,36 @@ export default function StockistWarehouses() {
   const { toasts, showToast, dismiss } = useToast();
   const [warehouses, setWarehouses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState('owned');
   const [selected, setSelected] = useState(null);
   const [viewModal, setViewModal] = useState(false);
   const [warehouseInventory, setWarehouseInventory] = useState([]);
   const [invLoading, setInvLoading] = useState(false);
 
-  const fetchWarehouses = async () => {
+  const fetchWarehouses = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await api.get(WAREHOUSES.LIST);
+      const { data } = await api.get(WAREHOUSES.LIST, { params: { view: activeView, limit: 100 } });
       setWarehouses(data.data || []);
     } catch {
       showToast('Failed to load warehouses', 'error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeView, showToast]);
 
-  useEffect(() => { fetchWarehouses(); }, []);
+  useEffect(() => { fetchWarehouses(); }, [fetchWarehouses]);
 
   const openWarehouse = async (wh) => {
     setSelected(wh);
     setViewModal(true);
     setInvLoading(true);
     try {
-      const { data } = await api.get(INVENTORY.LIST, { params: { warehouse_id: wh.id, limit: 50 } });
+      const endpoint = wh.record_kind === 'mobile_stockist' ? MOBILE_INVENTORY.LIST : INVENTORY.LIST;
+      const params = wh.record_kind === 'mobile_stockist'
+        ? { mobile_stockist_id: wh.id }
+        : { warehouse_id: wh.id, limit: 50 };
+      const { data } = await api.get(endpoint, { params });
       setWarehouseInventory(data.data || []);
     } catch {
       setWarehouseInventory([]);
@@ -61,8 +66,8 @@ export default function StockistWarehouses() {
   return (
     <div className="page-enter">
       <PageHeader
-        title="My Warehouses"
-        subtitle="Warehouses associated with your stockist account"
+        title="Warehouses"
+        subtitle="Your warehouses and the direct Stockist network supplied by your branch"
         actions={[
           {
             label: 'Refresh',
@@ -72,6 +77,14 @@ export default function StockistWarehouses() {
           },
         ]}
       />
+
+      <div className="mb-5 inline-flex rounded-2xl border border-emerald-200 bg-white p-1 shadow-sm dark:border-[var(--dark-border)] dark:bg-[var(--dark-card)]">
+        {[['owned', 'My Warehouses'], ['network', 'Affiliated Network']].map(([value, label]) => (
+          <button key={value} type="button" onClick={() => setActiveView(value)} className={`rounded-xl px-4 py-2 text-sm font-extrabold transition focus:outline-none focus:ring-2 focus:ring-emerald-500 ${activeView === value ? 'bg-emerald-700 text-white shadow-sm' : 'text-gray-600 hover:bg-emerald-50 dark:text-[var(--dark-muted)] dark:hover:bg-white/5'}`}>
+            {label}
+          </button>
+        ))}
+      </div>
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -91,8 +104,8 @@ export default function StockistWarehouses() {
           <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4">
             <HiOutlineOfficeBuilding className="w-8 h-8 text-amber-400" />
           </div>
-          <h3 className="text-base font-semibold text-gray-900 mb-1">No Warehouses Found</h3>
-          <p className="text-sm text-gray-500">Contact your administrator to assign a warehouse to your account.</p>
+          <h3 className="text-base font-semibold text-gray-900 mb-1">No {activeView === 'owned' ? 'Warehouses' : 'Affiliated Stockists'} Found</h3>
+          <p className="text-sm text-gray-500">{activeView === 'owned' ? 'Assign a warehouse to this Stockist account.' : 'No direct downstream Stockists are linked to this branch yet.'}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

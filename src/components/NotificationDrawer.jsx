@@ -1,9 +1,13 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FiAlertTriangle, FiCheckCircle, FiMapPin } from 'react-icons/fi';
 import { useNotifications } from '@/context/NotificationContext';
+import { useAuth } from '@/context/AuthContext';
 
 const NotificationDrawer = ({ isOpen, open, onClose }) => {
   const { notifications, markAsRead, markAsUnread } = useNotifications();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [flashId, setFlashId] = useState(null);
   const visible = isOpen || open;
 
@@ -15,6 +19,18 @@ const NotificationDrawer = ({ isOpen, open, onClose }) => {
     }
     setFlashId(notif.id);
     setTimeout(() => setFlashId(null), 600);
+
+    // Clickable: jump to the record the notification is about and glow it.
+    if (notif.entity_type === 'order' && notif.entity_id) {
+      const role = user?.role_slug;
+      const base = role === 'super_admin'
+        ? '/main/orders'
+        : role === 'mobile_stockist'
+          ? '/mobile/orders'
+          : '/stockist/orders';
+      onClose?.();
+      navigate(`${base}?highlight=${notif.entity_id}`);
+    }
   };
 
   const getStatusInfo = (notif) => {

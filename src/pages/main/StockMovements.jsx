@@ -32,6 +32,20 @@ const TYPE_BADGE = {
   cycle_count_decrease: 'bg-rose-100 text-rose-700',
 };
 
+// Friendly labels for the raw DB movement_type enum values, shown in the
+// filter dropdown and the row badge instead of the database codes.
+const TYPE_LABELS = {
+  in: 'Stock In',
+  out: 'Stock Out',
+  reserve: 'Reserved',
+  release: 'Released',
+  adjustment: 'Manual Adjustment',
+  grn: 'Goods Received (GRN)',
+  transfer: 'Warehouse Transfer',
+  cycle_count_increase: 'Count Surplus',
+  cycle_count_decrease: 'Count Shortage',
+};
+
 export default function StockMovements() {
   const { toasts, showToast, dismiss } = useToast();
   const [movements, setMovements] = useState([]);
@@ -104,7 +118,7 @@ export default function StockMovements() {
 
   const typeSpan = (type) => {
     const cls = TYPE_BADGE[type] || 'bg-gray-100 text-gray-600';
-    return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${cls}`}>{type}</span>;
+    return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${cls}`}>{TYPE_LABELS[type] || type}</span>;
   };
 
   const summary = movements.reduce((acc, movement) => {
@@ -168,7 +182,7 @@ export default function StockMovements() {
           <Select value={typeFilter} onChange={(e) => { setTypeFilter(e.target.value); setPage(1); }} sizing="sm">
             <option value="">All Types</option>
             {Object.keys(TYPE_BADGE).map((type) => (
-              <option key={type} value={type}>{type}</option>
+              <option key={type} value={type}>{TYPE_LABELS[type] || type}</option>
             ))}
           </Select>
           <TextInput type="date" value={dateFrom} onChange={(e) => { setDateFrom(e.target.value); setPage(1); }} sizing="sm" />

@@ -22,6 +22,38 @@ const STATUS_PIE_COLORS = {
   rejected: '#F87171',
 };
 
+function DateFilter({ dateFrom, dateTo, setDateFrom, setDateTo, onExportPDF }) {
+  return (
+    <div className="flex flex-wrap items-center gap-3 mb-5">
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-gray-500 font-medium">From</label>
+        <input
+          type="date"
+          value={dateFrom}
+          onChange={e => setDateFrom(e.target.value)}
+          className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-400"
+        />
+      </div>
+      <div className="flex items-center gap-2">
+        <label className="text-xs text-gray-500 font-medium">To</label>
+        <input
+          type="date"
+          value={dateTo}
+          onChange={e => setDateTo(e.target.value)}
+          className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-400"
+        />
+      </div>
+      <button
+        onClick={onExportPDF}
+        className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 text-gray-600 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+      >
+        <HiDownload className="w-4 h-4" />
+        Export PDF
+      </button>
+    </div>
+  );
+}
+
 export default function StockistReports() {
   const { toasts, showToast, dismiss } = useToast();
   const [revenueData, setRevenueData] = useState([]);
@@ -80,36 +112,6 @@ export default function StockistReports() {
     await exportElementToPdf(reportRef.current, `nogatu-stockist-reports-${new Date().toISOString().slice(0, 10)}.pdf`);
   };
 
-  const DateFilter = () => (
-    <div className="flex flex-wrap items-center gap-3 mb-5">
-      <div className="flex items-center gap-2">
-        <label className="text-xs text-gray-500 font-medium">From</label>
-        <input
-          type="date"
-          value={dateFrom}
-          onChange={e => setDateFrom(e.target.value)}
-          className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-400"
-        />
-      </div>
-      <div className="flex items-center gap-2">
-        <label className="text-xs text-gray-500 font-medium">To</label>
-        <input
-          type="date"
-          value={dateTo}
-          onChange={e => setDateTo(e.target.value)}
-          className="text-sm border border-gray-200 rounded-lg px-3 py-1.5 focus:outline-none focus:border-amber-400"
-        />
-      </div>
-      <button
-        onClick={handleExportPDF}
-        className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 text-gray-600 rounded-lg text-sm hover:bg-gray-50 transition-colors"
-      >
-        <HiDownload className="w-4 h-4" />
-        Export PDF
-      </button>
-    </div>
-  );
-
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen" style={{ background: '#FFF8F0' }}>
@@ -132,7 +134,7 @@ export default function StockistReports() {
           {/* Revenue Tab */}
           <TabItem title="Revenue">
             <div className="p-4">
-              <DateFilter />
+              <DateFilter dateFrom={dateFrom} dateTo={dateTo} setDateFrom={setDateFrom} setDateTo={setDateTo} onExportPDF={handleExportPDF} />
               <div className="bg-gray-50 rounded-xl p-5 mb-4">
                 <p className="text-sm font-semibold text-gray-700 mb-4">Monthly Revenue</p>
                 {revenueData.length === 0 ? (
@@ -178,7 +180,7 @@ export default function StockistReports() {
           {/* Orders Tab */}
           <TabItem title="Orders">
             <div className="p-4">
-              <DateFilter />
+              <DateFilter dateFrom={dateFrom} dateTo={dateTo} setDateFrom={setDateFrom} setDateTo={setDateTo} onExportPDF={handleExportPDF} />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
                 <div className="bg-gray-50 rounded-xl p-5">
                   <p className="text-sm font-semibold text-gray-700 mb-4">Order Status Breakdown</p>
@@ -236,7 +238,7 @@ export default function StockistReports() {
           {/* Inventory Tab */}
           <TabItem title="Inventory">
             <div className="p-4">
-              <DateFilter />
+              <DateFilter dateFrom={dateFrom} dateTo={dateTo} setDateFrom={setDateFrom} setDateTo={setDateTo} onExportPDF={handleExportPDF} />
               <div className="bg-gray-50 rounded-xl p-5 mb-4">
                 <p className="text-sm font-semibold text-gray-700 mb-4">Stock Levels by Product</p>
                 {inventoryData.length === 0 ? (
@@ -286,7 +288,7 @@ export default function StockistReports() {
           {/* Movements Tab */}
           <TabItem title="Movements">
             <div className="p-4">
-              <DateFilter />
+              <DateFilter dateFrom={dateFrom} dateTo={dateTo} setDateFrom={setDateFrom} setDateTo={setDateTo} onExportPDF={handleExportPDF} />
               <div className="bg-gray-50 rounded-xl p-5 mb-4">
                 <p className="text-sm font-semibold text-gray-700 mb-4">Stock In/Out Over Time</p>
                 {movementsData.length === 0 ? (

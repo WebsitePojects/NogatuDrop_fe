@@ -68,6 +68,54 @@ function PartnerFormFields({ form, allPartners, onFieldChange }) {
   );
 }
 
+// Hoisted to module scope — stable identity prevents input focus loss on each keystroke.
+function PartnerFormFields({ form, fld, allPartners }) {
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="col-span-2">
+        <Label value="Business Name" className="mb-1" />
+        <TextInput value={form.business_name} onChange={fld('business_name')} placeholder="Juan Store" required />
+      </div>
+      <div>
+        <Label value="Email" className="mb-1" />
+        <TextInput type="email" value={form.email} onChange={fld('email')} placeholder="juan@store.com" required />
+      </div>
+      <div>
+        <Label value="Phone" className="mb-1" />
+        <TextInput value={form.phone} onChange={fld('phone')} placeholder="09xxxxxxxxx" />
+      </div>
+      <div className="col-span-2">
+        <Label value="Address" className="mb-1" />
+        <TextInput value={form.address} onChange={fld('address')} placeholder="123 Main St." />
+      </div>
+      <div>
+        <Label value="Region" className="mb-1" />
+        <TextInput value={form.region} onChange={fld('region')} placeholder="NCR" />
+      </div>
+      <div>
+        <Label value="Level" className="mb-1" />
+        <Select value={form.stockist_level} onChange={fld('stockist_level')}>
+          <option value="provincial_stockist">Provincial Stockist</option>
+          <option value="city_stockist">City Stockist</option>
+        </Select>
+      </div>
+      {form.stockist_level === 'city_stockist' && (
+        <div className="col-span-2">
+          <Label value="Parent Provincial Stockist" className="mb-1" />
+          <Select value={form.parent_partner_id} onChange={fld('parent_partner_id')}>
+            <option value="">Select parent...</option>
+            {allPartners.map((p) => <option key={p.id} value={p.id}>{p.business_name}</option>)}
+          </Select>
+        </div>
+      )}
+      <div>
+        <Label value="Discount %" className="mb-1" />
+        <TextInput type="number" min="0" max="100" step="0.1" value={form.discount_pct} onChange={fld('discount_pct')} placeholder="0" />
+      </div>
+    </div>
+  );
+}
+
 export default function Partners() {
   const { toasts, showToast, dismiss } = useToast();
   const [partners, setPartners] = useState([]);
@@ -271,7 +319,7 @@ export default function Partners() {
       {/* Add Modal */}
       <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Add Stockist</ModalHeader>
-        <ModalBody><PartnerFormFields form={form} allPartners={allPartners} onFieldChange={fld} /></ModalBody>
+        <ModalBody><PartnerFormFields form={form} fld={fld} allPartners={allPartners} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleAdd} disabled={submitting}>Add Stockist</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
@@ -281,7 +329,7 @@ export default function Partners() {
       {/* Edit Modal */}
       <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Edit Stockist — {selected?.business_name}</ModalHeader>
-        <ModalBody><PartnerFormFields form={form} allPartners={allPartners} onFieldChange={fld} /></ModalBody>
+        <ModalBody><PartnerFormFields form={form} fld={fld} allPartners={allPartners} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleEdit} disabled={submitting}>Save Changes</Button>
           <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>

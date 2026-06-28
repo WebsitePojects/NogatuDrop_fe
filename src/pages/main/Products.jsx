@@ -22,10 +22,66 @@ const EMPTY_FORM = {
   unit: 'box', description: '', is_active: true,
 };
 
-const normalizeProduct = (raw = {}) => ({
-  ...raw,
-  is_active: raw.is_active === true || raw.is_active === 1 || raw.is_active === '1',
-});
+// Hoisted outside Products so React never recreates this component on each render.
+// Receives all external state/handlers via props — no closure captures of parent state.
+function ProductFormFields({ form, fld, imagePreview, fileInputRef, handleImageChange }) {
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <div className="col-span-2">
+        <Label value="Product Name" className="mb-1" />
+        <TextInput value={form.name} onChange={fld('name')} placeholder="Nogatu Max Coffee" required />
+      </div>
+      <div>
+        <Label value="SKU" className="mb-1" />
+        <TextInput value={form.sku} onChange={fld('sku')} placeholder="NMC-001" />
+      </div>
+      <div>
+        <Label value="Category" className="mb-1" />
+        <Select value={form.category} onChange={fld('category')}>
+          <option value="">Select category...</option>
+          {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
+        </Select>
+      </div>
+      <div>
+        <Label value="Retail Price (₱)" className="mb-1" />
+        <TextInput type="number" min="0" step="0.01" value={form.retail_price} onChange={fld('retail_price')} placeholder="0.00" />
+      </div>
+      <div>
+        <Label value="Partner Price (₱)" className="mb-1" />
+        <TextInput type="number" min="0" step="0.01" value={form.partner_price} onChange={fld('partner_price')} placeholder="0.00" />
+      </div>
+      <div>
+        <Label value="Unit" className="mb-1" />
+        <Select value={form.unit} onChange={fld('unit')}>
+          <option value="box">Box</option>
+          <option value="sachet">Sachet</option>
+          <option value="bottle">Bottle</option>
+          <option value="pack">Pack</option>
+          <option value="piece">Piece</option>
+        </Select>
+      </div>
+      <div className="flex items-center gap-2 mt-4">
+        <input type="checkbox" id="is_active" checked={!!form.is_active} onChange={fld('is_active')} className="w-4 h-4 text-amber-500" />
+        <Label htmlFor="is_active" value="Active / Listed" />
+      </div>
+      <div className="col-span-2">
+        <Label value="Description" className="mb-1" />
+        <Textarea value={form.description} onChange={fld('description')} rows={2} placeholder="Product description..." />
+      </div>
+      <div className="col-span-2">
+        <Label value="Product Image" className="mb-1" />
+        {imagePreview && (
+          <img src={imagePreview} alt="Preview" className="w-24 h-24 object-cover rounded-lg border border-gray-200 mb-2" />
+        )}
+        <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageChange} />
+        <Button color="light" size="sm" onClick={() => fileInputRef.current?.click()}>
+          <HiOutlinePhotograph className="w-4 h-4 mr-1.5" />
+          {imagePreview ? 'Change Image' : 'Upload Image'}
+        </Button>
+      </div>
+    </div>
+  );
+}
 
 export default function Products() {
   const { toasts, showToast, dismiss } = useToast();
@@ -74,9 +130,12 @@ export default function Products() {
     const normalized = normalizeProduct(p);
     setSelected(normalized);
     setForm({
-      name: normalized.name, sku: normalized.sku, category: normalized.category,
-      retail_price: normalized.retail_price, partner_price: normalized.partner_price,
-      unit: normalized.unit, description: normalized.description || '', is_active: normalized.is_active,
+      name: p.name, sku: p.sku, category: p.category,
+      retail_price: p.retail_price, partner_price: p.partner_price,
+      unit: p.unit, description: p.description || '',
+      // Coerce to boolean — the list query omits is_active so p.is_active may be undefined;
+      // treat undefined/null as true (active) since the product appeared in the active list.
+      is_active: p.is_active !== false && p.is_active !== 0,
     });
     setImageFile(null);
     setImagePreview(normalized.image_url || null);
@@ -147,63 +206,6 @@ export default function Products() {
   };
 
   const fld = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
-
-  const ProductFormFields = () => (
-    <div className="grid grid-cols-2 gap-4">
-      <div className="col-span-2">
-        <Label className="mb-1" >Product Name</Label>
-        <TextInput value={form.name} onChange={fld('name')} placeholder="Nogatu Max Coffee" required />
-      </div>
-      <div>
-        <Label className="mb-1" >SKU</Label>
-        <TextInput value={form.sku} onChange={fld('sku')} placeholder="NMC-001" />
-      </div>
-      <div>
-        <Label className="mb-1" >Category</Label>
-        <Select value={form.category} onChange={fld('category')}>
-          <option value="">Select category...</option>
-          {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-        </Select>
-      </div>
-      <div>
-        <Label className="mb-1" >Retail Price (₱)</Label>
-        <TextInput type="number" min="0" step="0.01" value={form.retail_price} onChange={fld('retail_price')} placeholder="0.00" />
-      </div>
-      <div>
-        <Label className="mb-1" >Partner Price (₱)</Label>
-        <TextInput type="number" min="0" step="0.01" value={form.partner_price} onChange={fld('partner_price')} placeholder="0.00" />
-      </div>
-      <div>
-        <Label className="mb-1" >Unit</Label>
-        <Select value={form.unit} onChange={fld('unit')}>
-          <option value="box">Box</option>
-          <option value="sachet">Sachet</option>
-          <option value="bottle">Bottle</option>
-          <option value="pack">Pack</option>
-          <option value="piece">Piece</option>
-        </Select>
-      </div>
-      <div className="flex items-center gap-2 mt-4">
-        <input type="checkbox" id="is_active" checked={form.is_active} onChange={fld('is_active')} className="w-4 h-4 text-amber-500" />
-        <Label htmlFor="is_active" >Active / Listed</Label>
-      </div>
-      <div className="col-span-2">
-        <Label className="mb-1" >Description</Label>
-        <Textarea value={form.description} onChange={fld('description')} rows={2} placeholder="Product description..." />
-      </div>
-      <div className="col-span-2">
-        <Label className="mb-1" >Product Image</Label>
-        {imagePreview && (
-          <img src={imagePreview} alt="Preview" className="w-24 h-24 object-cover rounded-lg border border-gray-200 mb-2" />
-        )}
-        <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageChange} />
-        <Button color="light" size="sm" onClick={() => fileInputRef.current?.click()}>
-          <HiOutlinePhotograph className="w-4 h-4 mr-1.5" />
-          {imagePreview ? 'Change Image' : 'Upload Image'}
-        </Button>
-      </div>
-    </div>
-  );
 
   return (
     <div className="page-enter">
@@ -289,7 +291,7 @@ export default function Products() {
       {/* Add Modal */}
       <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Add New Product</ModalHeader>
-        <ModalBody><ProductFormFields /></ModalBody>
+        <ModalBody><ProductFormFields form={form} fld={fld} imagePreview={imagePreview} fileInputRef={fileInputRef} handleImageChange={handleImageChange} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleAdd} disabled={submitting}>Add Product</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
@@ -303,7 +305,7 @@ export default function Products() {
         </ModalHeader>
         <ModalBody>
           {isEditing ? (
-            <ProductFormFields />
+            <ProductFormFields form={form} fld={fld} imagePreview={imagePreview} fileInputRef={fileInputRef} handleImageChange={handleImageChange} />
           ) : (
             selected && (
               <div className="space-y-4">

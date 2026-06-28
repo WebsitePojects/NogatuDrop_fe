@@ -61,6 +61,47 @@ function BankAccountFormFields({ form, warehouses, onFieldChange }) {
   );
 }
 
+// Hoisted to module scope — stable identity prevents input focus loss on each keystroke.
+function BankAccountFormFields({ form, fld, warehouses }) {
+  return (
+    <div className="grid grid-cols-2 gap-4">
+      <div>
+        <Label value="Bank Name" className="mb-1" />
+        <TextInput value={form.bank_name} onChange={fld('bank_name')} placeholder="BDO, BPI, GCash..." required />
+      </div>
+      <div>
+        <Label value="Account Name" className="mb-1" />
+        <TextInput value={form.account_name} onChange={fld('account_name')} placeholder="Juan Dela Cruz" required />
+      </div>
+      <div className="col-span-2">
+        <Label value="Account Number" className="mb-1" />
+        <TextInput value={form.account_number} onChange={fld('account_number')} placeholder="1234 5678 9012" required />
+      </div>
+      <div>
+        <Label value="Assigned Warehouse (optional)" className="mb-1" />
+        <Select value={form.warehouse_id} onChange={fld('warehouse_id')}>
+          <option value="">Default (all warehouses)</option>
+          {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+        </Select>
+      </div>
+      <div>
+        <Label value="Notes (optional)" className="mb-1" />
+        <TextInput value={form.notes} onChange={fld('notes')} placeholder="Additional info..." />
+      </div>
+      <div className="col-span-2 flex gap-6">
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={form.is_default} onChange={fld('is_default')} className="w-4 h-4 text-amber-500" />
+          <span className="text-sm font-medium text-gray-700 dark:text-[var(--dark-text)]">Set as Default Account</span>
+        </label>
+        <label className="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" checked={form.is_active} onChange={fld('is_active')} className="w-4 h-4 text-amber-500" />
+          <span className="text-sm font-medium text-gray-700 dark:text-[var(--dark-text)]">Active</span>
+        </label>
+      </div>
+    </div>
+  );
+}
+
 export default function BankAccounts() {
   const { toasts, showToast, dismiss } = useToast();
   const [accounts, setAccounts] = useState([]);
@@ -244,7 +285,7 @@ export default function BankAccounts() {
       {/* Add Modal */}
       <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Add Bank Account</ModalHeader>
-        <ModalBody><BankAccountFormFields form={form} warehouses={warehouses} onFieldChange={fld} /></ModalBody>
+        <ModalBody><BankAccountFormFields form={form} fld={fld} warehouses={warehouses} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleAdd} disabled={submitting}>Add Account</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
@@ -254,7 +295,7 @@ export default function BankAccounts() {
       {/* Edit Modal */}
       <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Edit Bank Account</ModalHeader>
-        <ModalBody><BankAccountFormFields form={form} warehouses={warehouses} onFieldChange={fld} /></ModalBody>
+        <ModalBody><BankAccountFormFields form={form} fld={fld} warehouses={warehouses} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleEdit} disabled={submitting}>Save Changes</Button>
           <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>

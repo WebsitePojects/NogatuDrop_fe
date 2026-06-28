@@ -11,10 +11,8 @@ import { ORDERS, PRODUCTS } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { getPublicCatalogPrice } from '@/utils/publicCatalogPrice';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
-import {
-  PUBLIC_ORDER_SHIPPING_ZONE_OPTIONS,
-  getPublicOrderPricingTotals,
-} from '@/utils/publicCheckoutPricing';
+import { getPublicOrderPricingTotals } from '@/utils/publicCheckoutPricing';
+import LocationPicker from '@/components/LocationPicker';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 const DEFAULT_SHIPPING_ZONE = 'metro_manila';
@@ -110,9 +108,11 @@ export default function Shop() {
   }); // browse | checkout | success
   const [orderNumber, setOrderNumber] = useState('');
   const [paymentContext, setPaymentContext] = useState(null);
-  const [customer, setCustomer] = useState({ name: '', phone: '', email: '', address: '', shipping_zone: DEFAULT_SHIPPING_ZONE });
+  const [customer, setCustomer] = useState({ name: '', phone: '', email: '', address: '' });
+  const [memberUsername, setMemberUsername] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
+  const [pinnedLocation, setPinnedLocation] = useState(null);
   const [proofFile, setProofFile] = useState(null);
   const [proofUploading, setProofUploading] = useState(false);
   const [proofMessage, setProofMessage] = useState('');
@@ -205,7 +205,7 @@ export default function Shop() {
   const cartTotal = cart.reduce((s, i) => s + i.quantity * i.unit_price, 0);
   const pricingTotals = getPublicOrderPricingTotals(cartTotal, { shippingZone: customer.shipping_zone || DEFAULT_SHIPPING_ZONE });
   const shippingFee = pricingTotals.shippingFee;
-  const vatAmount = pricingTotals.vatAmount;
+  const systemFee = pricingTotals.systemFee;
   const totalDue = pricingTotals.totalDue;
   const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
 
@@ -262,8 +262,10 @@ export default function Shop() {
         customer_phone: customer.phone,
         customer_email: customer.email,
         customer_address: customer.address,
-        shipping_zone: customer.shipping_zone || DEFAULT_SHIPPING_ZONE,
+        customer_lat: pinnedLocation?.lat ?? null,
+        customer_lng: pinnedLocation?.lng ?? null,
         payment_method: 'bank_transfer',
+        member_username: memberUsername.trim() || undefined,
         items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
       });
       setOrderNumber(res.data.data?.order_number || 'N/A');
@@ -432,6 +434,9 @@ export default function Shop() {
             </div>
           </div>
           <div className="flex items-center gap-3">
+            <Link to="/" className="text-xs text-gray-500 hover:text-gray-700 hidden sm:block">
+              Home
+            </Link>
             <Link to="/track" className="text-xs text-gray-500 hover:text-gray-700 hidden sm:block">
               Track Order
             </Link>
@@ -669,6 +674,24 @@ export default function Shop() {
                     </div>
 
                     <div>
+                      <label htmlFor="memberUsername" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                        Nogatu Member Username (Optional — 30% member discount)
+                      </label>
+                      <div className="relative">
+                        <FiUser className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <input
+                          id="memberUsername"
+                          type="text"
+                          value={memberUsername}
+                          onChange={e => setMemberUsername(e.target.value)}
+                          placeholder="Your Nogatu Alliance username"
+                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-300"
+                        />
+                      </div>
+                      <p className="mt-1 text-[11px] text-gray-400">Verified at checkout. The discount applies only to active members.</p>
+                    </div>
+
+                    <div>
                       <label htmlFor="customerAddress" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
                         Delivery Address *
                       </label>
@@ -686,34 +709,7 @@ export default function Shop() {
                       </div>
                     </div>
 
-                    <div className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
-                      <div>
-                        <label htmlFor="shippingZone" className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-700">
-                          Shipping Region *
-                        </label>
-                        <div className="relative">
-                          <FiTruck className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-                          <select
-                            id="shippingZone"
-                            value={customer.shipping_zone}
-                            onChange={e => setCustomer(prev => ({ ...prev, shipping_zone: e.target.value }))}
-                            className="w-full appearance-none rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-gray-900 focus:border-amber-500 focus:outline-none focus:ring-4 focus:ring-amber-500/10"
-                          >
-                            {PUBLIC_ORDER_SHIPPING_ZONE_OPTIONS.map((option) => (
-                              <option key={option.value} value={option.value}>{option.label}</option>
-                            ))}
-                          </select>
-                        </div>
-                        <p className="mt-2 text-xs leading-relaxed text-[#8d6a4d]">
-                          {PUBLIC_ORDER_SHIPPING_ZONE_OPTIONS.find((option) => option.value === customer.shipping_zone)?.description}
-                        </p>
-                      </div>
-                      <div className="rounded-2xl border border-[#f0d6b6] bg-[#fff4e4] px-4 py-3 text-right shadow-[inset_0_1px_0_rgba(255,255,255,0.85)]">
-                        <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#9a6a3a]">Additional Shipping Fee</p>
-                        <p className="mt-1 text-xl font-black text-[#6a3411]">{formatCurrency(shippingFee)}</p>
-                        <p className="text-[11px] text-[#9a6a3a]">J&amp;T prioritized for public checkout dispatch</p>
-                      </div>
-                    </div>
+                    <LocationPicker value={pinnedLocation} onChange={setPinnedLocation} />
 
                     <div className="pt-2">
                       <div className="flex items-start gap-2 rounded-2xl border border-[#f0d6b6] bg-[linear-gradient(180deg,#fff9ef,#fff1df)] p-4 text-xs text-[#7a4b22]">
@@ -805,7 +801,11 @@ export default function Shop() {
                         <span className="font-semibold text-gray-800">{formatCurrency(cartTotal)}</span>
                       </div>
                       <div className="flex justify-between text-gray-500 items-center">
-                        <span>Shipping ({PUBLIC_ORDER_SHIPPING_ZONE_OPTIONS.find((option) => option.value === customer.shipping_zone)?.label})</span>
+                        <span>VAT &amp; System Fee (12%)</span>
+                        <span className="font-semibold text-gray-800">{formatCurrency(systemFee)}</span>
+                      </div>
+                      <div className="flex justify-between text-gray-500 items-center">
+                        <span>Shipping</span>
                         <span className="font-semibold text-gray-800">{formatCurrency(shippingFee)}</span>
                       </div>
                       <div className="flex justify-between text-gray-500">
@@ -815,7 +815,7 @@ export default function Shop() {
                       <div className="flex justify-between text-base font-bold text-gray-900 border-t border-dashed border-[#edd9c1] pt-3 mt-2">
                         <div>
                           <span>Total Due</span>
-                          <p className="text-[11px] font-medium text-[#8d6a4d]">VAT included. Final delivery partner is routed with J&amp;T priority.</p>
+                          <p className="text-[11px] font-medium text-gray-400">All charges shown above</p>
                         </div>
                         <span className="text-amber-600 font-extrabold">{formatCurrency(totalDue)}</span>
                       </div>

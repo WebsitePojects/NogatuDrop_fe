@@ -12,7 +12,7 @@ import StatusBadge from '@/components/StatusBadge';
 import ConfirmModal from '@/components/ConfirmModal';
 import { ToastContainer, useToast } from '@/components/Toast';
 
-const STATUSES = ['all', 'pending', 'approved', 'completed', 'rejected'];
+const STATUSES = ['all', 'awaiting_owner_approval', 'submitted', 'accepted', 'completed', 'rejected'];
 const EMPTY_FORM = { supplier: '', warehouse_id: '', notes: '' };
 
 export default function PurchaseOrders() {
@@ -110,9 +110,9 @@ export default function PurchaseOrders() {
       const { action, order } = confirmTarget;
       if (action === 'approve') {
         await api.patch(PURCHASE_ORDERS.APPROVE(order.id));
-        showToast('Purchase order approved', 'success');
+        showToast('Purchase order accepted', 'success');
       } else if (action === 'reject') {
-        await api.patch(PURCHASE_ORDERS.REJECT(order.id), { reason: '' });
+        await api.patch(PURCHASE_ORDERS.REJECT(order.id));
         showToast('Purchase order rejected', 'info');
       }
       setConfirmTarget(null);
@@ -322,10 +322,10 @@ export default function PurchaseOrders() {
         </ModalBody>
         <ModalFooter>
           <div className="flex gap-2">
-            {selected?.status === 'pending' && (
+            {selected?.status === 'submitted' && (
               <>
                 <Button color="success" size="sm" onClick={() => setConfirmTarget({ action: 'approve', order: selected })}>
-                  <HiOutlineCheck className="w-4 h-4 mr-1" /> Approve
+                  <HiOutlineCheck className="w-4 h-4 mr-1" /> Accept
                 </Button>
                 <Button color="failure" size="sm" outline onClick={() => setConfirmTarget({ action: 'reject', order: selected })}>
                   <HiOutlineX className="w-4 h-4 mr-1" /> Reject
@@ -339,9 +339,9 @@ export default function PurchaseOrders() {
 
       <ConfirmModal
         show={!!confirmTarget}
-        title={confirmTarget?.action === 'approve' ? 'Approve PO' : 'Reject PO'}
-        message={`${confirmTarget?.action === 'approve' ? 'Approve' : 'Reject'} purchase order ${confirmTarget?.order?.po_number || `PO-${confirmTarget?.order?.id}`}?`}
-        confirmLabel={confirmTarget?.action === 'approve' ? 'Approve' : 'Reject'}
+        title={confirmTarget?.action === 'approve' ? 'Accept PO' : 'Reject PO'}
+        message={`${confirmTarget?.action === 'approve' ? 'Accept' : 'Reject'} purchase order ${confirmTarget?.order?.po_number || `PO-${confirmTarget?.order?.id}`}?`}
+        confirmLabel={confirmTarget?.action === 'approve' ? 'Accept' : 'Reject'}
         confirmColor={confirmTarget?.action === 'approve' ? 'success' : 'failure'}
         onConfirm={executeAction}
         onClose={() => setConfirmTarget(null)}

@@ -90,6 +90,8 @@ export const ORDERS = {
   CANCEL:        (id) => `/orders/${id}/cancel`,
   PAYMENT_PROOF: (id) => `/orders/${id}/payment-proof`,
   VERIFY_PAYMENT:(id) => `/orders/${id}/verify-payment`,
+  ARCHIVE:       (id) => `/orders/${id}/archive`,
+  UNARCHIVE:     (id) => `/orders/${id}/unarchive`,
 };
 
 export const CART = {
@@ -112,7 +114,14 @@ export const PURCHASE_ORDERS = {
   CREATE:  '/purchase-orders',
   BY_ID:   (id) => `/purchase-orders/${id}`,
   APPROVE: (id) => `/purchase-orders/${id}/approve`,
+  SUBMIT:  (id) => `/purchase-orders/${id}/submit`,
   REJECT:  (id) => `/purchase-orders/${id}/reject`,
+};
+
+export const MOBILE_INVENTORY = {
+  LIST: '/mobile-inventory',
+  MOVEMENTS: '/mobile-inventory/movements',
+  ADJUST: (productId) => `/mobile-inventory/${productId}/adjust`,
 };
 
 export const GRN = {

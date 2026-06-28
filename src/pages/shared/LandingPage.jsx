@@ -21,6 +21,10 @@ import {
 } from 'react-icons/fi';
 import { NOGATU_PRODUCT_CATALOG } from '@/utils/nogatuCatalog';
 import { getPublicOrderPricingTotals } from '@/utils/publicCheckoutPricing';
+import { getPublicCatalogPrice } from '@/utils/publicCatalogPrice';
+import { getProductImageSrc } from '@/utils/productImages';
+import api from '@/services/api';
+import { PRODUCTS as PRODUCT_ENDPOINTS } from '@/services/endpoints';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 const ABOUT_IMAGE = '/assets/about_nogatu.jpg';
@@ -28,6 +32,7 @@ const CERTIFICATIONS_PDF = '/assets/nogatu-certifications.pdf';
 
 const NAV_LINKS = [
   { id: 'home', label: 'Home' },
+  { id: 'packages', label: 'Packages' },
   { id: 'shop', label: 'Shop' },
   { id: 'story', label: 'Story' },
   { id: 'certifications', label: 'Certifications' },
@@ -35,97 +40,120 @@ const NAV_LINKS = [
   { id: 'contact', label: 'Contact' },
 ];
 
-const PRODUCT_CATEGORIES = ['All', 'Coffee', 'Chocolate', 'Wellness', 'Supplements'];
-const PRODUCTS = NOGATU_PRODUCT_CATALOG;
-const PRODUCT_LOOKUP = Object.fromEntries(PRODUCTS.map((product) => [product.id, product]));
-const FEATURED_PRODUCTS = ['berry-nad-plus', 'nogatu-max-fuel', 'nogatu-barley-juice']
-  .map((id) => PRODUCT_LOOKUP[id])
-  .filter(Boolean);
-const ALL_PRODUCT_ROWS = [
-  ['berry-nad-plus', 'nogatu-max-fuel', 'nogatu-barley-juice'],
-  ['nogatu-coffee-mix', 'mangosteen-coffee-mix', 'nogatu-black-coffee'],
-  ['nogatu-glow', 'vitamins-zinc', 'collagen'],
-  ['chocolate-drink-mix'],
-].map((row) => row.map((id) => PRODUCT_LOOKUP[id]).filter(Boolean));
-const BUSINESS_PACKAGES = [
+/**
+ * Ordered keyword list that drives display order of products.
+ * Products are matched case-insensitively; the first keyword that
+ * appears anywhere in product.name wins. Unmatched products fall
+ * to the end, keeping their original relative order.
+ */
+const PRODUCT_ORDER_KEYWORDS = [
+  'berry nad',
+  'max fuel',
+  'barley',
+  'coffee mix',
+  'mangosteen',
+  'black coffee',
+  'glow',
+  'zinc',
+  'collagen',
+  'chocolate',
+];
+
+function sortProductsByKeyword(productList) {
+  const getRank = (name = '') => {
+    const lower = name.toLowerCase();
+    const idx = PRODUCT_ORDER_KEYWORDS.findIndex((kw) => lower.includes(kw));
+    return idx === -1 ? PRODUCT_ORDER_KEYWORDS.length : idx;
+  };
+  return [...productList].sort((a, b) => getRank(a.name) - getRank(b.name));
+}
+
+const MLM_PACKAGES = [
   {
-    id: 'diamond',
-    name: 'Diamond',
-    price: '150,000',
-    accent: 'from-sky-500 to-blue-500',
-    items: [
-      'Diamond package products',
-      'Maximum earning potential',
-      'All income streams',
-      'Exclusive events access',
-      'Elite leadership ranking',
-    ],
+    tier: 'Bronze',
+    price: 2500,
+    color: 'from-[#b87333]/20 to-[#8b5c2a]/30',
+    border: 'border-[#b87333]/40',
+    badge: 'bg-[#b87333]/80',
+    tagline: 'Start your wellness journey today.',
   },
   {
-    id: 'garnet',
-    name: 'Garnet',
-    price: '50,000',
-    accent: 'from-rose-600 to-red-500',
-    items: [
-      'Garnet package products',
-      'Premium earning potential',
-      'All income streams',
-      'VIP support',
-      'Top leadership ranking',
-    ],
+    tier: 'Silver',
+    price: 5000,
+    color: 'from-[#8c8c8c]/20 to-[#5a5a5a]/30',
+    border: 'border-[#aaaaaa]/40',
+    badge: 'bg-[#7a7a7a]/80',
+    tagline: 'Grow your network and earnings.',
   },
   {
-    id: 'platinum',
-    name: 'Platinum',
-    price: '25,000',
-    accent: 'from-slate-600 to-slate-500',
-    items: [
-      'Platinum package products',
-      'Highest earning potential',
-      'All income streams',
-      'Priority support',
-      'Leadership ranking',
-    ],
+    tier: 'Gold',
+    price: 10000,
+    color: 'from-[#d4a72c]/20 to-[#a07820]/30',
+    border: 'border-[#d4a72c]/50',
+    badge: 'bg-[#c49b22]/80',
+    tagline: 'Unlock premium distributor rewards.',
   },
   {
-    id: 'gold',
-    name: 'Gold',
-    price: '10,000',
-    accent: 'from-amber-500 to-yellow-500',
-    items: [
-      'Gold package products',
-      'Maximum pairing bonus',
-      'Leadership bonus eligible',
-      'Hi-Five bonus eligible',
-      'Full income streams',
-    ],
-    featured: true,
+    tier: 'Platinum',
+    price: 25000,
+    color: 'from-[#6ab0c7]/20 to-[#3d7e96]/30',
+    border: 'border-[#6ab0c7]/40',
+    badge: 'bg-[#4e9ab5]/80',
+    tagline: 'Elite status with expanded territories.',
   },
   {
-    id: 'silver',
-    name: 'Silver',
-    price: '5,000',
-    accent: 'from-slate-400 to-slate-500',
-    items: [
-      'Silver package products',
-      'Higher pairing bonus',
-      'Direct referral bonus',
-      'Unilevel income',
-    ],
+    tier: 'Garnet',
+    price: 50000,
+    color: 'from-[#9b2335]/20 to-[#6e1825]/30',
+    border: 'border-[#9b2335]/50',
+    badge: 'bg-[#8b1e2f]/80',
+    tagline: 'Lead your region with full support.',
   },
   {
-    id: 'bronze',
-    name: 'Bronze',
-    price: '2,500',
-    accent: 'from-orange-500 to-amber-700',
-    items: [
-      'Entry package products',
-      'Binary genealogy placement',
-      'Direct referral bonus',
-      'Basic member portal',
-    ],
+    tier: 'Diamond',
+    price: 150000,
+    color: 'from-[#b9f2ff]/20 to-[#7cd4e8]/30',
+    border: 'border-[#a0e8fc]/50',
+    badge: 'bg-[#4ec4dc]/80',
+    tagline: 'National top-tier partnership status.',
   },
 ];
+
+const STATIC_PRODUCT_CATEGORIES = ['All', 'Coffee', 'Chocolate', 'Wellness', 'Supplements'];
+
+/**
+ * Map a DB product record to the card shape LandingPage JSX consumes.
+ * Visual-only fields (badge, rating, featuredScale, thumbScale) use
+ * catalogue fallbacks keyed by SKU so we keep the right images/styles
+ * even before any API response.
+ */
+function mapDbProductToCard(product, catalogFallbacks = []) {
+  const fallback = catalogFallbacks.find(
+    (c) =>
+      c.sku === product.sku ||
+      c.name?.toLowerCase() === product.name?.toLowerCase()
+  ) || {};
+
+  return {
+    // Real numeric DB id — critical: cart must carry this to checkout
+    id: product.id,
+    name: product.name || fallback.name || '',
+    category: product.category || fallback.category || 'Wellness',
+    price: getPublicCatalogPrice(product),
+    image: getProductImageSrc(product),
+    shortDescription: product.description || fallback.shortDescription || '',
+    badge: fallback.badge || 'Featured',
+    rating: fallback.rating ?? 4.8,
+    featuredScale: fallback.featuredScale || 1,
+    thumbScale: fallback.thumbScale || 1,
+    // Pass through for Shop.jsx normalizeIncomingPublicCart
+    sku: product.sku || fallback.sku || null,
+    image_url: product.image_url || null,
+    retail_price: product.retail_price || null,
+    partner_price: product.partner_price || null,
+    available_qty: product.available_qty ?? null,
+  };
+}
 
 const METRICS = [
   { value: '120k+', label: 'Monthly Orders' },
@@ -194,20 +222,88 @@ const LandingPage = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All');
-  const [selectedProductId, setSelectedProductId] = useState(FEATURED_PRODUCTS[0]?.id ?? PRODUCTS[0]?.id);
+
+  // Live product list fetched from DB. Falls back to static catalog if fetch fails.
+  const [products, setProducts] = useState([]);
+  const [productsLoading, setProductsLoading] = useState(true);
+  const [productsError, setProductsError] = useState(null);
+
+  const [selectedProductId, setSelectedProductId] = useState(null);
   const [cart, setCart] = useState([]);
 
   const revealRefs = useRef([]);
 
+  // Fetch live products from the DB on mount.
+  // Falls back to the static catalog (with string IDs) only if the fetch errors.
+  useEffect(() => {
+    let cancelled = false;
+    const fetchProducts = async () => {
+      setProductsLoading(true);
+      setProductsError(null);
+      try {
+        const response = await api.get(PRODUCT_ENDPOINTS.PUBLIC, { params: { limit: 50 } });
+        const list = Array.isArray(response.data?.data)
+          ? response.data.data
+          : (response.data?.data?.items || []);
+
+        if (!cancelled) {
+          const mapped = sortProductsByKeyword(
+            list.map((p) => mapDbProductToCard(p, NOGATU_PRODUCT_CATALOG))
+          );
+          if (mapped.length > 0) {
+            // Merge: start with live DB products (sorted), then append any catalog
+            // entries whose names aren't already represented in the live set.
+            const liveNames = new Set(mapped.map((p) => p.name.toLowerCase()));
+            const catalogOnly = NOGATU_PRODUCT_CATALOG.filter(
+              (c) => !liveNames.has(c.name.toLowerCase())
+            );
+            const merged = sortProductsByKeyword([...mapped, ...catalogOnly]);
+            setProducts(merged);
+            setSelectedProductId((prev) => prev ?? merged[0].id);
+          } else {
+            // DB returned empty list — use static fallback
+            const fallback = sortProductsByKeyword(NOGATU_PRODUCT_CATALOG);
+            setProducts(fallback);
+            setSelectedProductId((prev) => prev ?? fallback[0].id);
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          // Network / server error — use static fallback catalog
+          setProductsError('Could not load live catalog. Showing cached products.');
+          const fallback = sortProductsByKeyword(NOGATU_PRODUCT_CATALOG);
+          setProducts(fallback);
+          setSelectedProductId((prev) => prev ?? fallback[0].id);
+        }
+      } finally {
+        if (!cancelled) setProductsLoading(false);
+      }
+    };
+
+    fetchProducts();
+    return () => { cancelled = true; };
+  }, []);
+
+  // Derive the product categories dynamically from whichever list we have.
+  const PRODUCT_CATEGORIES = useMemo(() => {
+    if (products.length === 0) return STATIC_PRODUCT_CATEGORIES;
+    const cats = ['All', ...new Set(products.map((p) => p.category).filter(Boolean))];
+    // Ensure static categories always appear if we have the data
+    STATIC_PRODUCT_CATEGORIES.forEach((c) => {
+      if (!cats.includes(c)) cats.push(c);
+    });
+    return cats;
+  }, [products]);
+
   const selectedProduct = useMemo(
-    () => FEATURED_PRODUCTS.find((product) => product.id === selectedProductId) || FEATURED_PRODUCTS[0] || PRODUCTS[0],
-    [selectedProductId]
+    () => products.find((product) => product.id === selectedProductId) || products[0] || null,
+    [selectedProductId, products]
   );
 
   const filteredProducts = useMemo(() => {
-    if (activeCategory === 'All') return PRODUCTS;
-    return PRODUCTS.filter((product) => product.category === activeCategory);
-  }, [activeCategory]);
+    if (activeCategory === 'All') return products;
+    return products.filter((product) => product.category === activeCategory);
+  }, [activeCategory, products]);
 
   const filteredProductRows = useMemo(() => {
     if (activeCategory === 'All') return ALL_PRODUCT_ROWS;
@@ -217,7 +313,7 @@ const LandingPage = () => {
   const cartItems = useMemo(() => {
     return cart
       .map((item) => {
-        const product = PRODUCTS.find((entry) => entry.id === item.id);
+        const product = products.find((entry) => entry.id === item.id);
         if (!product) return null;
         return {
           ...product,
@@ -226,7 +322,7 @@ const LandingPage = () => {
         };
       })
       .filter(Boolean);
-  }, [cart]);
+  }, [cart, products]);
 
   const subtotal = useMemo(() => cartItems.reduce((sum, item) => sum + item.lineTotal, 0), [cartItems]);
   const pricingTotals = useMemo(() => getPublicOrderPricingTotals(subtotal), [subtotal]);
@@ -251,7 +347,10 @@ const LandingPage = () => {
     });
 
     return () => observer.disconnect();
-  }, []);
+    // Re-run when the visible product set changes: product cards load async
+    // (after the catalog fetch), so they mount AFTER the initial observe pass.
+    // Without this dep they keep reveal-block's opacity:0 and never appear.
+  }, [filteredProducts]);
 
   useEffect(() => {
     document.body.style.overflow = cartOpen ? 'hidden' : 'auto';
@@ -442,6 +541,11 @@ const LandingPage = () => {
               <div className="hero-shape relative overflow-hidden rounded-[2rem] border border-orange-100/20 bg-gradient-to-br from-[#fff3df]/95 via-[#f4dcc2]/90 to-[#f2c085]/88 p-6 text-[#3d1f0d] shadow-[0_30px_90px_-35px_rgba(0,0,0,0.6)]">
                 <div className="pointer-events-none absolute -left-8 top-8 h-32 w-32 rounded-full border-2 border-[#d9771f]/30" />
                 <div className="pointer-events-none absolute bottom-6 right-6 h-24 w-24 rotate-12 rounded-[28%] border border-[#a45317]/30" />
+                {productsLoading && !selectedProduct ? (
+                  <div className="flex h-48 items-center justify-center">
+                    <span className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-[#d9771f]/30 border-t-[#d9771f]" />
+                  </div>
+                ) : selectedProduct ? (
                 <div className="grid gap-4">
                   <div className="hero-feature-card rounded-2xl p-4">
                     <div className="featured-product-shell">
@@ -483,7 +587,7 @@ const LandingPage = () => {
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-3">
-                    {FEATURED_PRODUCTS.map((product) => (
+                    {products.slice(0, 3).map((product) => (
                       <button
                         key={product.id}
                         onClick={() => setSelectedProductId(product.id)}
@@ -517,63 +621,66 @@ const LandingPage = () => {
                     <FiChevronRight />
                   </button>
                 </div>
+                ) : null}
               </div>
             </div>
           </div>
         </section>
 
-        <section className="relative px-4 py-16 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent via-[#673b15] to-[#9c621d]">
-          <div className="mx-auto w-[min(1180px,100%)]">
-            <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.2em] text-orange-200/80">Business Packages</p>
-                <h2 className="font-heading mt-2 text-3xl text-white sm:text-4xl">Start with the package that fits your business goals</h2>
-                <p className="mt-3 max-w-2xl text-sm text-orange-50/78">
-                  Package options now appear before the product catalog, following the Diamond-to-Bronze order from your reference.
-                </p>
-              </div>
+        <section id="packages" className="relative px-4 py-16 sm:px-6 lg:px-8 bg-gradient-to-b from-transparent via-[#2a1508]/60 to-transparent">
+          <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:radial-gradient(rgba(255,190,100,0.12)_1px,transparent_1px)] [background-size:22px_22px]" />
+          <div className="relative z-10 mx-auto w-[min(1180px,100%)]">
+            <div ref={setRevealRef(40)} className="reveal-block mb-10 text-center">
+              <p className="text-xs font-bold uppercase tracking-[0.24em] text-orange-200/80">Business Packages</p>
+              <h2 className="font-heading mt-2 text-3xl text-white sm:text-4xl">Start as a Nogatu Stockist</h2>
+              <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-orange-50/75">
+                Choose the package that matches your vision. Every tier unlocks access to the full Nogatu product catalog,
+                distributor discounts, and nationwide delivery support.
+              </p>
             </div>
 
-            <div className="grid gap-6 xl:grid-cols-3 md:grid-cols-2">
-              {BUSINESS_PACKAGES.map((pkg) => (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {MLM_PACKAGES.map((pkg, index) => (
                 <article
-                  key={pkg.id}
-                  className={`package-card relative flex h-full flex-col overflow-hidden rounded-[1.8rem] border ${
-                    pkg.featured ? 'border-amber-300/60 shadow-[0_20px_50px_-24px_rgba(251,191,36,0.45)]' : 'border-orange-100/18'
-                  } bg-[#fff7ec] text-[#52290c] shadow-[0_24px_55px_-30px_rgba(0,0,0,0.42)]`}
+                  key={pkg.tier}
+                  ref={setRevealRef(41 + index)}
+                  className={`reveal-block card-float flex flex-col overflow-hidden rounded-[1.75rem] border ${pkg.border} bg-gradient-to-br ${pkg.color} backdrop-blur-sm p-6`}
                 >
-                  <div className={`bg-gradient-to-r ${pkg.accent} px-5 py-5 text-white`}>
-                    <div className="mb-3 flex items-center justify-between gap-3">
-                      <span className="rounded-full bg-white px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-[#7a4617]">
-                        {pkg.name}
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <span className={`inline-block rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] text-white ${pkg.badge}`}>
+                        {pkg.tier}
                       </span>
-                      {pkg.featured && (
-                        <span className="rounded-full bg-emerald-600 px-3 py-1 text-[11px] font-bold uppercase tracking-wide text-white">
-                          Popular
-                        </span>
-                      )}
+                      <p className="mt-3 text-sm text-orange-100/75">{pkg.tagline}</p>
                     </div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/80">Package Value</p>
-                    <p className="mt-2 text-4xl font-black">₱ {pkg.price}</p>
+                    <div className="text-right shrink-0">
+                      <p className="text-[10px] uppercase tracking-widest text-orange-200/60">Package Price</p>
+                      <p className="mt-1 text-2xl font-black text-white">{formatPeso(pkg.price)}</p>
+                    </div>
                   </div>
-                  <div className="flex flex-1 flex-col gap-4 p-5">
-                    <div className="space-y-3">
-                      {pkg.items.map((item) => (
-                        <div key={item} className="flex items-start gap-3 text-sm leading-6 text-[#6d3c13]">
-                          <FiCheck className="mt-1 shrink-0 text-[#c0781e]" />
-                          <span>{item}</span>
-                        </div>
-                      ))}
-                    </div>
+                  <div className="mt-auto pt-6">
                     <button
-                      onClick={() => scrollTo('contact')}
-                      className="package-cta-button mt-auto w-full rounded-xl px-4 py-3 text-sm font-semibold text-white transition"
+                      onClick={() => window.open(import.meta.env.VITE_MLM_APPLY_URL || 'https://nogatualliance.com/#stockist-apply', '_blank', 'noopener')}
+                      className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#f7a340] to-[#de7a26] px-4 py-2.5 text-sm font-semibold text-white transition hover:brightness-110"
                     >
-                      Get Started
+                      Apply Now
+                      <FiArrowRight />
                     </button>
                   </div>
                 </article>
               ))}
+            </div>
+
+            <div ref={setRevealRef(47)} className="reveal-block mt-8 text-center">
+              <p className="text-sm text-orange-100/65">
+                Already a Stockist?{' '}
+                <button
+                  onClick={() => navigate('/login')}
+                  className="font-semibold text-orange-300 underline underline-offset-2 transition hover:text-orange-100"
+                >
+                  Sign in to your portal
+                </button>
+              </p>
             </div>
           </div>
         </section>
@@ -583,7 +690,7 @@ const LandingPage = () => {
             <div ref={setRevealRef(2)} className="reveal-block mb-8 flex flex-wrap items-end justify-between gap-4">
               <div>
                 <p className="text-xs uppercase tracking-[0.2em] text-orange-200/80">Catalog</p>
-                <h2 className="font-heading mt-2 text-3xl text-white sm:text-4xl">Ten Signature Wellness Product</h2>
+                <h2 className="font-heading mt-2 text-3xl text-white sm:text-4xl">Ten Signature Wellness Products</h2>
                 <p className="mt-3 max-w-2xl text-sm text-orange-50/78">
                   A tighter storefront lineup with updated product visuals, clearer pricing, and a more premium product frame that stays consistent as featured items switch.
                 </p>
@@ -605,13 +712,48 @@ const LandingPage = () => {
               </div>
             </div>
 
-            <div className="space-y-5">
-              {filteredProductRows.map((row, rowIndex) => (
-                <div key={`${activeCategory}-${rowIndex}`} className={getCatalogRowClassName(row.length)}>
-                  {row.map((product) => (
-                    <article
-                      key={product.id}
-                      className="card-float liquid-card flex flex-col overflow-hidden rounded-[1.75rem] border p-4"
+            {productsLoading ? (
+              <div className="flex items-center justify-center py-20">
+                <span className="inline-block h-10 w-10 animate-spin rounded-full border-4 border-orange-100/30 border-t-orange-300" />
+              </div>
+            ) : productsError ? (
+              <div className="rounded-2xl border border-orange-200/30 bg-[#3a1e0b]/70 px-5 py-6 text-sm text-orange-100/80">
+                <p className="font-semibold text-orange-200">{productsError}</p>
+                <p className="mt-1 text-orange-100/60">Showing cached product catalog below.</p>
+              </div>
+            ) : filteredProducts.length === 0 ? (
+              <div className="flex flex-col items-center py-16 text-orange-100/50">
+                <FiShoppingBag size={40} className="mb-3 opacity-40" />
+                <p className="text-sm">No products in this category yet.</p>
+                <button
+                  onClick={() => setActiveCategory('All')}
+                  className="mt-4 rounded-full border border-orange-100/30 px-4 py-2 text-xs text-orange-100 transition hover:bg-[#834923]"
+                >
+                  Show All Products
+                </button>
+              </div>
+            ) : (
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredProducts.map((product, index) => (
+                <article
+                  key={product.id}
+                  ref={setRevealRef(3 + index)}
+                  className="reveal-block card-float liquid-card flex flex-col overflow-hidden rounded-[1.75rem] border p-4"
+                >
+                  <div className="product-showcase-frame relative overflow-hidden rounded-[1.4rem]">
+                    <img src={product.image} alt={product.name} className="product-showcase-image transition duration-500 hover:scale-105" />
+                    <span
+                      className={`absolute left-3 top-3 rounded-full px-3 py-1 text-[11px] font-semibold ${
+                        product.badge === 'Best Seller'
+                          ? 'bg-rose-900/90 text-rose-100 ring-1 ring-rose-400/50'
+                          : product.badge === 'Featured'
+                            ? 'bg-amber-900/90 text-amber-100 ring-1 ring-amber-400/50'
+                            : product.badge === 'Wellness Pick'
+                              ? 'bg-emerald-900/90 text-emerald-100 ring-1 ring-emerald-400/50'
+                              : product.badge === 'Glow Care'
+                                ? 'bg-lime-900/90 text-lime-100 ring-1 ring-lime-400/50'
+                                : 'bg-[#2f1909] text-orange-100 ring-1 ring-orange-500/50'
+                      }`}
                     >
                       <div className="product-showcase-frame relative overflow-hidden rounded-[1.4rem]">
                         <img src={product.image} alt={product.name} className="product-showcase-image transition duration-500 hover:scale-105" />
@@ -658,6 +800,7 @@ const LandingPage = () => {
                 </div>
               ))}
             </div>
+            )}
           </div>
         </section>
 
@@ -811,15 +954,13 @@ const LandingPage = () => {
                   Stockist Login
                   <FiUser />
                 </button>
-                <a
-                  href="https://nogatualliance.vercel.app/"
-                  target="_blank"
-                  rel="noreferrer"
+                <button
+                  onClick={() => window.open(import.meta.env.VITE_MLM_APPLY_URL || 'https://nogatualliance.com/register', '_blank', 'noopener')}
                   className="inline-flex items-center justify-center gap-2 rounded-xl border border-orange-200/20 bg-white/5 px-5 py-3 text-sm font-semibold text-orange-100 transition hover:bg-white/10"
                 >
                   Stockist Application
                   <FiArrowRight />
-                </a>
+                </button>
               </div>
             </div>
           </div>
@@ -859,7 +1000,7 @@ const LandingPage = () => {
           <div>
             <h4 className="text-sm font-bold uppercase tracking-[0.2em] text-[#ffbd62]">Our Products</h4>
             <div className="mt-4 space-y-3 text-sm text-orange-100/78">
-              {PRODUCTS.slice(0, 8).map((product) => (
+              {products.slice(0, 10).map((product) => (
                 <button key={product.id} onClick={() => setSelectedProductId(product.id)} className="block text-left transition hover:text-white">
                   {product.name}
                 </button>

@@ -13,6 +13,13 @@ const stockistCatalogSource = readFileSync(new URL('../src/pages/stockist/Catalo
 const loginSource = readFileSync(new URL('../src/pages/shared/Login.jsx', import.meta.url), 'utf8');
 const apiSource = readFileSync(new URL('../src/services/api.js', import.meta.url), 'utf8');
 const productImagesSource = readFileSync(new URL('../src/utils/productImages.js', import.meta.url), 'utf8');
+const mainOrdersSource = readFileSync(new URL('../src/pages/main/Orders.jsx', import.meta.url), 'utf8');
+const mainWarehousesSource = readFileSync(new URL('../src/pages/main/Warehouses.jsx', import.meta.url), 'utf8');
+const stockistWarehousesSource = readFileSync(new URL('../src/pages/stockist/Warehouses.jsx', import.meta.url), 'utf8');
+const endpointsSource = readFileSync(new URL('../src/services/endpoints.js', import.meta.url), 'utf8');
+const pricingBreakdownSource = readFileSync(new URL('../src/components/OrderPricingBreakdown.jsx', import.meta.url), 'utf8');
+const mobileInventorySource = readFileSync(new URL('../src/pages/mobile/Inventory.jsx', import.meta.url), 'utf8');
+const stockistPurchaseOrdersSource = readFileSync(new URL('../src/pages/stockist/PurchaseOrders.jsx', import.meta.url), 'utf8');
 
 test('app shell removes phase workspace pages from the live route surface', () => {
   assert.equal(appSource.includes('LandingPage'), true);
@@ -93,6 +100,46 @@ test('stockist orders split own and child queues while exposing child payment an
   assert.equal(stockistOrdersSource.includes('Verify Payment'), true);
   assert.equal(stockistOrdersSource.includes('Generate Delivery Link'), true);
   assert.equal(stockistOrdersSource.includes('Delivery Magic Link'), true);
+});
+
+test('order details expose a reconciled total breakdown and high-contrast payment actions', () => {
+  assert.equal(pricingBreakdownSource.includes('Merchandise subtotal'), true);
+  assert.equal(pricingBreakdownSource.includes('Shipping fee'), true);
+  assert.equal(pricingBreakdownSource.includes('System fee'), true);
+  assert.equal(pricingBreakdownSource.includes('Total amount'), true);
+  assert.equal(mainOrdersSource.includes('<OrderPricingBreakdown'), true);
+  assert.equal(stockistOrdersSource.includes('<OrderPricingBreakdown'), true);
+  assert.equal(mainOrdersSource.includes('bg-emerald-600 text-white'), true);
+  assert.equal(stockistOrdersSource.includes('bg-emerald-600 text-white'), true);
+  assert.equal(mainOrdersSource.includes('bg-amber-400 text-amber-950'), true);
+});
+
+test('warehouse screens use backend-owned My Warehouses and Affiliated Network tabs', () => {
+  for (const source of [mainWarehousesSource, stockistWarehousesSource]) {
+    assert.equal(source.includes('My Warehouses'), true);
+    assert.equal(source.includes('Affiliated Network'), true);
+    assert.equal(source.includes("params: { view: activeView"), true);
+  }
+});
+
+test('Mobile Stockist portal is inventory-only and exposes audited manual adjustments', () => {
+  assert.equal(mobileLayoutSource.includes("label: 'Inventory'"), true);
+  assert.equal(mobileLayoutSource.includes("label: 'Product Catalog'"), false);
+  assert.equal(mobileLayoutSource.includes("label: 'My Orders'"), false);
+  assert.equal(mobileLayoutSource.includes('FloatingCartButton'), false);
+  assert.match(appSource, /path="inventory" element={<MobileInventory \/>}/);
+  assert.equal(appSource.includes('<MobileCatalog />'), false);
+  assert.equal(appSource.includes('<MobileCart />'), false);
+  assert.equal(appSource.includes('<MobileOrders />'), false);
+  assert.equal(mobileInventorySource.includes('Record direct sale'), true);
+  assert.equal(mobileInventorySource.includes('Increase stock'), true);
+  assert.equal(mobileInventorySource.includes('MOBILE_INVENTORY.ADJUST'), true);
+});
+
+test('purchase-order endpoints expose owner submit before supplier approval', () => {
+  assert.equal(endpointsSource.includes('SUBMIT:  (id) => `/purchase-orders/${id}/submit`'), true);
+  assert.equal(stockistPurchaseOrdersSource.includes('Submit to parent'), true);
+  assert.equal(stockistPurchaseOrdersSource.includes('Accept supply request'), true);
 });
 
 test('landing checkout hands products forward into the public shop flow and shows the new total note', () => {

@@ -85,17 +85,15 @@ function buildNavGroups(role) {
           ? [{ path: '/stockist/cycle-counts', label: 'Cycle Counts', icon: HiOutlineClipboardList }]
           : []),
         { path: '/stockist/grn', label: 'Goods Receipt (GRN)', icon: HiOutlineArchive },
-        ...(isManager
-          ? [
-              { path: '/stockist/stock-transfers', label: 'Stock Transfers', icon: HiOutlineSwitchHorizontal },
-              { path: '/stockist/purchase-orders', label: 'Purchase Orders', icon: HiOutlineDocumentText },
-            ]
+        ...(isManager ? [{ path: '/stockist/stock-transfers', label: 'Stock Transfers', icon: HiOutlineSwitchHorizontal }] : []),
+        ...(can(normalizedRole, PERMISSIONS.PURCHASE_ORDERS_CREATE)
+          ? [{ path: '/stockist/purchase-orders', label: 'Purchase Orders', icon: HiOutlineDocumentText }]
           : []),
       ],
     },
 
     // ── Network ───────────────────────────────────────────
-    ...(isManager
+    ...(can(normalizedRole, PERMISSIONS.WAREHOUSES_MANAGE)
       ? [
           {
             label: 'Mobile Stockists',
@@ -106,7 +104,7 @@ function buildNavGroups(role) {
           {
             label: 'Network',
             items: [
-              { path: '/stockist/warehouses', label: 'My Warehouses', icon: HiOutlineHome },
+              { path: '/stockist/warehouses', label: 'Warehouses', icon: HiOutlineHome },
             ],
           },
         ]
