@@ -4,7 +4,7 @@ import {
   Button, TextInput, Select, Label, Textarea, Badge, Spinner, Card, Pagination } from 'flowbite-react';
 import {
   HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineTrash,
-  HiOutlineTag, HiOutlinePhotograph,
+  HiOutlineTag, HiOutlinePhotograph, HiOutlineEye, HiOutlineEyeOff,
 } from 'react-icons/hi';
 import api from '@/services/api';
 import { PRODUCTS } from '@/services/endpoints';
@@ -89,12 +89,14 @@ export default function Products() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+  const [toggleTarget, setToggleTarget] = useState(null);
   const [selected, setSelected] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -106,7 +108,7 @@ export default function Products() {
     setLoading(true);
     try {
       const { data } = await api.get(PRODUCTS.LIST, {
-        params: { page, search: search || undefined, limit: 16 },
+        params: { page, search: search || undefined, status: statusFilter || undefined, limit: 16 },
       });
       setProducts(data.data || []);
       setTotalPages(data.pagination?.pages || 1);
@@ -115,7 +117,7 @@ export default function Products() {
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }, [page, search, statusFilter]);
 
   useEffect(() => { fetchProducts(); }, [fetchProducts]);
 
@@ -204,6 +206,34 @@ export default function Products() {
     }
   };
 
+  const performToggleActive = async (product) => {
+    setSubmitting(true);
+    try {
+      const fd = new FormData();
+      fd.append('is_active', !product.is_active);
+      await api.put(PRODUCTS.UPDATE(product.id), fd, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      showToast(product.is_active ? 'Product deactivated' : 'Product activated', 'success');
+      setToggleTarget(null);
+      if (showDetailModal) setShowDetailModal(false);
+      fetchProducts();
+    } catch (err) {
+      showToast(err.response?.data?.message || 'Failed to update product status', 'error');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleToggleActive = (product) => {
+    // Deactivating removes a product from stockist ordering — confirm first.
+    if (product.is_active) {
+      setToggleTarget(product);
+    } else {
+      performToggleActive(product);
+    }
+  };
+
   const fld = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.type === 'checkbox' ? e.target.checked : e.target.value }));
 
   return (
@@ -226,6 +256,16 @@ export default function Products() {
             sizing="sm"
           />
         </div>
+        <Select
+          value={statusFilter}
+          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+          sizing="sm"
+          className="w-40"
+        >
+          <option value="">All Products</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </Select>
       </div>
 
       {/* Grid */}
@@ -262,11 +302,9 @@ export default function Products() {
                   className="w-full h-36 rounded-lg object-contain bg-[radial-gradient(circle_at_top,rgba(255,220,180,0.3),transparent_55%),linear-gradient(180deg,#2a170b_0%,#1d1108_100%)] p-3"
                   onError={(e) => attachProductImageFallback(e, p)}
                 />
-                {!p.is_active && (
-                  <span className="absolute top-2 right-2 bg-gray-700 text-white text-xs px-1.5 py-0.5 rounded">
-                    Inactive
-                  </span>
-                )}
+                <span className="absolute top-2 right-2">
+                  <Badge color={p.is_active ? 'success' : 'gray'}>{p.is_active ? 'Active' : 'Inactive'}</Badge>
+                </span>
               </div>
               <div className="mt-2">
                 <p className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)] truncate">{p.name}</p>
@@ -274,7 +312,17 @@ export default function Products() {
                 <div className="flex justify-between items-center mt-1.5">
                   <span className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Stockist: {formatCurrency(p.partner_price)}</span>
                 </div>
-                <p className="mt-1 text-sm font-semibold text-amber-600">{formatCurrency(p.retail_price)}</p>
+                <div className="flex items-center justify-between mt-1">
+                  <p className="text-sm font-semibold text-amber-600">{formatCurrency(p.retail_price)}</p>
+                  <Button
+                    size="xs"
+                    color={p.is_active ? 'light' : 'success'}
+                    onClick={(e) => { e.stopPropagation(); handleToggleActive(p); }}
+                    title={p.is_active ? 'Deactivate' : 'Activate'}
+                  >
+                    {p.is_active ? <HiOutlineEyeOff className="w-3.5 h-3.5" /> : <HiOutlineEye className="w-3.5 h-3.5" />}
+                  </Button>
+                </div>
               </div>
             </div>
           ))}
@@ -353,6 +401,10 @@ export default function Products() {
               <Button color="warning" size="sm" onClick={() => setIsEditing(true)}>
                 <HiOutlinePencil className="w-4 h-4 mr-1" /> Edit
               </Button>
+              <Button color={selected?.is_active ? 'gray' : 'success'} size="sm" onClick={() => handleToggleActive(selected)}>
+                {selected?.is_active ? <HiOutlineEyeOff className="w-4 h-4 mr-1" /> : <HiOutlineEye className="w-4 h-4 mr-1" />}
+                {selected?.is_active ? 'Deactivate' : 'Activate'}
+              </Button>
               <Button color="failure" size="sm" outline onClick={() => { setShowDetailModal(false); setDeleteTarget(selected); }}>
                 <HiOutlineTrash className="w-4 h-4 mr-1" /> Delete
               </Button>
@@ -371,6 +423,18 @@ export default function Products() {
         confirmColor="failure"
         onConfirm={handleDelete}
         onClose={() => setDeleteTarget(null)}
+        loading={submitting}
+      />
+
+      {/* Deactivate Confirm */}
+      <ConfirmModal
+        show={!!toggleTarget}
+        title="Deactivate Product"
+        message={`Deactivate "${toggleTarget?.name}"? It will be hidden from stockist catalogs until reactivated.`}
+        confirmLabel="Deactivate"
+        confirmColor="failure"
+        onConfirm={() => performToggleActive(toggleTarget)}
+        onClose={() => setToggleTarget(null)}
         loading={submitting}
       />
 

@@ -32,6 +32,8 @@ export default function Inventory() {
   const [warehouseFilter, setWarehouseFilter] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [pageSize, setPageSize] = useState(15);
+  const [totalItems, setTotalItems] = useState(0);
 
   const [warehouses, setWarehouses] = useState([]);
   const [products, setProducts] = useState([]);
@@ -51,16 +53,17 @@ export default function Inventory() {
     setLoading(true);
     try {
       const { data } = await api.get(INVENTORY.LIST, {
-        params: { page, search: search || undefined, status: statusFilter || undefined, warehouse_id: warehouseFilter || undefined, limit: 15 },
+        params: { page, search: search || undefined, status: statusFilter || undefined, warehouse_id: warehouseFilter || undefined, limit: pageSize },
       });
       setItems(data.data || []);
       setTotalPages(data.pagination?.pages || 1);
+      setTotalItems(data.pagination?.total ?? (data.data || []).length);
     } catch {
       setItems([]);
     } finally {
       setLoading(false);
     }
-  }, [page, search, statusFilter, warehouseFilter]);
+  }, [page, search, statusFilter, warehouseFilter, pageSize]);
 
   useEffect(() => { fetchItems(); }, [fetchItems]);
 
@@ -310,11 +313,26 @@ export default function Inventory() {
             </TableBody>
           </Table>
         </div>
-        {totalPages > 1 && (
-          <div className="flex justify-center mt-4">
-            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} showIcons />
+        <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+          <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
+            <span>Show</span>
+            <Select
+              sizing="sm"
+              className="w-20"
+              value={pageSize}
+              onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+            >
+              <option value={15}>15</option>
+              <option value={30}>30</option>
+              <option value={50}>50</option>
+              <option value={100}>100</option>
+            </Select>
+            <span>{totalItems} item{totalItems === 1 ? '' : 's'}</span>
           </div>
-        )}
+          {totalPages > 1 && (
+            <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} showIcons />
+          )}
+        </div>
       </Card>
 
       {/* Add Modal */}

@@ -4,7 +4,7 @@ import {
   Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Card, TextInput, Select, Label, Pagination } from 'flowbite-react';
 import { HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineTrash, HiOutlineUsers } from 'react-icons/hi';
 import api from '@/services/api';
-import { USERS, PARTNERS } from '@/services/endpoints';
+import { USERS, PARTNERS, WAREHOUSES } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
 import PageHeader from '@/components/PageHeader';
 import StatusBadge from '@/components/StatusBadge';
@@ -23,7 +23,7 @@ const ROLES = [
 const FORM_ROLES = ROLES.filter((role) => role.value !== 'mobile_stockist');
 
 const EMPTY_FORM = {
-  name: '', email: '', phone: '', role_slug: '', partner_id: '', status: 'active', password: '',
+  name: '', email: '', phone: '', role_slug: '', partner_id: '', warehouse_id: '', status: 'active', password: '',
 };
 
 const roleBadge = (role) => {
@@ -42,7 +42,7 @@ const needsPartner = (role) =>
   ['provincial_stockist', 'city_stockist', 'staff', 'mobile_stockist'].includes(role);
 
 // Hoisted to module scope — stable identity prevents input focus loss on each keystroke.
-function UserFormFields({ form, fld, formRoles, partners }) {
+function UserFormFields({ form, fld, formRoles, partners, warehouses, onWarehouseChange }) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <div className="col-span-2">
@@ -75,13 +75,32 @@ function UserFormFields({ form, fld, formRoles, partners }) {
         </Select>
       </div>
       {needsPartner(form.role_slug) && (
-        <div className="col-span-2">
-          <Label value="Stockist (Partner)" className="mb-1" />
-          <Select value={form.partner_id} onChange={fld('partner_id')}>
-            <option value="">Select stockist...</option>
-            {partners.map((p) => <option key={p.id} value={p.id}>{p.business_name}</option>)}
-          </Select>
-        </div>
+        <>
+          <div className="col-span-2">
+            <Label value="Stockist (Partner)" className="mb-1" />
+            <Select value={form.partner_id} onChange={fld('partner_id')} disabled={!!form.warehouse_id}>
+              <option value="">Select stockist...</option>
+              {partners.map((p) => <option key={p.id} value={p.id}>{p.business_name}</option>)}
+            </Select>
+            {form.warehouse_id && (
+              <p className="mt-1 text-xs text-gray-500">Derived from warehouse</p>
+            )}
+          </div>
+          <div className="col-span-2">
+            <Label value={`Warehouse${form.role_slug === 'staff' ? ' (required for Staff)' : ''}`} className="mb-1" />
+            <Select value={form.warehouse_id} onChange={onWarehouseChange}>
+              <option value="">Select warehouse...</option>
+              {warehouses.map((w) => {
+                const owner = partners.find((p) => p.id === w.partner_id);
+                return (
+                  <option key={w.id} value={w.id}>
+                    {w.name} — {owner?.business_name || 'Main'}
+                  </option>
+                );
+              })}
+            </Select>
+          </div>
+        </>
       )}
       <div className="col-span-2">
         <Label value="Password (leave blank to keep current)" className="mb-1" />
@@ -101,6 +120,7 @@ export default function Users() {
   const [totalPages, setTotalPages] = useState(1);
 
   const [partners, setPartners] = useState([]);
+  const [warehouses, setWarehouses] = useState([]);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -131,17 +151,29 @@ export default function Users() {
     api.get(PARTNERS.LIST, { params: { limit: 200 } })
       .then((r) => setPartners(r.data.data || []))
       .catch(() => {});
+    api.get(WAREHOUSES.LIST, { params: { limit: 100 } })
+      .then((r) => setWarehouses(r.data.data || []))
+      .catch(() => {});
   }, []);
 
   const openAdd = () => { setForm(EMPTY_FORM); setShowAddModal(true); };
   const openEdit = (u) => {
     setSelected(u);
-    setForm({ name: u.name, email: u.email, phone: u.phone || '', role_slug: u.role_slug, partner_id: u.partner_id || '', status: u.status || 'active', password: '' });
+    setForm({ name: u.name, email: u.email, phone: u.phone || '', role_slug: u.role_slug, partner_id: u.partner_id || '', warehouse_id: u.warehouse_id || '', status: u.status || 'active', password: '' });
     setShowEditModal(true);
   };
   const openDetail = (u) => { setSelected(u); setShowDetailModal(true); };
 
+  const validateForm = () => {
+    if (form.role_slug === 'staff' && !form.warehouse_id) {
+      showToast('Staff users must be associated with a warehouse', 'warning');
+      return false;
+    }
+    return true;
+  };
+
   const handleAdd = async () => {
+    if (!validateForm()) return;
     setSubmitting(true);
     try {
       await api.post(USERS.CREATE, form);
@@ -156,6 +188,7 @@ export default function Users() {
   };
 
   const handleEdit = async () => {
+    if (!validateForm()) return;
     setSubmitting(true);
     try {
       const payload = { ...form };
@@ -195,6 +228,16 @@ export default function Users() {
   };
 
   const fld = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+
+  const onWarehouseChange = (e) => {
+    const warehouseId = e.target.value;
+    const warehouse = warehouses.find((w) => String(w.id) === String(warehouseId));
+    setForm((f) => ({
+      ...f,
+      warehouse_id: warehouseId,
+      partner_id: warehouseId ? (warehouse?.partner_id || '') : f.partner_id,
+    }));
+  };
 
   const formRoles = (
     selected?.role_slug === 'mobile_stockist' && !FORM_ROLES.some((role) => role.value === 'mobile_stockist')
@@ -236,6 +279,7 @@ export default function Users() {
               <TableHeadCell>Phone</TableHeadCell>
               <TableHeadCell>Role</TableHeadCell>
               <TableHeadCell>Stockist</TableHeadCell>
+              <TableHeadCell>Warehouse</TableHeadCell>
               <TableHeadCell>Status</TableHeadCell>
               <TableHeadCell>Last Login</TableHeadCell>
               <TableHeadCell>Actions</TableHeadCell>
@@ -244,14 +288,14 @@ export default function Users() {
               {loading ? (
                 Array.from({ length: 8 }).map((_, i) => (
                   <TableRow key={i}>
-                    {Array.from({ length: 8 }).map((__, j) => (
+                    {Array.from({ length: 9 }).map((__, j) => (
                       <TableCell key={j}><div className="skeleton h-4 w-full rounded" /></TableCell>
                     ))}
                   </TableRow>
                 ))
               ) : users.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8}>
+                  <TableCell colSpan={9}>
                     <EmptyState icon={HiOutlineUsers} title="No users found" description="Add user accounts to manage access" actionLabel="Add User" onAction={openAdd} />
                   </TableCell>
                 </TableRow>
@@ -263,6 +307,7 @@ export default function Users() {
                     <TableCell className="text-xs">{u.phone || '—'}</TableCell>
                     <TableCell>{roleBadge(u.role_slug)}</TableCell>
                     <TableCell className="text-xs">{u.partner_name || '—'}</TableCell>
+                    <TableCell className="text-xs">{u.warehouse_name || '—'}</TableCell>
                     <TableCell><StatusBadge status={u.status || (u.is_active ? 'active' : 'inactive')} /></TableCell>
                     <TableCell className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{u.last_login_at ? formatDate(u.last_login_at) : 'Never'}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
@@ -291,7 +336,7 @@ export default function Users() {
       {/* Add Modal */}
       <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Add User</ModalHeader>
-        <ModalBody><UserFormFields form={form} fld={fld} formRoles={formRoles} partners={partners} /></ModalBody>
+        <ModalBody><UserFormFields form={form} fld={fld} formRoles={formRoles} partners={partners} warehouses={warehouses} onWarehouseChange={onWarehouseChange} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleAdd} disabled={submitting}>Create User</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
@@ -301,7 +346,7 @@ export default function Users() {
       {/* Edit Modal */}
       <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Edit User — {selected?.name}</ModalHeader>
-        <ModalBody><UserFormFields form={form} fld={fld} formRoles={formRoles} partners={partners} /></ModalBody>
+        <ModalBody><UserFormFields form={form} fld={fld} formRoles={formRoles} partners={partners} warehouses={warehouses} onWarehouseChange={onWarehouseChange} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleEdit} disabled={submitting}>Save Changes</Button>
           <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>
@@ -319,6 +364,7 @@ export default function Users() {
               <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Role</p>{roleBadge(selected.role_slug)}</div>
               <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Status</p><StatusBadge status={selected.status || (selected.is_active ? 'active' : 'inactive')} /></div>
               <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Stockist</p><p className="dark:text-[var(--dark-text)]">{selected.partner_name || '—'}</p></div>
+              <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Warehouse</p><p className="dark:text-[var(--dark-text)]">{selected.warehouse_name || '—'}</p></div>
               <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Last Login</p><p className="dark:text-[var(--dark-text)]">{selected.last_login_at ? formatDate(selected.last_login_at) : 'Never'}</p></div>
             </div>
           )}

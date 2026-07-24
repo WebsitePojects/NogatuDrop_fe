@@ -1,7 +1,7 @@
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
-  Button, TextInput, Textarea, Label, Spinner } from 'flowbite-react';
+  Button, TextInput, Textarea, Label, Spinner, Select } from 'flowbite-react';
 import { HiSearch, HiAdjustments } from 'react-icons/hi';
 import { FiPackage } from 'react-icons/fi';
 import StatusBadge from '@/components/StatusBadge';
@@ -26,6 +26,8 @@ export default function StockistInventory() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const [totalItems, setTotalItems] = useState(0);
   const [adjustModal, setAdjustModal] = useState(null); // the inventory item
   const [adjustForm, setAdjustForm] = useState({ requested_qty: '', reason: '' });
   const [submitting, setSubmitting] = useState(false);
@@ -35,17 +37,19 @@ export default function StockistInventory() {
     setLoading(true);
     try {
       const { data } = await api.get(INVENTORY.LIST, {
-        params: { page, limit: 20, search },
+        params: { page, limit: pageSize, search },
       });
       const items = data.data?.items || data.data || [];
       setInventory(items);
-      setTotalPages(data.data?.pagination?.pages || 1);
+      const pagination = data.pagination || data.data?.pagination;
+      setTotalPages(pagination?.pages || 1);
+      setTotalItems(pagination?.total ?? items.length);
     } catch {
       showToast('Failed to load inventory', 'error');
     } finally {
       setLoading(false);
     }
-  }, [page, search]);
+  }, [page, search, pageSize]);
 
   useEffect(() => { fetchInventory(); }, [fetchInventory]);
 
@@ -230,19 +234,31 @@ export default function StockistInventory() {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-                <p className="text-xs text-gray-500">Page {page} of {totalPages}</p>
-                <div className="flex gap-2">
-                  <Button size="xs" color="gray" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
-                    Previous
-                  </Button>
-                  <Button size="xs" color="gray" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
-                    Next
-                  </Button>
-                </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-100 dark:border-[var(--dark-border)]">
+              <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
+                <span>Show</span>
+                <Select
+                  sizing="sm"
+                  className="w-20"
+                  value={pageSize}
+                  onChange={(e) => { setPageSize(Number(e.target.value)); setPage(1); }}
+                >
+                  <option value={15}>15</option>
+                  <option value={30}>30</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </Select>
+                <span>{totalItems} item{totalItems === 1 ? '' : 's'} · Page {page} of {totalPages}</span>
               </div>
-            )}
+              <div className="flex gap-2">
+                <Button size="xs" color="gray" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+                  Previous
+                </Button>
+                <Button size="xs" color="gray" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>
+                  Next
+                </Button>
+              </div>
+            </div>
           </>
         )}
       </div>
