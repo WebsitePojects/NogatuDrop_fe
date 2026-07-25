@@ -8,6 +8,7 @@ import { COURIERS } from '@/services/endpoints';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
+import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
 
 const EMPTY_FORM = {
@@ -37,28 +38,32 @@ function CourierFormFields({ form, onFieldChange, onOpenTrackingGuide }) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <div>
-        <Label value="Courier Name" className="mb-1" />
-        <TextInput value={form.name} onChange={onFieldChange('name')} placeholder="J&T Express" required />
+        <Label htmlFor="cr_name" className="mb-1">
+          Courier Name<RequiredMark />
+        </Label>
+        <TextInput id="cr_name" value={form.name} onChange={onFieldChange('name')} placeholder="J&T Express" required />
       </div>
       <div>
-        <Label value="Code" className="mb-1" />
-        <TextInput value={form.code} onChange={onFieldChange('code')} placeholder="JT" required />
+        <Label htmlFor="cr_code" className="mb-1">
+          Code<RequiredMark />
+        </Label>
+        <TextInput id="cr_code" value={form.code} onChange={onFieldChange('code')} placeholder="JT" required />
       </div>
       <div>
-        <Label value="Contact Person" className="mb-1" />
-        <TextInput value={form.contact_person} onChange={onFieldChange('contact_person')} placeholder="Area Manager" />
+        <Label htmlFor="cr_contact_person" className="mb-1">Contact Person</Label>
+        <TextInput id="cr_contact_person" value={form.contact_person} onChange={onFieldChange('contact_person')} placeholder="Area Manager" />
       </div>
       <div>
-        <Label value="Contact Phone" className="mb-1" />
-        <TextInput value={form.contact_phone} onChange={onFieldChange('contact_phone')} placeholder="09xxxxxxxxx" />
+        <Label htmlFor="cr_contact_phone" className="mb-1">Contact Phone</Label>
+        <TextInput id="cr_contact_phone" value={form.contact_phone} onChange={onFieldChange('contact_phone')} placeholder="09xxxxxxxxx" />
       </div>
       <div className="col-span-2">
-        <Label value="Contact Email (optional)" className="mb-1" />
-        <TextInput value={form.contact_email} onChange={onFieldChange('contact_email')} placeholder="ops@courier.com" />
+        <Label htmlFor="cr_contact_email" className="mb-1">Contact Email (optional)</Label>
+        <TextInput id="cr_contact_email" value={form.contact_email} onChange={onFieldChange('contact_email')} placeholder="ops@courier.com" />
       </div>
       <div className="col-span-2">
         <div className="flex items-center justify-between mb-1">
-          <Label value="Tracking URL Template (optional)" />
+          <Label htmlFor="cr_tracking_url">Tracking URL Template (optional)</Label>
           <button
             type="button"
             onClick={onOpenTrackingGuide}
@@ -68,6 +73,7 @@ function CourierFormFields({ form, onFieldChange, onOpenTrackingGuide }) {
           </button>
         </div>
         <TextInput
+          id="cr_tracking_url"
           value={form.tracking_url_template}
           onChange={onFieldChange('tracking_url_template')}
           placeholder="https://courier.com/track?num={tracking_number}"
@@ -77,8 +83,8 @@ function CourierFormFields({ form, onFieldChange, onOpenTrackingGuide }) {
         </p>
       </div>
       <div className="col-span-2">
-        <Label value="Courier Website (optional)" className="mb-1" />
-        <TextInput value={form.website_url} onChange={onFieldChange('website_url')} placeholder="https://www.courier.com" />
+        <Label htmlFor="cr_website" className="mb-1">Courier Website (optional)</Label>
+        <TextInput id="cr_website" value={form.website_url} onChange={onFieldChange('website_url')} placeholder="https://www.courier.com" />
       </div>
       <label className="flex items-center gap-2 cursor-pointer">
         <input type="checkbox" checked={form.is_active} onChange={onFieldChange('is_active')} className="w-4 h-4 text-amber-500" />

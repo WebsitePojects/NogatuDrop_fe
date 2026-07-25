@@ -57,7 +57,11 @@ export default function StockistSettlements() {
 
       <Card>
         {loading ? (
-          <div className="flex items-center justify-center py-16"><Spinner size="xl" color="warning" /></div>
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-11 rounded-xl bg-gray-100 animate-pulse" />
+            ))}
+          </div>
         ) : rows.length === 0 ? (
           <EmptyState icon={HiOutlineCurrencyDollar} title="No settlements" description="Verified payments and courier remittances will appear here." />
         ) : (

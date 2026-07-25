@@ -640,8 +640,17 @@ export default function StockistOrders() {
       </div>
 
       {loading ? (
-        <div className="flex justify-center py-16">
-          <Spinner size="xl" color="warning" />
+        <div className="space-y-6">
+          {[0, 1].map((s) => (
+            <div key={s} className="space-y-3">
+              <div className="h-4 w-40 rounded bg-gray-100 animate-pulse" />
+              <div className="rounded-2xl border border-gray-100 bg-white p-4 space-y-3">
+                {[0, 1, 2].map((i) => (
+                  <div key={i} className="h-11 rounded-xl bg-gray-100 animate-pulse" />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       ) : (
         <div className="space-y-6">
@@ -678,8 +687,14 @@ export default function StockistOrders() {
         </ModalHeader>
         <ModalBody className="space-y-5">
           {detailLoading ? (
-            <div className="flex justify-center py-8">
-              <Spinner size="lg" color="warning" />
+            <div className="animate-pulse space-y-4">
+              <div className="h-10 rounded-xl bg-gray-100" />
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-16 rounded-xl bg-gray-100" />
+                ))}
+              </div>
+              <div className="h-32 rounded-xl bg-gray-100" />
             </div>
           ) : !detail ? null : (
             <>

@@ -108,7 +108,7 @@ export default function StockistMobileStockists() {
 
   const f = (label, key, type = 'text', required = false) => (
     <div key={key}>
-      <Label value={label + (required ? ' *' : '')} className="mb-1.5" />
+      <Label className="mb-1.5">{label}{required ? ' *' : ''}</Label>
       <TextInput
         type={type}
         value={form[key]}
@@ -146,7 +146,11 @@ export default function StockistMobileStockists() {
       {/* Table */}
       <div className="bg-white dark:bg-[var(--dark-card)] rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] shadow-sm overflow-hidden">
         {loading ? (
-          <div className="flex justify-center py-16"><Spinner size="xl" color="warning" /></div>
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-11 rounded-xl bg-gray-100 animate-pulse" />
+            ))}
+          </div>
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center py-16 text-gray-400">
             <FiUser size={40} className="mb-3 opacity-30" />
@@ -220,7 +224,7 @@ export default function StockistMobileStockists() {
           {f('Region / Area', 'region')}
           {modal === 'edit' && (
             <div>
-              <Label value="Status" className="mb-1.5" />
+              <Label className="mb-1.5">Status</Label>
               <Select value={form.status} onChange={e => setForm(p => ({ ...p, status: e.target.value }))}>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>

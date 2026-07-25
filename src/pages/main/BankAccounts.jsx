@@ -8,6 +8,7 @@ import { BANK_ACCOUNTS, WAREHOUSES } from '@/services/endpoints';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
+import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
 
 const EMPTY_FORM = {
@@ -20,27 +21,33 @@ function BankAccountFormFields({ form, fld, warehouses }) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <div>
-        <Label value="Bank Name" className="mb-1" />
-        <TextInput value={form.bank_name} onChange={fld('bank_name')} placeholder="BDO, BPI, GCash..." required />
+        <Label htmlFor="ba_bank_name" className="mb-1">
+          Bank Name<RequiredMark />
+        </Label>
+        <TextInput id="ba_bank_name" value={form.bank_name} onChange={fld('bank_name')} placeholder="BDO, BPI, GCash..." required />
       </div>
       <div>
-        <Label value="Account Name" className="mb-1" />
-        <TextInput value={form.account_name} onChange={fld('account_name')} placeholder="Juan Dela Cruz" required />
+        <Label htmlFor="ba_account_name" className="mb-1">
+          Account Name<RequiredMark />
+        </Label>
+        <TextInput id="ba_account_name" value={form.account_name} onChange={fld('account_name')} placeholder="Juan Dela Cruz" required />
       </div>
       <div className="col-span-2">
-        <Label value="Account Number" className="mb-1" />
-        <TextInput value={form.account_number} onChange={fld('account_number')} placeholder="1234 5678 9012" required />
+        <Label htmlFor="ba_account_number" className="mb-1">
+          Account Number<RequiredMark />
+        </Label>
+        <TextInput id="ba_account_number" value={form.account_number} onChange={fld('account_number')} placeholder="1234 5678 9012" required />
       </div>
       <div>
-        <Label value="Assigned Warehouse (optional)" className="mb-1" />
-        <Select value={form.warehouse_id} onChange={fld('warehouse_id')}>
+        <Label htmlFor="ba_warehouse" className="mb-1">Assigned Warehouse (optional)</Label>
+        <Select id="ba_warehouse" value={form.warehouse_id} onChange={fld('warehouse_id')}>
           <option value="">Default (all warehouses)</option>
           {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
         </Select>
       </div>
       <div>
-        <Label value="Notes (optional)" className="mb-1" />
-        <TextInput value={form.notes} onChange={fld('notes')} placeholder="Additional info..." />
+        <Label htmlFor="ba_notes" className="mb-1">Notes (optional)</Label>
+        <TextInput id="ba_notes" value={form.notes} onChange={fld('notes')} placeholder="Additional info..." />
       </div>
       <div className="col-span-2 flex gap-6">
         <label className="flex items-center gap-2 cursor-pointer">

@@ -49,12 +49,12 @@ function RevenueTab() {
     <div className="space-y-5">
       <div className="flex gap-3">
         <div>
-          <Label value="From" className="mb-1" />
-          <TextInput type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} sizing="sm" />
+          <Label htmlFor="rpt_date_from" className="mb-1">From</Label>
+          <TextInput id="rpt_date_from" type="date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)} sizing="sm" />
         </div>
         <div>
-          <Label value="To" className="mb-1" />
-          <TextInput type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} sizing="sm" />
+          <Label htmlFor="rpt_date_to" className="mb-1">To</Label>
+          <TextInput id="rpt_date_to" type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} sizing="sm" />
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">

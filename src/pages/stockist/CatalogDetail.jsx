@@ -90,8 +90,17 @@ export default function CatalogDetail() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ background: '#FFF8F0' }}>
-        <Spinner size="xl" color="warning" />
+      <div className="min-h-screen p-4 md:p-6" style={{ background: '#FFF8F0' }}>
+        <div className="mx-auto grid max-w-5xl animate-pulse gap-6 md:grid-cols-2">
+          <div className="aspect-square rounded-2xl bg-gray-100" />
+          <div className="space-y-3">
+            <div className="h-3 w-24 rounded bg-gray-100" />
+            <div className="h-7 w-4/5 rounded bg-gray-100" />
+            <div className="h-5 w-1/3 rounded bg-gray-100" />
+            <div className="h-24 w-full rounded-xl bg-gray-100 mt-4" />
+            <div className="h-11 w-full rounded-xl bg-gray-100 mt-4" />
+          </div>
+        </div>
       </div>
     );
   }

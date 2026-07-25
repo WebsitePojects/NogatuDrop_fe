@@ -59,8 +59,13 @@ export default function StockistCart() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen" style={{ background: '#FFF8F0' }}>
-        <Spinner size="xl" color="warning" />
+      <div className="min-h-screen p-4 md:p-6" style={{ background: '#FFF8F0' }}>
+        <div className="mx-auto max-w-4xl animate-pulse space-y-3">
+          <div className="h-8 w-40 rounded-lg bg-gray-100" />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-20 rounded-2xl bg-gray-100" />
+          ))}
+        </div>
       </div>
     );
   }

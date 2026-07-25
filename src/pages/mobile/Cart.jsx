@@ -62,8 +62,13 @@ export default function MobileCart() {
 
   if (loading) {
     return (
-      <div className="bg-white min-h-screen flex items-center justify-center">
-        <Spinner size="lg" color="warning" />
+      <div className="bg-white min-h-screen px-4 pt-6 pb-24">
+        <div className="animate-pulse space-y-3">
+          <div className="h-6 w-32 rounded bg-gray-100" />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="h-20 rounded-2xl bg-gray-100" />
+          ))}
+        </div>
       </div>
     );
   }

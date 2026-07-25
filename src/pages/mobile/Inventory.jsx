@@ -89,8 +89,13 @@ export default function MobileInventory() {
       </header>
 
       {loading ? (
-        <div className="grid place-items-center rounded-3xl border border-slate-200 bg-white py-20 dark:border-[var(--dark-border)] dark:bg-[var(--dark-card)]">
-          <Spinner color="warning" size="xl" />
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="h-28 rounded-3xl border border-slate-200 bg-white p-5 animate-pulse dark:border-[var(--dark-border)] dark:bg-[var(--dark-card)]">
+              <div className="h-3.5 w-2/3 rounded bg-slate-100" />
+              <div className="mt-3 h-6 w-1/3 rounded bg-slate-100" />
+            </div>
+          ))}
         </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">

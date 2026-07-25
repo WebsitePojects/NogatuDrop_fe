@@ -836,7 +836,7 @@ export default function Orders() {
       <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} size="md" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Reject Order</ModalHeader>
         <ModalBody>
-          <Label htmlFor="rejectReason" value="Reason for rejection (optional)" className="mb-2" />
+          <Label htmlFor="rejectReason" className="mb-2">Reason for rejection (optional)</Label>
           <Textarea
             id="rejectReason"
             value={rejectReason}

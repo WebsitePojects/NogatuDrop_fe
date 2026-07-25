@@ -152,25 +152,31 @@ export default function Tracking() {
           <p className="text-sm text-gray-500">Enter your order number to check the delivery status</p>
         </div>
 
-        <form onSubmit={handleSearch} className="mb-8 flex gap-2">
-          <div className="relative flex-1">
-            <HiSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input
-              type="text"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Enter order number (e.g. ORD-001234)"
-              className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-9 pr-4 text-sm focus:border-amber-400 focus:outline-none"
-            />
+        <form onSubmit={handleSearch} className="mb-8">
+          <label htmlFor="trackingOrderNumber" className="mb-1.5 block text-xs font-bold uppercase tracking-wider text-gray-700">
+            Order Number
+          </label>
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <HiSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+              <input
+                id="trackingOrderNumber"
+                type="text"
+                value={query}
+                onChange={(event) => setQuery(event.target.value)}
+                placeholder="Enter order number (e.g. ORD-001234)"
+                className="w-full rounded-xl border border-gray-200 bg-white py-3 pl-9 pr-4 text-sm text-gray-900 placeholder-gray-300 focus:border-amber-400 focus:outline-none"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={loading || !query.trim()}
+              className="flex flex-shrink-0 items-center gap-2 rounded-xl bg-amber-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:opacity-60"
+            >
+              {loading ? <Spinner size="sm" color="white" /> : <HiSearch className="h-4 w-4" />}
+              Track
+            </button>
           </div>
-          <button
-            type="submit"
-            disabled={loading || !query.trim()}
-            className="flex flex-shrink-0 items-center gap-2 rounded-xl bg-amber-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:opacity-60"
-          >
-            {loading ? <Spinner size="sm" color="white" /> : <HiSearch className="h-4 w-4" />}
-            Track
-          </button>
         </form>
 
         {error && (
@@ -265,19 +271,31 @@ export default function Tracking() {
                     </div>
                   ) : null}
                   <div className="space-y-3">
-                    <input
-                      type="tel"
-                      value={proofPhone}
-                      onChange={(event) => setProofPhone(event.target.value)}
-                      placeholder="Phone number used at checkout"
-                      className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm focus:border-amber-400 focus:outline-none"
-                    />
-                    <input
-                      type="file"
-                      accept=".jpg,.jpeg,.png,.webp,.pdf"
-                      onChange={(event) => setProofFile(event.target.files?.[0] || null)}
-                      className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-amber-100 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-amber-800 hover:file:bg-amber-200"
-                    />
+                    <div>
+                      <label htmlFor="proofPhone" className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-700">
+                        Phone Number Used at Checkout
+                      </label>
+                      <input
+                        id="proofPhone"
+                        type="tel"
+                        value={proofPhone}
+                        onChange={(event) => setProofPhone(event.target.value)}
+                        placeholder="Phone number used at checkout"
+                        className="w-full rounded-xl border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 placeholder-gray-300 focus:border-amber-400 focus:outline-none"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="proofFile" className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-700">
+                        Payment Proof File
+                      </label>
+                      <input
+                        id="proofFile"
+                        type="file"
+                        accept=".jpg,.jpeg,.png,.webp,.pdf"
+                        onChange={(event) => setProofFile(event.target.files?.[0] || null)}
+                        className="block w-full text-sm text-gray-700 file:mr-3 file:rounded-lg file:border-0 file:bg-amber-100 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-amber-800 hover:file:bg-amber-200"
+                      />
+                    </div>
                     <p className="text-xs text-gray-500">
                       {proofFile ? `Selected file: ${proofFile.name}` : 'No file selected yet.'}
                     </p>

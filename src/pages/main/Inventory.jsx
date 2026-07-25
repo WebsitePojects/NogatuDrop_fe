@@ -10,6 +10,7 @@ import StatusBadge from '@/components/StatusBadge';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
+import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
 
 const STOCK_STATUS_COLOR = {
@@ -344,14 +345,14 @@ export default function Inventory() {
           <div className="bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-xl border border-gray-100 dark:border-gray-700 space-y-5 shadow-sm">
             <div className="grid grid-cols-2 gap-5">
               <div className="col-span-2">
-                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Product</label>
+                <label htmlFor="add_product" className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Product<RequiredMark /></label>
                 <Select id="add_product" value={form.product_id} onChange={fld('product_id')} required className="w-full">
                   <option value="">Select product...</option>
                   {products.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
                 </Select>
               </div>
               <div className="col-span-2">
-                <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Warehouse</label>
+                <label htmlFor="add_warehouse" className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Warehouse<RequiredMark /></label>
                 <Select id="add_warehouse" value={form.warehouse_id} onChange={fld('warehouse_id')} required className="w-full">
                   <option value="">Select warehouse...</option>
                   {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
@@ -455,20 +456,20 @@ export default function Inventory() {
           </p>
           <div className="space-y-3">
             <div>
-              <Label value="Adjustment Type" className="mb-1" />
-              <Select value={adjustType} onChange={(e) => setAdjustType(e.target.value)}>
+              <Label htmlFor="adj_type" className="mb-1">Adjustment Type</Label>
+              <Select id="adj_type" value={adjustType} onChange={(e) => setAdjustType(e.target.value)}>
                 <option value="add">Add Stock</option>
                 <option value="subtract">Remove Stock</option>
                 <option value="set">Set to Exact Value</option>
               </Select>
             </div>
             <div>
-              <Label value="Quantity" className="mb-1" />
-              <TextInput type="number" min="0" value={adjustQty} onChange={(e) => setAdjustQty(e.target.value)} placeholder="0" />
+              <Label htmlFor="adj_qty" className="mb-1">Quantity</Label>
+              <TextInput id="adj_qty" type="number" min="0" value={adjustQty} onChange={(e) => setAdjustQty(e.target.value)} placeholder="0" />
             </div>
             <div>
-              <Label value="Reason" className="mb-1" />
-              <TextInput value={adjustNote} onChange={(e) => setAdjustNote(e.target.value)} placeholder="Reason for adjustment..." />
+              <Label htmlFor="adj_reason" className="mb-1">Reason</Label>
+              <TextInput id="adj_reason" value={adjustNote} onChange={(e) => setAdjustNote(e.target.value)} placeholder="Reason for adjustment..." />
             </div>
           </div>
         </ModalBody>

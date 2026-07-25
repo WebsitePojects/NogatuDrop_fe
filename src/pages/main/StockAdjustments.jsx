@@ -10,6 +10,7 @@ import PageHeader from '@/components/PageHeader';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
+import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
 
 const STATUSES = ['pending', 'approved', 'rejected', 'all'];
@@ -199,8 +200,10 @@ export default function StockAdjustments() {
         <ModalBody>
           <div className="space-y-3">
             <div>
-              <Label value="Inventory Item" className="mb-1" />
-              <Select value={form.inventory_id} onChange={fld('inventory_id')} required>
+              <Label htmlFor="sa_inventory" className="mb-1">
+                Inventory Item<RequiredMark />
+              </Label>
+              <Select id="sa_inventory" value={form.inventory_id} onChange={fld('inventory_id')} required>
                 <option value="">Select inventory item...</option>
                 {inventory.map((i) => (
                   <option key={i.id} value={i.id}>{i.product_name} — {i.warehouse_name} ({i.current_stock})</option>
@@ -208,20 +211,22 @@ export default function StockAdjustments() {
               </Select>
             </div>
             <div>
-              <Label value="Adjustment Type" className="mb-1" />
-              <Select value={form.type} onChange={fld('type')}>
+              <Label htmlFor="sa_type" className="mb-1">Adjustment Type</Label>
+              <Select id="sa_type" value={form.type} onChange={fld('type')}>
                 <option value="add">Add (increase stock)</option>
                 <option value="subtract">Subtract (decrease stock)</option>
                 <option value="set">Set (exact value)</option>
               </Select>
             </div>
             <div>
-              <Label value="Quantity" className="mb-1" />
-              <TextInput type="number" min="0" value={form.quantity} onChange={fld('quantity')} placeholder="0" required />
+              <Label htmlFor="sa_quantity" className="mb-1">
+                Quantity<RequiredMark />
+              </Label>
+              <TextInput id="sa_quantity" type="number" min="0" value={form.quantity} onChange={fld('quantity')} placeholder="0" required />
             </div>
             <div>
-              <Label value="Reason" className="mb-1" />
-              <Textarea value={form.reason} onChange={fld('reason')} rows={2} placeholder="Explain the reason for this adjustment..." />
+              <Label htmlFor="sa_reason" className="mb-1">Reason</Label>
+              <Textarea id="sa_reason" value={form.reason} onChange={fld('reason')} rows={2} placeholder="Explain the reason for this adjustment..." />
             </div>
           </div>
         </ModalBody>
@@ -278,8 +283,8 @@ export default function StockAdjustments() {
       <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} size="sm" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Reject Adjustment</ModalHeader>
         <ModalBody>
-          <Label value="Reason for rejection" className="mb-1" />
-          <Textarea value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={3} placeholder="Reason..." />
+          <Label htmlFor="sa_reject_reason" className="mb-1">Reason for rejection</Label>
+          <Textarea id="sa_reject_reason" value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} rows={3} placeholder="Reason..." />
         </ModalBody>
         <ModalFooter>
           <Button color="failure" onClick={executeReject} disabled={actionLoading}>Reject</Button>

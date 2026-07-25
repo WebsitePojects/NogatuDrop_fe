@@ -12,6 +12,7 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
+import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
 
@@ -28,31 +29,33 @@ function ProductFormFields({ form, fld, imagePreview, fileInputRef, handleImageC
   return (
     <div className="grid grid-cols-2 gap-4">
       <div className="col-span-2">
-        <Label value="Product Name" className="mb-1" />
-        <TextInput value={form.name} onChange={fld('name')} placeholder="Nogatu Max Coffee" required />
+        <Label htmlFor="pr_name" className="mb-1">
+          Product Name<RequiredMark />
+        </Label>
+        <TextInput id="pr_name" value={form.name} onChange={fld('name')} placeholder="Nogatu Max Coffee" required />
       </div>
       <div>
-        <Label value="SKU" className="mb-1" />
-        <TextInput value={form.sku} onChange={fld('sku')} placeholder="NMC-001" />
+        <Label htmlFor="pr_sku" className="mb-1">SKU</Label>
+        <TextInput id="pr_sku" value={form.sku} onChange={fld('sku')} placeholder="NMC-001" />
       </div>
       <div>
-        <Label value="Category" className="mb-1" />
-        <Select value={form.category} onChange={fld('category')}>
+        <Label htmlFor="pr_category" className="mb-1">Category</Label>
+        <Select id="pr_category" value={form.category} onChange={fld('category')}>
           <option value="">Select category...</option>
           {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
         </Select>
       </div>
       <div>
-        <Label value="Retail Price (₱)" className="mb-1" />
-        <TextInput type="number" min="0" step="0.01" value={form.retail_price} onChange={fld('retail_price')} placeholder="0.00" />
+        <Label htmlFor="pr_retail_price" className="mb-1">Retail Price (₱)</Label>
+        <TextInput id="pr_retail_price" type="number" min="0" step="0.01" value={form.retail_price} onChange={fld('retail_price')} placeholder="0.00" />
       </div>
       <div>
-        <Label value="Partner Price (₱)" className="mb-1" />
-        <TextInput type="number" min="0" step="0.01" value={form.partner_price} onChange={fld('partner_price')} placeholder="0.00" />
+        <Label htmlFor="pr_partner_price" className="mb-1">Partner Price (₱)</Label>
+        <TextInput id="pr_partner_price" type="number" min="0" step="0.01" value={form.partner_price} onChange={fld('partner_price')} placeholder="0.00" />
       </div>
       <div>
-        <Label value="Unit" className="mb-1" />
-        <Select value={form.unit} onChange={fld('unit')}>
+        <Label htmlFor="pr_unit" className="mb-1">Unit</Label>
+        <Select id="pr_unit" value={form.unit} onChange={fld('unit')}>
           <option value="box">Box</option>
           <option value="sachet">Sachet</option>
           <option value="bottle">Bottle</option>
@@ -62,18 +65,18 @@ function ProductFormFields({ form, fld, imagePreview, fileInputRef, handleImageC
       </div>
       <div className="flex items-center gap-2 mt-4">
         <input type="checkbox" id="is_active" checked={!!form.is_active} onChange={fld('is_active')} className="w-4 h-4 text-amber-500" />
-        <Label htmlFor="is_active" value="Active / Listed" />
+        <Label htmlFor="is_active">Active / Listed</Label>
       </div>
       <div className="col-span-2">
-        <Label value="Description" className="mb-1" />
-        <Textarea value={form.description} onChange={fld('description')} rows={2} placeholder="Product description..." />
+        <Label htmlFor="pr_description" className="mb-1">Description</Label>
+        <Textarea id="pr_description" value={form.description} onChange={fld('description')} rows={2} placeholder="Product description..." />
       </div>
       <div className="col-span-2">
-        <Label value="Product Image" className="mb-1" />
+        <Label htmlFor="pr_image" className="mb-1">Product Image</Label>
         {imagePreview && (
           <img src={imagePreview} alt="Preview" className="w-24 h-24 object-cover rounded-lg border border-gray-200 mb-2" />
         )}
-        <input type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageChange} />
+        <input id="pr_image" type="file" ref={fileInputRef} accept="image/*" className="hidden" onChange={handleImageChange} />
         <Button color="light" size="sm" onClick={() => fileInputRef.current?.click()}>
           <HiOutlinePhotograph className="w-4 h-4 mr-1.5" />
           {imagePreview ? 'Change Image' : 'Upload Image'}

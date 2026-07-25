@@ -5,7 +5,7 @@ import {
   HiShoppingCart, HiCurrencyDollar, HiClock, HiArchive,
   HiExclamation, HiChevronRight,
 } from 'react-icons/hi';
-import { FiPackage, FiTrendingUp } from 'react-icons/fi';
+import { FiPackage, FiTrendingUp, FiInbox } from 'react-icons/fi';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts';
@@ -179,7 +179,11 @@ export default function StockistDashboard() {
               <h2 className="font-semibold text-gray-900 text-sm">Orders Per Week (Last 4 Weeks)</h2>
             </div>
             {loading ? (
-              <div className="h-48 flex items-center justify-center text-gray-400 text-sm">Loading chart…</div>
+              <div className="h-48 flex items-end justify-between gap-3 px-2 pb-2">
+                {[60, 85, 45, 70].map((h, i) => (
+                  <div key={i} className="flex-1 animate-pulse rounded-t-lg bg-amber-100" style={{ height: `${h}%` }} />
+                ))}
+              </div>
             ) : (
               <ResponsiveContainer width="100%" height={200}>
                 <BarChart data={weeklyChart} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
@@ -226,9 +230,27 @@ export default function StockistDashboard() {
         </div>
         <Card className="overflow-x-auto rounded-[1.6rem] p-0">
           {loading ? (
-            <div className="py-8 text-center text-gray-400 text-sm">Loading…</div>
+            <div className="p-4 space-y-3">
+              {[0, 1, 2].map((i) => (
+                <div key={i} className="flex items-center gap-4 animate-pulse">
+                  <div className="h-3.5 w-20 rounded bg-gray-100" />
+                  <div className="h-3.5 w-16 rounded bg-gray-100" />
+                  <div className="h-3.5 w-14 rounded-full bg-gray-100" />
+                  <div className="h-3.5 w-20 rounded bg-gray-100 ml-auto" />
+                </div>
+              ))}
+            </div>
           ) : recentOrders.length === 0 ? (
-            <div className="py-8 text-center text-gray-400 text-sm">No orders yet</div>
+            <div className="flex flex-col items-center py-10 text-gray-400">
+              <FiInbox size={32} className="mb-2 opacity-30" />
+              <p className="text-sm">No orders yet</p>
+              <button
+                onClick={() => navigate('/stockist/catalog')}
+                className="mt-3 text-xs font-semibold text-amber-600 hover:text-amber-700"
+              >
+                Browse the catalog to place your first order
+              </button>
+            </div>
           ) : (
             <table className="w-full text-sm">
               <thead>

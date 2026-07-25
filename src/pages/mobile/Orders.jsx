@@ -130,8 +130,10 @@ export default function MobileOrders() {
 
       <div className="px-4 py-4 pb-24 space-y-3">
         {loading ? (
-          <div className="flex justify-center py-16">
-            <Spinner size="lg" color="warning" />
+          <div className="space-y-3">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="h-20 rounded-2xl bg-gray-100 animate-pulse" />
+            ))}
           </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-16 text-gray-400">

@@ -175,7 +175,11 @@ export default function StockistUsers() {
 
       <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         {loading ? (
-          <div className="flex justify-center py-16"><Spinner size="xl" color="warning" /></div>
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-11 rounded-xl bg-gray-100 animate-pulse" />
+            ))}
+          </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-16 text-gray-400">
             <FiUser size={40} className="mb-3 opacity-30" />
@@ -244,11 +248,11 @@ export default function StockistUsers() {
         <ModalHeader>{modal === 'edit' ? 'Edit User' : 'Add User'}</ModalHeader>
         <ModalBody className="space-y-4">
           <div>
-            <Label value="Full Name *" className="mb-1.5" />
+            <Label className="mb-1.5">Full Name *</Label>
             <TextInput value={form.name} onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} placeholder="Full name" />
           </div>
           <div>
-            <Label value={`Email *${modal === 'edit' ? ' (read only)' : ''}`} className="mb-1.5" />
+            <Label className="mb-1.5">{`Email *${modal === 'edit' ? ' (read only)' : ''}`}</Label>
             <TextInput
               type="email"
               value={form.email}
@@ -258,11 +262,11 @@ export default function StockistUsers() {
             />
           </div>
           <div>
-            <Label value="Phone" className="mb-1.5" />
+            <Label className="mb-1.5">Phone</Label>
             <TextInput type="tel" value={form.phone} onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} placeholder="Phone number" />
           </div>
           <div>
-            <Label value="Role" className="mb-1.5" />
+            <Label className="mb-1.5">Role</Label>
             <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
               {modal === 'add' ? 'Staff' : roleLabel(form.role_slug)}
             </div>
@@ -272,7 +276,7 @@ export default function StockistUsers() {
           </div>
           {modal === 'edit' && (
             <div>
-              <Label value="Status" className="mb-1.5" />
+              <Label className="mb-1.5">Status</Label>
               <Select value={form.status} onChange={(e) => setForm((f) => ({ ...f, status: e.target.value }))}>
                 <option value="active">Active</option>
                 <option value="inactive">Inactive</option>
@@ -282,7 +286,7 @@ export default function StockistUsers() {
           )}
           {modal === 'add' && (
             <div>
-              <Label value="Password *" className="mb-1.5" />
+              <Label className="mb-1.5">Password *</Label>
               <TextInput
                 type="password"
                 value={form.password}

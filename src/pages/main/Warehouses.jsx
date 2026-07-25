@@ -9,6 +9,7 @@ import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
 import MapLocationPicker from '@/components/MapLocationPicker';
+import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
 
 const WAREHOUSE_TYPES = ['manufacturer'];
@@ -23,38 +24,40 @@ function WarehouseFormFields({ form, fld, setForm }) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <div className="col-span-2">
-        <Label value="Warehouse Name" className="mb-1" />
-        <TextInput value={form.name} onChange={fld('name')} placeholder="Metro Manila Hub" required />
+        <Label htmlFor="wh_name" className="mb-1">
+          Warehouse Name<RequiredMark />
+        </Label>
+        <TextInput id="wh_name" value={form.name} onChange={fld('name')} placeholder="Metro Manila Hub" required />
       </div>
       <div>
-        <Label value="Type" className="mb-1" />
-        <Select value={form.type} onChange={fld('type')}>
+        <Label htmlFor="wh_type" className="mb-1">Type</Label>
+        <Select id="wh_type" value={form.type} onChange={fld('type')}>
           {WAREHOUSE_TYPES.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
         </Select>
       </div>
       <div>
-        <Label value="Capacity (units)" className="mb-1" />
-        <TextInput type="number" min="0" value={form.capacity} onChange={fld('capacity')} placeholder="5000" />
+        <Label htmlFor="wh_capacity" className="mb-1">Capacity (units)</Label>
+        <TextInput id="wh_capacity" type="number" min="0" value={form.capacity} onChange={fld('capacity')} placeholder="5000" />
       </div>
       <div className="col-span-2">
-        <Label value="Address" className="mb-1" />
-        <TextInput value={form.address} onChange={fld('address')} placeholder="123 Main St." />
+        <Label htmlFor="wh_address" className="mb-1">Address</Label>
+        <TextInput id="wh_address" value={form.address} onChange={fld('address')} placeholder="123 Main St." />
       </div>
       <div>
-        <Label value="City" className="mb-1" />
-        <TextInput value={form.city} onChange={fld('city')} placeholder="Quezon City" />
+        <Label htmlFor="wh_city" className="mb-1">City</Label>
+        <TextInput id="wh_city" value={form.city} onChange={fld('city')} placeholder="Quezon City" />
       </div>
       <div>
-        <Label value="Province" className="mb-1" />
-        <TextInput value={form.province} onChange={fld('province')} placeholder="Metro Manila" />
+        <Label htmlFor="wh_province" className="mb-1">Province</Label>
+        <TextInput id="wh_province" value={form.province} onChange={fld('province')} placeholder="Metro Manila" />
       </div>
       <div>
-        <Label value="Manager Name" className="mb-1" />
-        <TextInput value={form.manager_name} onChange={fld('manager_name')} placeholder="Juan Dela Cruz" />
+        <Label htmlFor="wh_manager_name" className="mb-1">Manager Name</Label>
+        <TextInput id="wh_manager_name" value={form.manager_name} onChange={fld('manager_name')} placeholder="Juan Dela Cruz" />
       </div>
       <div>
-        <Label value="Manager Phone" className="mb-1" />
-        <TextInput value={form.manager_phone} onChange={fld('manager_phone')} placeholder="09xxxxxxxxx" />
+        <Label htmlFor="wh_manager_phone" className="mb-1">Manager Phone</Label>
+        <TextInput id="wh_manager_phone" value={form.manager_phone} onChange={fld('manager_phone')} placeholder="09xxxxxxxxx" />
       </div>
       <div className="col-span-2">
         <MapLocationPicker
@@ -65,12 +68,14 @@ function WarehouseFormFields({ form, fld, setForm }) {
         />
       </div>
       <div>
-        <Label value="Latitude (optional)" className="mb-1" />
-        <TextInput value={form.lat} onChange={fld('lat')} placeholder="14.5995" />
+        <Label htmlFor="wh_lat" className="mb-1">Latitude (optional)</Label>
+        <TextInput id="wh_lat" value={form.lat} onChange={fld('lat')} placeholder="14.5995" />
+        <p className="mt-1 text-xs text-gray-500 dark:text-[var(--dark-muted)]">Auto-filled by the map pin above — edit only if you have exact survey coordinates.</p>
       </div>
       <div>
-        <Label value="Longitude (optional)" className="mb-1" />
-        <TextInput value={form.lng} onChange={fld('lng')} placeholder="120.9842" />
+        <Label htmlFor="wh_lng" className="mb-1">Longitude (optional)</Label>
+        <TextInput id="wh_lng" value={form.lng} onChange={fld('lng')} placeholder="120.9842" />
+        <p className="mt-1 text-xs text-gray-500 dark:text-[var(--dark-muted)]">Used for nearest-stockist auto-assignment on public/mobile orders.</p>
       </div>
     </div>
   );

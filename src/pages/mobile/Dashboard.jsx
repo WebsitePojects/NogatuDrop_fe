@@ -72,8 +72,8 @@ export default function MobileDashboard() {
 
       <div className="mb-6 grid grid-cols-2 gap-3">
         {[
-          { label: 'Total Orders', value: loading ? '-' : stats.totalOrders, icon: HiShoppingBag, color: 'bg-orange-50 text-orange-500' },
-          { label: "This Month's Orders", value: loading ? '-' : stats.monthOrders, icon: HiTrendingUp, color: 'bg-emerald-50 text-emerald-500' },
+          { label: 'Total Orders', value: stats.totalOrders, icon: HiShoppingBag, color: 'bg-orange-50 text-orange-500' },
+          { label: "This Month's Orders", value: stats.monthOrders, icon: HiTrendingUp, color: 'bg-emerald-50 text-emerald-500' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div
             key={label}
@@ -82,7 +82,11 @@ export default function MobileDashboard() {
             <div className={`mb-3 flex h-9 w-9 items-center justify-center rounded-xl ${color}`}>
               <Icon size={18} />
             </div>
-            <p className="text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)]">{value}</p>
+            {loading ? (
+              <div className="h-7 w-12 animate-pulse rounded bg-gray-100" />
+            ) : (
+              <p className="text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)]">{value}</p>
+            )}
             <p className="mt-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">{label}</p>
           </div>
         ))}
@@ -119,7 +123,33 @@ export default function MobileDashboard() {
         ))}
       </div>
 
-      {recentOrders.length > 0 && (
+      {!loading && recentOrders.length === 0 ? (
+        <div className="flex flex-col items-center rounded-[1.4rem] border border-dashed border-gray-200 bg-white/60 py-10 text-center text-gray-400 dark:border-[var(--dark-border)]">
+          <FiPackage size={30} className="mb-2 opacity-30" />
+          <p className="text-sm">You haven&apos;t placed any orders yet</p>
+          <button
+            onClick={() => navigate('/mobile/catalog')}
+            className="mt-3 text-xs font-semibold text-orange-500 hover:text-orange-600"
+          >
+            Start shopping
+          </button>
+        </div>
+      ) : loading ? (
+        <div className="space-y-2">
+          {[0, 1].map((i) => (
+            <div
+              key={i}
+              className="flex animate-pulse items-center justify-between rounded-[1.4rem] border border-gray-100 bg-white p-4 dark:border-[var(--dark-border)] dark:bg-[var(--dark-card)]"
+            >
+              <div className="space-y-2">
+                <div className="h-3.5 w-24 rounded bg-gray-100" />
+                <div className="h-3 w-16 rounded bg-gray-100" />
+              </div>
+              <div className="h-3.5 w-14 rounded bg-gray-100" />
+            </div>
+          ))}
+        </div>
+      ) : (
         <div>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)]">Recent Orders</h2>

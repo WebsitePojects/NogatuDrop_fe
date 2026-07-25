@@ -176,7 +176,11 @@ export default function StockistCycleCounts() {
 
       <Card>
         {loading ? (
-          <div className="flex items-center justify-center py-16"><Spinner size="xl" color="warning" /></div>
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-11 rounded-xl bg-gray-100 animate-pulse" />
+            ))}
+          </div>
         ) : rows.length === 0 ? (
           <EmptyState icon={HiOutlineClipboardCheck} title="No cycle counts" description="Create a warehouse count and fill in the actual quantities before submission." />
         ) : (
@@ -239,7 +243,16 @@ export default function StockistCycleCounts() {
         <ModalHeader>{detail?.count_number || 'Cycle Count'}</ModalHeader>
         <ModalBody>
           {detailLoading || !detail ? (
-            <div className="flex items-center justify-center py-16"><Spinner size="xl" color="warning" /></div>
+            <div className="space-y-4 animate-pulse">
+              <div className="grid gap-3 md:grid-cols-4">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="h-16 rounded-xl bg-gray-100" />
+                ))}
+              </div>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-11 rounded-xl bg-gray-100" />
+              ))}
+            </div>
           ) : (
             <div className="space-y-4">
               <div className="grid gap-3 md:grid-cols-4">

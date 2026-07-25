@@ -161,8 +161,10 @@ export default function StockistInventory() {
       {/* Table */}
       <div className="bg-white dark:bg-[var(--dark-card)] rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] shadow-sm overflow-hidden">
         {loading ? (
-          <div className="flex justify-center py-16">
-            <Spinner size="xl" color="warning" />
+          <div className="p-4 space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="h-11 rounded-xl bg-gray-100 animate-pulse" />
+            ))}
           </div>
         ) : inventory.length === 0 ? (
           <div className="flex flex-col items-center py-16 text-gray-400">
@@ -278,7 +280,7 @@ export default function StockistInventory() {
             </div>
           )}
           <div>
-            <Label htmlFor="req-qty" value="Requested Quantity" className="mb-1.5" />
+            <Label htmlFor="req-qty" className="mb-1.5">Requested Quantity</Label>
             <TextInput
               id="req-qty"
               type="number"
@@ -289,7 +291,7 @@ export default function StockistInventory() {
             />
           </div>
           <div>
-            <Label htmlFor="adj-reason" value="Reason" className="mb-1.5" />
+            <Label htmlFor="adj-reason" className="mb-1.5">Reason</Label>
             <Textarea
               id="adj-reason"
               rows={3}

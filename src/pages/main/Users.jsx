@@ -10,6 +10,7 @@ import PageHeader from '@/components/PageHeader';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
+import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
 
 const ROLES = [
@@ -46,20 +47,26 @@ function UserFormFields({ form, fld, formRoles, partners, warehouses, onWarehous
   return (
     <div className="grid grid-cols-2 gap-4">
       <div className="col-span-2">
-        <Label value="Full Name" className="mb-1" />
-        <TextInput value={form.name} onChange={fld('name')} placeholder="Juan Dela Cruz" required />
+        <Label htmlFor="usr_name" className="mb-1">
+          Full Name<RequiredMark />
+        </Label>
+        <TextInput id="usr_name" value={form.name} onChange={fld('name')} placeholder="Juan Dela Cruz" required />
       </div>
       <div>
-        <Label value="Email" className="mb-1" />
-        <TextInput type="email" value={form.email} onChange={fld('email')} placeholder="juan@example.com" required />
+        <Label htmlFor="usr_email" className="mb-1">
+          Email<RequiredMark />
+        </Label>
+        <TextInput id="usr_email" type="email" value={form.email} onChange={fld('email')} placeholder="juan@example.com" required />
       </div>
       <div>
-        <Label value="Phone" className="mb-1" />
-        <TextInput value={form.phone} onChange={fld('phone')} placeholder="09xxxxxxxxx" />
+        <Label htmlFor="usr_phone" className="mb-1">Phone</Label>
+        <TextInput id="usr_phone" value={form.phone} onChange={fld('phone')} placeholder="09xxxxxxxxx" />
       </div>
       <div>
-        <Label value="Role" className="mb-1" />
-        <Select value={form.role_slug} onChange={fld('role_slug')} required>
+        <Label htmlFor="usr_role" className="mb-1">
+          Role<RequiredMark />
+        </Label>
+        <Select id="usr_role" value={form.role_slug} onChange={fld('role_slug')} required>
           <option value="">Select role...</option>
           {formRoles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
         </Select>
@@ -68,8 +75,8 @@ function UserFormFields({ form, fld, formRoles, partners, warehouses, onWarehous
         </p>
       </div>
       <div>
-        <Label value="Status" className="mb-1" />
-        <Select value={form.status} onChange={fld('status')}>
+        <Label htmlFor="usr_status" className="mb-1">Status</Label>
+        <Select id="usr_status" value={form.status} onChange={fld('status')}>
           <option value="active">Active</option>
           <option value="inactive">Inactive</option>
         </Select>
@@ -77,8 +84,8 @@ function UserFormFields({ form, fld, formRoles, partners, warehouses, onWarehous
       {needsPartner(form.role_slug) && (
         <>
           <div className="col-span-2">
-            <Label value="Stockist (Partner)" className="mb-1" />
-            <Select value={form.partner_id} onChange={fld('partner_id')} disabled={!!form.warehouse_id}>
+            <Label htmlFor="usr_partner" className="mb-1">Stockist (Partner)</Label>
+            <Select id="usr_partner" value={form.partner_id} onChange={fld('partner_id')} disabled={!!form.warehouse_id}>
               <option value="">Select stockist...</option>
               {partners.map((p) => <option key={p.id} value={p.id}>{p.business_name}</option>)}
             </Select>
@@ -87,8 +94,10 @@ function UserFormFields({ form, fld, formRoles, partners, warehouses, onWarehous
             )}
           </div>
           <div className="col-span-2">
-            <Label value={`Warehouse${form.role_slug === 'staff' ? ' (required for Staff)' : ''}`} className="mb-1" />
-            <Select value={form.warehouse_id} onChange={onWarehouseChange}>
+            <Label htmlFor="usr_warehouse" className="mb-1">
+              {`Warehouse${form.role_slug === 'staff' ? ' (required for Staff)' : ''}`}
+            </Label>
+            <Select id="usr_warehouse" value={form.warehouse_id} onChange={onWarehouseChange}>
               <option value="">Select warehouse...</option>
               {warehouses.map((w) => {
                 const owner = partners.find((p) => p.id === w.partner_id);
@@ -103,8 +112,8 @@ function UserFormFields({ form, fld, formRoles, partners, warehouses, onWarehous
         </>
       )}
       <div className="col-span-2">
-        <Label value="Password (leave blank to keep current)" className="mb-1" />
-        <TextInput type="password" value={form.password} onChange={fld('password')} placeholder="••••••••" autoComplete="new-password" />
+        <Label htmlFor="usr_password" className="mb-1">Password (leave blank to keep current)</Label>
+        <TextInput id="usr_password" type="password" value={form.password} onChange={fld('password')} placeholder="••••••••" autoComplete="new-password" />
       </div>
     </div>
   );

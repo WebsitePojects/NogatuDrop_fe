@@ -12,6 +12,7 @@ import PageHeader from '@/components/PageHeader';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
+import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
 
 const EMPTY_FORM = {
@@ -24,44 +25,48 @@ function PartnerFormFields({ form, fld, allPartners }) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <div className="col-span-2">
-        <Label value="Business Name" className="mb-1" />
-        <TextInput value={form.business_name} onChange={fld('business_name')} placeholder="Juan Store" required />
+        <Label htmlFor="pt_business_name" className="mb-1">
+          Business Name<RequiredMark />
+        </Label>
+        <TextInput id="pt_business_name" value={form.business_name} onChange={fld('business_name')} placeholder="Juan Store" required />
       </div>
       <div>
-        <Label value="Email" className="mb-1" />
-        <TextInput type="email" value={form.email} onChange={fld('email')} placeholder="juan@store.com" required />
+        <Label htmlFor="pt_email" className="mb-1">
+          Email<RequiredMark />
+        </Label>
+        <TextInput id="pt_email" type="email" value={form.email} onChange={fld('email')} placeholder="juan@store.com" required />
       </div>
       <div>
-        <Label value="Phone" className="mb-1" />
-        <TextInput value={form.phone} onChange={fld('phone')} placeholder="09xxxxxxxxx" />
+        <Label htmlFor="pt_phone" className="mb-1">Phone</Label>
+        <TextInput id="pt_phone" value={form.phone} onChange={fld('phone')} placeholder="09xxxxxxxxx" />
       </div>
       <div className="col-span-2">
-        <Label value="Address" className="mb-1" />
-        <TextInput value={form.address} onChange={fld('address')} placeholder="123 Main St." />
+        <Label htmlFor="pt_address" className="mb-1">Address</Label>
+        <TextInput id="pt_address" value={form.address} onChange={fld('address')} placeholder="123 Main St." />
       </div>
       <div>
-        <Label value="Region" className="mb-1" />
-        <TextInput value={form.region} onChange={fld('region')} placeholder="NCR" />
+        <Label htmlFor="pt_region" className="mb-1">Region</Label>
+        <TextInput id="pt_region" value={form.region} onChange={fld('region')} placeholder="NCR" />
       </div>
       <div>
-        <Label value="Level" className="mb-1" />
-        <Select value={form.stockist_level} onChange={fld('stockist_level')}>
+        <Label htmlFor="pt_level" className="mb-1">Level</Label>
+        <Select id="pt_level" value={form.stockist_level} onChange={fld('stockist_level')}>
           <option value="provincial_stockist">Provincial Stockist</option>
           <option value="city_stockist">City Stockist</option>
         </Select>
       </div>
       {form.stockist_level === 'city_stockist' && (
         <div className="col-span-2">
-          <Label value="Parent Provincial Stockist" className="mb-1" />
-          <Select value={form.parent_partner_id} onChange={fld('parent_partner_id')}>
+          <Label htmlFor="pt_parent" className="mb-1">Parent Provincial Stockist</Label>
+          <Select id="pt_parent" value={form.parent_partner_id} onChange={fld('parent_partner_id')}>
             <option value="">Select parent...</option>
             {allPartners.map((p) => <option key={p.id} value={p.id}>{p.business_name}</option>)}
           </Select>
         </div>
       )}
       <div>
-        <Label value="Discount %" className="mb-1" />
-        <TextInput type="number" min="0" max="100" step="0.1" value={form.discount_pct} onChange={fld('discount_pct')} placeholder="0" />
+        <Label htmlFor="pt_discount" className="mb-1">Discount %</Label>
+        <TextInput id="pt_discount" type="number" min="0" max="100" step="0.1" value={form.discount_pct} onChange={fld('discount_pct')} placeholder="0" />
       </div>
     </div>
   );
@@ -314,8 +319,9 @@ export default function Partners() {
       <Modal show={showDiscountModal} onClose={() => setShowDiscountModal(false)} size="sm" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Update Discount — {selected?.business_name}</ModalHeader>
         <ModalBody>
-          <Label value="Discount Percentage (%)" className="mb-1" />
+          <Label htmlFor="pt_discount_val" className="mb-1">Discount Percentage (%)</Label>
           <TextInput
+            id="pt_discount_val"
             type="number"
             min="0"
             max="100"
