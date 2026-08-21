@@ -10,6 +10,7 @@ import api from '@/services/api';
 import { ORDERS } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
+import { extractUploadErrorMessage } from '@/utils/uploadError';
 
 const STATUS_STEPS = ['pending', 'approved', 'delivering', 'delivered'];
 
@@ -100,7 +101,7 @@ export default function MobileOrders() {
       handleClearPreview(orderId);
       fetchOrders();
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Upload failed', 'error');
+      showToast(extractUploadErrorMessage(err), 'error');
     } finally {
       setUploading(null);
     }

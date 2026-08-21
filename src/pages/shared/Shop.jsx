@@ -12,6 +12,7 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { getPublicCatalogPrice } from '@/utils/publicCatalogPrice';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
 import { getPublicOrderPricingTotals } from '@/utils/publicCheckoutPricing';
+import { extractUploadErrorMessage } from '@/utils/uploadError';
 import LocationPicker from '@/components/LocationPicker';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
@@ -304,7 +305,7 @@ export default function Shop() {
       } : current);
       setProofFile(null);
     } catch (err) {
-      setProofError(err?.response?.data?.message || 'Failed to upload payment proof. Please try again.');
+      setProofError(extractUploadErrorMessage(err));
     } finally {
       setProofUploading(false);
     }

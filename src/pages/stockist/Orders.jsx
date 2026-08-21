@@ -28,6 +28,7 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate, formatDateTime } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
 import OrderPricingBreakdown from '@/components/OrderPricingBreakdown';
+import { extractUploadErrorMessage } from '@/utils/uploadError';
 
 const STATUS_STEPS = ['pending', 'approved', 'delivering', 'delivered'];
 const TAB_STATUSES = {
@@ -464,7 +465,7 @@ export default function StockistOrders() {
       await openDetail({ id: selectedOrder.id });
       fetchOrders();
     } catch (error) {
-      showToast(error?.response?.data?.message || 'Upload failed', 'error');
+      showToast(extractUploadErrorMessage(error), 'error');
     } finally {
       setUploading(false);
     }
