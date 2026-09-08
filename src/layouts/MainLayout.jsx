@@ -138,7 +138,7 @@ export default function MainLayout() {
   return (
     <div
       className={`flex min-h-screen ${dark ? 'dark' : ''}`}
-      style={{ background: dark ? '#1e1613' : 'var(--main-bg)', ...darkVars }}
+      style={{ background: dark ? 'var(--dark-bg)' : 'var(--main-bg)', ...darkVars }}
     >
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -214,8 +214,8 @@ export default function MainLayout() {
         <header
           className="portal-topbar"
           style={{
-            borderColor: dark ? '#3d2e28' : 'var(--main-border)',
-            background: dark ? '#221a16' : '#fff',
+            borderColor: dark ? 'var(--dark-border)' : 'var(--main-border)',
+            background: dark ? 'var(--dark-topbar)' : '#fff',
           }}
         >
           <button
@@ -287,7 +287,7 @@ export default function MainLayout() {
 
         <main
           className="flex-1 p-4 md:p-5 page-enter"
-          style={{ background: dark ? '#1e1613' : 'var(--main-bg)' }}
+          style={{ background: dark ? 'var(--dark-bg)' : 'var(--main-bg)' }}
         >
           <Outlet />
         </main>

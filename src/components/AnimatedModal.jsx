@@ -57,7 +57,12 @@ function AnimatedModal({
       content: {
         ...(theme?.content || {}),
         inner: cx(
-          'relative flex max-h-[90dvh] flex-col rounded-2xl bg-white shadow-modal ng-modal-force-light transition-all duration-200 ease-out',
+          // ng-modal-force-light (src/index.css) now supplies the theme-aware
+          // background/text color itself (light surface in light mode,
+          // var(--dark-card) surface in dark mode) — the literal `bg-white`
+          // that used to sit here is gone; it was the reason modals stayed
+          // white regardless of theme.
+          'relative flex max-h-[90dvh] flex-col rounded-2xl shadow-modal ng-modal-force-light transition-all duration-200 ease-out',
           isVisible ? 'translate-y-0 scale-100 opacity-100' : 'translate-y-2 scale-95 opacity-0',
           theme?.content?.inner
         ),

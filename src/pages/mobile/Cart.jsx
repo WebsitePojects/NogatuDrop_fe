@@ -62,7 +62,7 @@ export default function MobileCart() {
 
   if (loading) {
     return (
-      <div className="bg-white min-h-screen px-4 pt-6 pb-24">
+      <div className="bg-white min-h-screen px-4 pt-6 pb-24 dark:bg-transparent">
         <div className="animate-pulse space-y-3">
           <div className="h-6 w-32 rounded bg-gray-100" />
           {Array.from({ length: 3 }).map((_, i) => (
@@ -74,10 +74,10 @@ export default function MobileCart() {
   }
 
   return (
-    <div className="bg-white min-h-screen pb-24">
+    <div className="bg-white min-h-screen pb-24 dark:bg-transparent">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3">
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 dark:bg-[var(--dark-topbar)] dark:border-[var(--dark-border)]">
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate('/mobile/catalog')}
@@ -149,7 +149,7 @@ export default function MobileCart() {
 
                     <button
                       onClick={() => handleRemove(item.id, item.product_name || item.name || 'Item')}
-                      className="inline-flex items-center gap-1 text-xs font-medium text-red-500"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-red-500 dark:text-red-400"
                     >
                       <HiTrash className="w-3.5 h-3.5" />
                       Remove

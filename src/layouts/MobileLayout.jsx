@@ -81,7 +81,7 @@ export default function MobileLayout() {
   return (
     <div
       className={`flex min-h-screen ${dark ? 'dark' : ''}`}
-      style={{ background: dark ? '#0f1623' : '#f8faff', ...darkVars }}
+      style={{ background: dark ? 'var(--dark-bg)' : 'var(--mobile-bg)', ...darkVars }}
     >
       {/* Mobile overlay */}
       {sidebarOpen && (
@@ -148,8 +148,8 @@ export default function MobileLayout() {
         <header
           className="portal-topbar"
           style={{
-            borderColor: dark ? '#2d3f5a' : '#e5e7eb',
-            background: dark ? '#131d30' : '#ffffff',
+            borderColor: dark ? 'var(--dark-border)' : '#e5e7eb',
+            background: dark ? 'var(--dark-topbar)' : '#ffffff',
           }}
         >
           <button
@@ -215,7 +215,7 @@ export default function MobileLayout() {
         {/* Page content */}
         <main
           className="flex-1 p-4 md:p-5 page-enter"
-          style={{ background: dark ? '#0f1623' : '#f8faff' }}
+          style={{ background: dark ? 'var(--dark-bg)' : 'var(--mobile-bg)' }}
         >
           <Outlet />
         </main>

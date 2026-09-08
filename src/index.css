@@ -39,7 +39,7 @@
 
   /* Mobile */
   --mobile-accent: #FF8C00;
-  --mobile-bg:     #FFFFFF;
+  --mobile-bg:     #F8FAFF;
 
   /* ── Dark mode palette (portal-specific via CSS vars set inline on root div) ── */
   /* Defaults — overridden per portal in layout inline styles */
@@ -51,6 +51,63 @@
   --dark-text:    #f5ebe3;   /* primary text */
   --dark-muted:   #9e8a7e;   /* muted text */
 }
+
+/* ─── Semantic surface & text tokens ─────────────────────────────────────────
+   Theme-aware building blocks. Use these instead of ad-hoc `bg-white`,
+   `text-gray-900`, or a hardcoded hex — every class below carries BOTH a
+   light and a `.dark` value, so switching theme never needs a second edit.
+
+     class            | light                             | dark
+     -----------------|-----------------------------------|--------------------------------
+     .surface         | #ffffff                           | var(--dark-card)   #271c18
+     .surface-raised  | #ffffff + panel shadow             | var(--dark-card)   #271c18 + dark shadow
+     .surface-sunken  | #f7f1e9 (warm sand — table hdrs)   | var(--dark-card2)  #2e221e
+     .text-strong     | var(--ink-strong)  #25160b         | var(--dark-text)   #f5ebe3
+     .text-muted      | var(--ink-soft)    #7d634f         | var(--dark-muted)  #9e8a7e
+     .border-soft     | var(--line-soft)   #ecdcc9         | var(--dark-border) #3d2e28
+
+   The dark values read the --dark-* custom properties. Each portal layout
+   (Main/Stockist/Mobile) re-points those properties to its own palette on
+   the root element, so these classes stay correct across all three portal
+   themes without any change here.
+────────────────────────────────────────────────────────────────────────────── */
+.surface {
+  background-color: #ffffff;
+  color: var(--ink-strong);
+}
+.dark .surface {
+  background-color: var(--dark-card);
+  color: var(--dark-text);
+}
+
+.surface-raised {
+  background-color: #ffffff;
+  color: var(--ink-strong);
+  box-shadow: var(--shadow-panel);
+}
+.dark .surface-raised {
+  background-color: var(--dark-card);
+  color: var(--dark-text);
+  box-shadow: 0 28px 60px -42px rgba(0, 0, 0, 0.52);
+}
+
+.surface-sunken {
+  background-color: #f7f1e9;
+  color: var(--ink-soft);
+}
+.dark .surface-sunken {
+  background-color: var(--dark-card2);
+  color: var(--dark-muted);
+}
+
+.text-strong { color: var(--ink-strong); }
+.dark .text-strong { color: var(--dark-text); }
+
+.text-muted { color: var(--ink-soft); }
+.dark .text-muted { color: var(--dark-muted); }
+
+.border-soft { border-color: var(--line-soft); }
+.dark .border-soft { border-color: var(--dark-border); }
 
 /* ─── Base ───────────────────────────────────────────────────────────────────── */
 *, *::before, *::after { box-sizing: border-box; }
@@ -65,6 +122,16 @@ body {
     linear-gradient(180deg, #fffaf5 0%, #fff5ea 100%);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Any text node without its own explicit color class (an icon using
+   currentColor, a <span> with no text-* utility) inherits from here. There
+   was no .dark counterpart, so every such element silently kept rendering
+   --ink-strong (near-black) on a dark surface — this is the single biggest
+   source of the ~1:1-contrast text the dark-mode crawl measured. */
+.dark body {
+  color: var(--dark-text);
+  background: var(--dark-bg);
 }
 
 .font-heading {
@@ -311,13 +378,19 @@ body {
   background: rgba(255,255,255,0.88);
   color: var(--ink-strong);
 }
+.dark .brand-btn--secondary {
+  border-color: var(--dark-border);
+  background: var(--dark-card2);
+  color: var(--dark-text);
+}
 
+/* Branded "warm cream" form-field look for the portal shells (Main/Stockist/
+   Mobile). Modal fields are styled separately by .ng-modal-force-light below
+   — modals render outside .portal-main's DOM subtree, so this selector never
+   reached them anyway; the old duplicate listing here was dead weight. */
 .portal-main input:not([type='checkbox']):not([type='radio']):not([type='file']),
 .portal-main select,
-.portal-main textarea,
-.ng-modal-force-light input:not([type='checkbox']):not([type='radio']):not([type='file']),
-.ng-modal-force-light select,
-.ng-modal-force-light textarea {
+.portal-main textarea {
   border-radius: 0.95rem !important;
   border: 1px solid var(--line-soft) !important;
   background: rgba(255,255,255,0.94) !important;
@@ -325,21 +398,37 @@ body {
   box-shadow: inset 0 1px 0 rgba(255,255,255,0.7), 0 1px 2px rgba(15,23,42,0.02) !important;
 }
 
+.dark .portal-main input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.dark .portal-main select,
+.dark .portal-main textarea {
+  border-color: var(--dark-border) !important;
+  background: var(--dark-card2) !important;
+  color: var(--dark-text) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.03) !important;
+}
+
 .portal-main input::placeholder,
-.portal-main textarea::placeholder,
-.ng-modal-force-light input::placeholder,
-.ng-modal-force-light textarea::placeholder {
+.portal-main textarea::placeholder {
   color: #b29a86 !important;
+}
+
+.dark .portal-main input::placeholder,
+.dark .portal-main textarea::placeholder {
+  color: var(--dark-muted) !important;
 }
 
 .portal-main input:focus,
 .portal-main select:focus,
-.portal-main textarea:focus,
-.ng-modal-force-light input:focus,
-.ng-modal-force-light select:focus,
-.ng-modal-force-light textarea:focus {
+.portal-main textarea:focus {
   border-color: #d89245 !important;
   box-shadow: 0 0 0 3px rgba(216, 146, 69, 0.14) !important;
+}
+
+.dark .portal-main input:focus,
+.dark .portal-main select:focus,
+.dark .portal-main textarea:focus {
+  border-color: #d89245 !important;
+  box-shadow: 0 0 0 3px rgba(216, 146, 69, 0.22) !important;
 }
 
 /* ─── Status Badges ──────────────────────────────────────────────────────────── */
@@ -545,21 +634,6 @@ table tbody tr td {
   color: inherit;
 }
 
-/* Override Flowbite dark-mode table defaults — always show text in light mode */
-.dark table thead tr th {
-  background-color: #1f2937 !important;
-  color: #d1d5db !important;
-}
-
-.dark table tbody tr td {
-  color: #e5e7eb !important;
-  border-color: #374151 !important;
-}
-
-.dark table tbody tr:hover td {
-  background-color: #1f2937 !important;
-}
-
 /* Light mode table overrides */
 table thead tr th {
   background-color: #FFF8F0;
@@ -647,6 +721,17 @@ table tbody tr:hover td {
   box-shadow: var(--shadow-panel);
 }
 
+/* Toast.jsx hardcodes its message text to #2d1607 (a fixed dark ink) with no
+   dark: variant — that's out of this file's owned scope, but readability is
+   fixable here: give the card itself a dark surface, then win the message
+   color back from the arbitrary-value utility with a more specific selector. */
+.dark .toast-card {
+  background: var(--dark-card);
+}
+.dark .toast-card p {
+  color: var(--dark-text) !important;
+}
+
 .dark .enterprise-panel,
 .dark .workspace-summary-band,
 .dark .workspace-split-panel,
@@ -703,15 +788,17 @@ p, span, td, th, label, a, button, h1, h2, h3, h4, h5, h6, div {
   /* Do not override — let Tailwind handle */
 }
 
-/* But force Flowbite table cells to NOT be white text on white bg */
-[data-testid="flowbite-table-cell"],
-[data-testid="flowbite-table-head-cell"] {
-  color: #374151 !important;
-}
+/* Flowbite table cells (data-testid="flowbite-table-cell") are covered by the
+   ".dark table tbody tr td" / light "table tbody tr td" rules further down —
+   those win on specificity in both themes, so the old unconditional
+   "#374151 always" override here was dead weight and has been removed. */
 
 /* ─── Flowbite override: Modal backgrounds ──────────────────────────────────── */
 [role="dialog"] .bg-white {
   color: #111827;
+}
+.dark [role="dialog"] .bg-white {
+  color: var(--dark-text);
 }
 
 /* ─── Input and Select — force readable ────────────────────────────────────── */
@@ -730,7 +817,12 @@ textarea {
   border-color: #4b5563 !important;
 }
 
-/* ─── Login page: always light form fields ─────────────────────────────────── */
+/* ─── Login page: always light form fields ───────────────────────────────────
+   Not a dark-mode bug: ThemeContext strips the `dark` class unconditionally
+   on public routes ('/', '/login', '/shop', '/track', '/deliver/*'), so this
+   class never actually coexists with `.dark`. It exists to stop the OS-level
+   `prefers-color-scheme: dark` from auto-darkening native form-control chrome
+   (autofill, scrollbars) on this always-light hero-style page. */
 .login-force-light,
 .login-force-light * {
   color-scheme: light !important;
@@ -754,24 +846,41 @@ textarea {
   color: rgba(245,158,11,0.8) !important;
 }
 
-/* ─── Modal content: always light form fields ──────────────────────────────── */
-.ng-modal-force-light,
+/* ─── Modal content surface ───────────────────────────────────────────────────
+   Historical name kept as-is: flowbite-react's default Modal theme
+   (src/theme/flowbiteTheme.js) also emits this literal class on every raw
+   <Modal>, so renaming it would silently stop styling those. It used to hard-
+   code a white surface + #111827 text with NO .dark branch at all — which is
+   why every modal (incl. AnimatedModal) rendered pure white with near-black-
+   on-near-black labels in dark mode. Now theme-aware: light surface in light
+   mode, dark-token surface in dark mode. */
+.ng-modal-force-light {
+  background-color: #ffffff;
+  color: #111827;
+  color-scheme: light;
+}
 .dark .ng-modal-force-light {
-  background-color: #ffffff !important;
-  color: #111827 !important;
-  color-scheme: light !important;
+  background-color: var(--dark-card);
+  color: var(--dark-text);
+  color-scheme: dark;
 }
 
 .ng-modal-force-light input:not([type="checkbox"]):not([type="radio"]),
 .ng-modal-force-light select,
-.ng-modal-force-light textarea,
-.dark [role="dialog"] .ng-modal-force-light input:not([type="checkbox"]):not([type="radio"]),
-.dark [role="dialog"] .ng-modal-force-light select,
-.dark [role="dialog"] .ng-modal-force-light textarea {
+.ng-modal-force-light textarea {
   color: #111827 !important;
   background-color: #ffffff !important;
   border-color: #d1d5db !important;
   caret-color: #111827 !important;
+}
+
+.dark .ng-modal-force-light input:not([type="checkbox"]):not([type="radio"]),
+.dark .ng-modal-force-light select,
+.dark .ng-modal-force-light textarea {
+  color: var(--dark-text) !important;
+  background-color: var(--dark-card2) !important;
+  border-color: var(--dark-border) !important;
+  caret-color: var(--dark-text) !important;
 }
 
 .ng-modal-force-light input::placeholder,
@@ -779,25 +888,28 @@ textarea {
   color: #9ca3af !important;
 }
 
-/* ─── Flowbite Table Head Override (keep coffee bg in light mode) ────────────── */
-:not(.dark) table thead tr th {
-  background-color: #FFF8F0 !important;
-  color: #4A1E00 !important;
+.dark .ng-modal-force-light input::placeholder,
+.dark .ng-modal-force-light textarea::placeholder {
+  color: var(--dark-muted) !important;
+}
+
+/* Heading/body text inside the modal surface: same single-color simplification
+   the old forced-light rule used (one strong color for h1-label rather than a
+   separate muted tier), just repointed to the dark token instead of #111827. */
+.dark .ng-modal-force-light h1,
+.dark .ng-modal-force-light h2,
+.dark .ng-modal-force-light h3,
+.dark .ng-modal-force-light h4,
+.dark .ng-modal-force-light p,
+.dark .ng-modal-force-light span,
+.dark .ng-modal-force-light label {
+  color: var(--dark-text) !important;
 }
 
 /* ─── Flowbite select/input text fix ─────────────────────────────────────────── */
 .dark .flowbite-select,
 .dark select {
   background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%239ca3af' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
-}
-
-/* ─── Dark mode: override hardcoded inline page backgrounds ─────────────────── */
-.dark [style*="#FFF8F0"],
-.dark [style*="#F0F9F0"],
-.dark [style*="#FFFFFF"],
-.dark [style*="rgb(255, 248, 240)"],
-.dark [style*="rgb(240, 249, 240)"] {
-  background: var(--dark-bg) !important;
 }
 
 /* ─── Dark mode: topbar ──────────────────────────────────────────────────────── */
@@ -885,24 +997,6 @@ textarea {
 .dark [role="dialog"] h3 { color: var(--dark-text) !important; }
 .dark [role="dialog"] p  { color: #c9b9b0 !important; }
 .dark [role="dialog"] label { color: #c9b9b0 !important; }
-
-/* Keep modal content in light styling for readability and focus. */
-.dark [role="dialog"] .ng-modal-force-light,
-.dark [role="dialog"] .ng-modal-force-light .border-b,
-.dark [role="dialog"] .ng-modal-force-light .border-t {
-  background: #ffffff !important;
-  border-color: #e5e7eb !important;
-}
-
-.dark [role="dialog"] .ng-modal-force-light h1,
-.dark [role="dialog"] .ng-modal-force-light h2,
-.dark [role="dialog"] .ng-modal-force-light h3,
-.dark [role="dialog"] .ng-modal-force-light h4,
-.dark [role="dialog"] .ng-modal-force-light p,
-.dark [role="dialog"] .ng-modal-force-light span,
-.dark [role="dialog"] .ng-modal-force-light label {
-  color: #111827 !important;
-}
 
 /* ─── Dark mode: overflow-x-auto ───────────────────────────────────────────── */
 .dark .overflow-x-auto { background-color: transparent !important; }

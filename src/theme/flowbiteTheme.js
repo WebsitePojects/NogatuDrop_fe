@@ -168,16 +168,17 @@ export const flowbiteTheme = {
       },
       content: {
         base: 'relative h-full w-full p-4 md:h-auto',
-        inner: 'relative flex max-h-[90dvh] flex-col rounded-2xl bg-white shadow-modal ng-modal-force-light',
+        // ng-modal-force-light (index.css) now supplies the surface color itself —
+        // light in light mode, var(--dark-card) in dark mode — so no bg-white here.
+        inner: 'relative flex max-h-[90dvh] flex-col rounded-2xl shadow-modal ng-modal-force-light',
       },
       header: {
-        base: 'flex items-start justify-between rounded-t-2xl border-b border-gray-100 p-5',
-        title: 'text-lg font-semibold text-gray-900',
-        // The modal surface is always forced light (ng-modal-force-light, see index.css), so the
-        // close button must NOT pick up dark: text overrides — it would otherwise render light-gray
-        // or white text on that permanently-white surface and vanish. Same shade in both themes.
+        base: 'flex items-start justify-between rounded-t-2xl border-b border-gray-100 dark:border-gray-700 p-5',
+        title: 'text-lg font-semibold text-gray-900 dark:text-white',
+        // ng-modal-force-light's dark surface is var(--dark-card) (#271c18 by default) —
+        // gray-400/gray-100 give the close icon a readable resting + hover state on it.
         close: {
-          base: 'ms-auto inline-flex items-center rounded-lg bg-transparent p-1.5 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-200',
+          base: 'ms-auto inline-flex items-center rounded-lg bg-transparent p-1.5 text-sm text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:focus:ring-gray-600',
           icon: 'h-5 w-5',
         },
       },
