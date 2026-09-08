@@ -137,13 +137,13 @@ export default function StockistUsers() {
   };
 
   return (
-    <div className="p-4 md:p-6 min-h-screen page-enter" style={{ background: '#FFF8F0' }}>
+    <div className="p-4 md:p-6 min-h-screen page-enter">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Users</h1>
-          <p className="text-sm text-gray-500 mt-0.5">Manage staff accounts for this Stockist</p>
+          <h1 className="text-2xl font-bold text-strong">Users</h1>
+          <p className="text-sm text-muted mt-0.5">Manage staff accounts for this Stockist</p>
         </div>
         <Button color="warning" onClick={openAdd}>
           <HiPlus className="mr-2 w-4 h-4" />
@@ -157,9 +157,9 @@ export default function StockistUsers() {
           { label: 'Active', value: users.filter((u) => u.status === 'active').length },
           { label: 'Staff', value: users.filter((u) => u.role_slug === 'staff').length },
         ].map(({ label, value }) => (
-          <div key={label} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4">
-            <p className="text-xs text-gray-500 font-medium">{label}</p>
-            <p className="text-2xl font-bold text-gray-800 mt-1">{loading ? '-' : value}</p>
+          <div key={label} className="bg-white dark:bg-[var(--dark-card)] rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] shadow-sm p-4">
+            <p className="text-xs text-muted font-medium">{label}</p>
+            <p className="text-2xl font-bold text-strong mt-1">{loading ? '-' : value}</p>
           </div>
         ))}
       </div>
@@ -173,15 +173,15 @@ export default function StockistUsers() {
         />
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-[var(--dark-card)] rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] shadow-sm overflow-hidden">
         {loading ? (
           <div className="p-4 space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-11 rounded-xl bg-gray-100 animate-pulse" />
+              <div key={i} className="h-11 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center py-16 text-gray-400">
+          <div className="flex flex-col items-center py-16 text-muted">
             <FiUser size={40} className="mb-3 opacity-30" />
             <p className="text-sm">No users found</p>
             <button onClick={openAdd} className="mt-3 text-amber-600 text-sm hover:underline">
@@ -191,10 +191,10 @@ export default function StockistUsers() {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-100">
+              <thead className="bg-gray-50 dark:bg-[var(--dark-card2)] border-b border-gray-100 dark:border-[var(--dark-border)]">
                 <tr>
                   {['Name', 'Email', 'Phone', 'Role', 'Status', 'Last Login', ''].map((h) => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide whitespace-nowrap">
+                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wide whitespace-nowrap">
                       {h}
                     </th>
                   ))}
@@ -205,9 +205,9 @@ export default function StockistUsers() {
                   const name = u.name || `${u.first_name || ''} ${u.last_name || ''}`.trim() || '-';
                   return (
                     <tr key={u.id} className="border-b border-gray-50 hover:bg-amber-50/30 transition-colors">
-                      <td className="px-4 py-3 font-semibold text-gray-800">{name}</td>
-                      <td className="px-4 py-3 text-gray-600 text-sm">{u.email}</td>
-                      <td className="px-4 py-3 text-gray-500 text-sm">{u.phone || '-'}</td>
+                      <td className="px-4 py-3 font-semibold text-strong">{name}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-sm">{u.email}</td>
+                      <td className="px-4 py-3 text-muted text-sm">{u.phone || '-'}</td>
                       <td className="px-4 py-3">
                         <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
                           {roleLabel(u.role_slug)}
@@ -216,14 +216,14 @@ export default function StockistUsers() {
                       <td className="px-4 py-3">
                         <StatusBadge status={u.status || 'active'} />
                       </td>
-                      <td className="px-4 py-3 text-xs text-gray-400">
+                      <td className="px-4 py-3 text-xs text-muted">
                         {u.last_login ? formatDate(u.last_login) : 'Never'}
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => openEdit(u)}
-                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-1.5 text-muted hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                           >
                             <HiPencil className="w-4 h-4" />
                           </button>
@@ -267,10 +267,10 @@ export default function StockistUsers() {
           </div>
           <div>
             <Label className="mb-1.5">Role</Label>
-            <div className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700">
+            <div className="rounded-lg border border-gray-200 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)] px-3 py-2 text-sm text-gray-700 dark:text-[var(--dark-text)]">
               {modal === 'add' ? 'Staff' : roleLabel(form.role_slug)}
             </div>
-            <p className="mt-1 text-xs text-gray-500">
+            <p className="mt-1 text-xs text-muted">
               City and Mobile Stockist accounts are handled in their dedicated Stockist modules.
             </p>
           </div>

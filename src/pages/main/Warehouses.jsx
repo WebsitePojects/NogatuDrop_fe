@@ -260,7 +260,7 @@ export default function Warehouses() {
                       <span>Capacity</span>
                       <span className="font-medium">{Number(w.capacity_total).toLocaleString()} units</span>
                     </div>
-                    <div className="w-full bg-gray-100 rounded-full h-1.5">
+                    <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
                       <div className="bg-amber-400 h-1.5 rounded-full" style={{ width: '40%' }} />
                     </div>
                   </div>
@@ -305,7 +305,7 @@ export default function Warehouses() {
                 <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Phone</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.manager_phone || '—'}</p></div>
                 {(selected.lat && selected.lng) && (
                   <div className="col-span-2">
-                    <p className="text-gray-500 text-xs mb-1">Location</p>
+                    <p className="text-muted text-xs mb-1">Location</p>
                     <p className="font-mono text-xs">{selected.lat}, {selected.lng}</p>
                     <a
                       href={`https://maps.google.com/?q=${selected.lat},${selected.lng}`}

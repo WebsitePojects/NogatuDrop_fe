@@ -81,7 +81,7 @@ export default function MobileCart() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate('/mobile/catalog')}
-            className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600"
+            className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 dark:border-[var(--dark-border)] dark:text-[var(--dark-muted)]"
             aria-label="Back to catalog"
           >
             <HiArrowLeft className="w-4 h-4" />
@@ -95,7 +95,7 @@ export default function MobileCart() {
 
       <div className="px-4 py-4 space-y-3">
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+          <div className="flex flex-col items-center justify-center py-20 text-gray-400 dark:text-[var(--dark-muted)]">
             <FiShoppingBag size={40} className="mb-3 opacity-30" />
             <p className="text-sm">Your cart is empty</p>
             <Button color="warning" size="sm" className="mt-4" onClick={() => navigate('/mobile/catalog')}>
@@ -123,7 +123,7 @@ export default function MobileCart() {
 
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-800 line-clamp-2">{item.product_name || item.name}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">{formatCurrency(unitPrice)} / unit</p>
+                      <p className="text-xs text-gray-400 mt-0.5 dark:text-[var(--dark-muted)]">{formatCurrency(unitPrice)} / unit</p>
                       <p className="text-sm font-bold text-orange-500 mt-1">{formatCurrency(subtotal)}</p>
                     </div>
                   </div>
@@ -132,7 +132,7 @@ export default function MobileCart() {
                     <div className="flex items-center gap-2">
                       <button
                         onClick={() => handleUpdateQty(item.id, quantity - 1)}
-                        className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600"
+                        className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 dark:border-[var(--dark-border)] dark:text-[var(--dark-muted)]"
                         aria-label="Decrease quantity"
                       >
                         <HiMinus className="w-3.5 h-3.5" />
@@ -140,7 +140,7 @@ export default function MobileCart() {
                       <span className="w-7 text-center text-sm font-semibold text-gray-900">{quantity}</span>
                       <button
                         onClick={() => handleUpdateQty(item.id, quantity + 1)}
-                        className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600"
+                        className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-600 dark:border-[var(--dark-border)] dark:text-[var(--dark-muted)]"
                         aria-label="Increase quantity"
                       >
                         <HiPlus className="w-3.5 h-3.5" />

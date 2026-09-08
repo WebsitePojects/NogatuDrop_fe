@@ -169,7 +169,7 @@ export default function StockTransfers() {
                       ))
                     ) : transfers.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center text-gray-400 py-10">No transfers found</TableCell>
+                        <TableCell colSpan={7} className="text-center text-muted py-10">No transfers found</TableCell>
                       </TableRow>
                     ) : (
                       transfers.map((t) => (
@@ -178,7 +178,7 @@ export default function StockTransfers() {
                           <TableCell className="text-xs">{t.from_warehouse_name}</TableCell>
                           <TableCell className="text-xs">
                             <span className="flex items-center gap-1">
-                              <HiOutlineArrowRight className="w-3 h-3 text-gray-400" />
+                              <HiOutlineArrowRight className="w-3 h-3 text-muted" />
                               {t.to_warehouse_name}
                             </span>
                           </TableCell>
@@ -244,7 +244,7 @@ export default function StockTransfers() {
                 {items.map((item, i) => (
                   <div key={i} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-gray-50 dark:bg-gray-800/40 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
                     <div className="flex-1 w-full">
-                      <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 block sm:hidden">Product</label>
+                      <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 block sm:hidden">Product</label>
                       <Select
                         className="w-full"
                         value={item.product_id}
@@ -255,7 +255,7 @@ export default function StockTransfers() {
                       </Select>
                     </div>
                     <div className="w-full sm:w-32">
-                      <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 block sm:hidden">Quantity</label>
+                      <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 block sm:hidden">Quantity</label>
                       <TextInput
                         type="number"
                         min="1"
@@ -310,7 +310,7 @@ export default function StockTransfers() {
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm col-span-2 md:col-span-1">
                   <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
-                    <HiOutlineArrowRight className="w-3 h-3 text-gray-400" /> From
+                    <HiOutlineArrowRight className="w-3 h-3 text-muted" /> From
                   </p>
                   <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2">
                     {selected.from_warehouse_name}
@@ -318,7 +318,7 @@ export default function StockTransfers() {
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm col-span-2 md:col-span-1">
                   <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
-                    <HiOutlineLocationMarker className="w-3.5 h-3.5 text-gray-400" /> To
+                    <HiOutlineLocationMarker className="w-3.5 h-3.5 text-muted" /> To
                   </p>
                   <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2">
                     {selected.to_warehouse_name}
@@ -358,13 +358,13 @@ export default function StockTransfers() {
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-extrabold flex-shrink-0 transition-colors shadow-sm
                             ${isCancelled ? 'bg-red-100 text-red-500 dark:bg-red-900/30' 
                             : done 
-                              ? 'bg-amber-500 text-white shadow-amber-200 dark:shadow-none' 
-                              : 'bg-gray-100 dark:bg-gray-800 text-gray-400 border border-gray-200 dark:border-gray-700'}`}>
+                              ? 'bg-amber-500 text-amber-950 shadow-amber-200 dark:shadow-none' 
+                              : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700'}`}>
                             {isCancelled ? <HiOutlineX className="w-4 h-4" /> : stepIdx + 1}
                           </div>
                           <span className={`text-xs font-bold tracking-wide uppercase 
                             ${isCancelled ? 'text-red-500' 
-                            : done ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'}`}>
+                            : done ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
                             {s.replace(/_/g, ' ')}
                           </span>
                         </div>

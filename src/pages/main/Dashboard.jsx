@@ -204,7 +204,7 @@ export default function Dashboard() {
               </PieChart>
             </ResponsiveContainer>
           ) : (
-            <div className="flex items-center justify-center h-56 text-gray-400 text-sm">No data</div>
+            <div className="flex items-center justify-center h-56 text-muted text-sm">No data</div>
           )}
         </div>
       </div>
@@ -254,7 +254,7 @@ export default function Dashboard() {
               ))}
             </div>
           ) : lowStock.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6">All stock levels healthy</p>
+            <p className="text-sm text-muted text-center py-6">All stock levels healthy</p>
           ) : (
             <div className="space-y-2">
               {lowStock.map((item) => (

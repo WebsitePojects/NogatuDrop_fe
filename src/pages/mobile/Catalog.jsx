@@ -73,11 +73,11 @@ export default function MobileCatalog() {
   };
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen dark:bg-transparent">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       {/* Sticky search */}
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3">
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 dark:bg-[var(--dark-topbar)] dark:border-[var(--dark-border)]">
         <div className="relative">
           <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
           <input
@@ -102,7 +102,7 @@ export default function MobileCatalog() {
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400">
+          <div className="flex flex-col items-center justify-center py-20 text-gray-400 dark:text-[var(--dark-muted)]">
             <HiSearch size={40} className="mb-3 opacity-30" />
             <p className="text-sm">No products found</p>
             {search && (
@@ -145,7 +145,7 @@ export default function MobileCatalog() {
                       <div className="flex items-center justify-between bg-orange-50 rounded-xl px-2 py-1">
                         <button
                           onClick={() => handleUpdateQty(product, qty - 1)}
-                          className="w-7 h-7 rounded-lg bg-white flex items-center justify-center font-bold text-gray-600 hover:bg-gray-100 shadow-sm"
+                          className="w-7 h-7 rounded-lg bg-white flex items-center justify-center font-bold text-gray-600 hover:bg-gray-100 shadow-sm dark:text-[var(--dark-muted)]"
                         >
                           −
                         </button>
@@ -164,7 +164,7 @@ export default function MobileCatalog() {
                         className={`w-full py-2 rounded-xl text-xs font-semibold active:scale-95 transition-all disabled:opacity-60 ${
                           isOrderable
                             ? 'bg-orange-500 text-white hover:bg-orange-600'
-                            : 'bg-gray-200 text-gray-500'
+                            : 'bg-gray-200 text-gray-500 dark:bg-[var(--dark-card2)] dark:text-[var(--dark-muted)]'
                         }`}
                       >
                         {isAdding ? (

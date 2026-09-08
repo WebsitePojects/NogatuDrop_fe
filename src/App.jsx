@@ -15,6 +15,7 @@ const StockistLayout = lazy(() => import('./layouts/StockistLayout.jsx'));
 const MobileLayout = lazy(() => import('./layouts/MobileLayout.jsx'));
 
 const Login = lazy(() => import('./pages/shared/Login.jsx'));
+const ForgotPassword = lazy(() => import('./pages/shared/ForgotPassword.jsx'));
 const NotFound = lazy(() => import('./pages/shared/NotFound.jsx'));
 const Tracking = lazy(() => import('./pages/shared/Tracking.jsx'));
 const Deliver = lazy(() => import('./pages/shared/Deliver.jsx'));
@@ -99,7 +100,7 @@ const AppRoutes = () => {
   const normalizedRole = normalizeRoleSlug(user?.role_slug);
 
   React.useLayoutEffect(() => {
-    const isPublicRoute = ['/', '/login', '/shop', '/track'].some((path) =>
+    const isPublicRoute = ['/', '/login', '/forgot-password', '/shop', '/track'].some((path) =>
       location.pathname === path || location.pathname.startsWith(path + '/')
     ) || location.pathname.startsWith('/deliver/');
 
@@ -123,6 +124,7 @@ const AppRoutes = () => {
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/shop" element={<Shop />} />
         <Route path="/track" element={<Tracking />} />
         <Route path="/track/:orderNumber" element={<Tracking />} />

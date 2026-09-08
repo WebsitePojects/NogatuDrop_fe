@@ -385,7 +385,7 @@ export default function Tracking() {
                       <div className="text-center p-4">
                         <HiLocationMarker className="mx-auto mb-2 h-12 w-12 text-orange-400" />
                         <p className="text-sm font-medium text-gray-700">Rider is on the way</p>
-                        <p className="mt-0.5 text-xs text-gray-400">
+                        <p className="mt-0.5 text-xs text-gray-500">
                           {mapsConfigured && !mapLoadFailed
                             ? 'Live map unavailable for this route.'
                             : mapsFeatureEnabled
@@ -405,7 +405,7 @@ export default function Tracking() {
                       </div>
                     )
                   ) : (
-                    <div className="text-center text-gray-400">
+                    <div className="text-center text-gray-500">
                       <HiTruck className="mx-auto mb-2 h-12 w-12 opacity-30" />
                       <p className="text-sm">GPS data not available yet</p>
                     </div>
@@ -417,11 +417,11 @@ export default function Tracking() {
         )}
 
         <div className="mt-8 flex items-center justify-center gap-5 text-center">
-          <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600">
+          <Link to="/" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-600">
             <FiArrowLeft size={14} />
             Back to Home
           </Link>
-          <Link to="/shop" className="inline-flex items-center gap-1.5 text-sm text-gray-400 hover:text-gray-600">
+          <Link to="/shop" className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-600">
             Back to Shop
           </Link>
         </div>

@@ -16,7 +16,7 @@ export default function PageHeader({ title, subtitle, actions = [], children, cl
               className={[
                 'brand-btn',
                 action.color === 'success'
-                  ? 'bg-emerald-600 text-white shadow-[0_18px_34px_-22px_rgba(5,150,105,0.55)]'
+                  ? 'brand-btn--success'
                   : action.variant === 'outline' || action.color === 'light'
                     ? 'brand-btn--secondary'
                     : 'brand-btn--primary',

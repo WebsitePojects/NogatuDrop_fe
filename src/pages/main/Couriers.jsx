@@ -67,7 +67,7 @@ function CourierFormFields({ form, onFieldChange, onOpenTrackingGuide }) {
           <button
             type="button"
             onClick={onOpenTrackingGuide}
-            className="text-xs font-medium text-amber-700 hover:text-amber-800"
+            className="text-xs font-medium text-amber-700 hover:text-amber-800 dark:text-amber-400"
           >
             How to get this?
           </button>
@@ -78,7 +78,7 @@ function CourierFormFields({ form, onFieldChange, onOpenTrackingGuide }) {
           onChange={onFieldChange('tracking_url_template')}
           placeholder="https://courier.com/track?num={tracking_number}"
         />
-        <p className="text-xs text-gray-500 mt-1">
+        <p className="text-xs text-muted mt-1">
           Use <span className="font-mono">{'{tracking_number}'}</span> as placeholder for the actual number.
         </p>
       </div>
@@ -257,11 +257,11 @@ export default function Couriers() {
                       <TableCell className="font-mono text-xs">{c.code || '—'}</TableCell>
                       <TableCell className="text-xs">
                         <div>{c.contact_person || '—'}</div>
-                        {c.contact_phone && <div className="text-gray-500">{c.contact_phone}</div>}
+                        {c.contact_phone && <div className="text-muted">{c.contact_phone}</div>}
                       </TableCell>
                       <TableCell className="text-xs">
                         {c.tracking_url_template ? (
-                          <span className="text-amber-600 font-mono truncate max-w-xs block">{c.tracking_url_template}</span>
+                          <span className="text-amber-700 dark:text-amber-400 font-mono truncate max-w-xs block">{c.tracking_url_template}</span>
                         ) : '—'}
                       </TableCell>
                       <TableCell>
@@ -325,12 +325,12 @@ export default function Couriers() {
             onClick={() => setShowTrackingGuide(false)}
             aria-label="Close tracking guide"
           />
-          <div className="relative w-full max-w-2xl rounded-2xl border border-amber-100 bg-white shadow-2xl p-5 sm:p-6 animate-[fade-up_220ms_ease-out]">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">Courier Tracking Link Guide</h3>
-            <p className="text-sm text-gray-600 mb-3">
+          <div className="relative w-full max-w-2xl rounded-2xl border border-amber-100 dark:border-[var(--dark-border)] bg-white dark:bg-[var(--dark-card)] shadow-2xl p-5 sm:p-6 animate-[fade-up_220ms_ease-out]">
+            <h3 className="text-lg font-bold text-strong mb-2">Courier Tracking Link Guide</h3>
+            <p className="text-sm text-gray-600 dark:text-[var(--dark-muted)] mb-3">
               This field is optional but recommended. It helps stockists open the courier website directly from order tracking.
             </p>
-            <ol className="text-sm text-gray-700 space-y-1.5 list-decimal list-inside mb-3">
+            <ol className="text-sm text-gray-700 dark:text-[var(--dark-text)] space-y-1.5 list-decimal list-inside mb-3">
               <li>Open the courier official tracking page.</li>
               <li>Find the URL pattern where tracking number is passed in the link.</li>
               <li>Replace the real number with <span className="font-mono">{'{tracking_number}'}</span>.</li>

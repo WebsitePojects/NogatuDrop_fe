@@ -58,14 +58,14 @@ export default function MobileProfile() {
     .toUpperCase();
 
   return (
-    <div className="bg-white min-h-screen pb-24">
+    <div className="bg-white min-h-screen pb-24 dark:bg-transparent">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <div className="px-4 py-8">
         {/* Avatar */}
         <div className="text-center mb-8">
           <div className="w-20 h-20 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-3 shadow-sm">
-            <span className="text-3xl font-bold text-orange-500">{initials}</span>
+            <span className="text-3xl font-bold text-orange-800">{initials}</span>
           </div>
           <h2 className="text-xl font-bold text-gray-900">{user?.name}</h2>
           <p className="text-sm text-gray-500 mt-0.5 capitalize">Mobile Stockist</p>
@@ -80,10 +80,10 @@ export default function MobileProfile() {
           ].map(({ icon: Icon, label, value }) => (
             <div key={label} className="flex items-center gap-3 px-5 py-4">
               <div className="w-9 h-9 rounded-xl bg-gray-50 flex items-center justify-center flex-shrink-0">
-                <Icon size={16} className="text-gray-500" />
+                <Icon size={16} className="text-gray-500 dark:text-[var(--dark-muted)]" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-400">{label}</p>
+                <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)]">{label}</p>
                 <p className="text-sm font-medium text-gray-900 truncate">{value}</p>
               </div>
             </div>
@@ -97,7 +97,7 @@ export default function MobileProfile() {
             {editing ? (
               <button
                 onClick={() => { setEditing(false); setForm({ name: user?.name || '', phone: user?.phone || '' }); }}
-                className="text-gray-400 hover:text-gray-600"
+                className="text-gray-400 hover:text-gray-600 dark:text-[var(--dark-muted)] dark:hover:text-[var(--dark-text)]"
               >
                 <HiX size={18} />
               </button>
@@ -145,7 +145,7 @@ export default function MobileProfile() {
               </Button>
             </div>
           ) : (
-            <p className="text-sm text-gray-400">Tap Edit to update your name and phone number.</p>
+            <p className="text-sm text-gray-400 dark:text-[var(--dark-muted)]">Tap Edit to update your name and phone number.</p>
           )}
         </div>
 
@@ -153,7 +153,7 @@ export default function MobileProfile() {
         <button
           onClick={handleLogout}
           disabled={loggingOut}
-          className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 rounded-2xl text-sm font-semibold hover:bg-red-50 active:scale-95 transition-all disabled:opacity-60"
+          className="w-full flex items-center justify-center gap-2 py-3.5 border border-red-200 text-red-500 rounded-2xl text-sm font-semibold hover:bg-red-50 active:scale-95 transition-all disabled:opacity-60 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/10"
         >
           {loggingOut ? (
             <Spinner size="sm" color="failure" />

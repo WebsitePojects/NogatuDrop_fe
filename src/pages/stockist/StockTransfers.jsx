@@ -122,9 +122,9 @@ export default function StockistStockTransfers() {
         {/* Filter row */}
         <div className="flex flex-wrap gap-3 mb-4">
           <div className="relative flex-1 min-w-[200px]">
-            <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted w-4 h-4" />
             <input
-              className="pl-9 pr-4 py-2 w-full text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none bg-white text-gray-900"
+              className="pl-9 pr-4 py-2 w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none bg-white dark:bg-[var(--dark-card2)] text-strong"
               placeholder="Search transfer number..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -137,8 +137,8 @@ export default function StockistStockTransfers() {
                 onClick={() => setActiveTab(s)}
                 className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
                   activeTab === s
-                    ? 'bg-amber-500 text-white'
-                    : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                    ? 'bg-amber-500 text-amber-950'
+                    : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
                 }`}
               >
                 {s === 'all' ? 'All' : s === 'in_transit' ? 'In Transit' : s.charAt(0).toUpperCase() + s.slice(1)}
@@ -147,15 +147,15 @@ export default function StockistStockTransfers() {
           </div>
           <button
             onClick={fetchTransfers}
-            className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600"
+            className="p-2 rounded-lg border border-gray-200 dark:border-[var(--dark-border)] hover:bg-gray-50 dark:bg-[var(--dark-card2)] text-gray-600 dark:text-[var(--dark-muted)]"
           >
             <HiOutlineRefresh className="w-4 h-4" />
           </button>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left text-gray-700">
-            <thead className="text-xs text-coffee-700 bg-coffee-50 uppercase">
+          <table className="w-full text-sm text-left text-gray-700 dark:text-[var(--dark-text)]">
+            <thead className="text-xs text-coffee-700 dark:text-[var(--dark-muted)] bg-coffee-50 dark:bg-[var(--dark-card2)] uppercase">
               <tr>
                 <th className="px-4 py-3">Transfer #</th>
                 <th className="px-4 py-3">From</th>
@@ -178,31 +178,31 @@ export default function StockistStockTransfers() {
                 ))
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
+                  <td colSpan={6} className="px-4 py-12 text-center text-muted">
                     No transfers found
                   </td>
                 </tr>
               ) : (
                 filtered.map((t) => (
-                  <tr key={t.id} className="border-b border-gray-100 hover:bg-coffee-50/50 cursor-pointer" onClick={() => { setSelected(t); setViewModal(true); }}>
-                    <td className="px-4 py-3 font-medium text-coffee-700">{t.transfer_number}</td>
+                  <tr key={t.id} className="border-b border-gray-100 hover:bg-coffee-50/50 dark:hover:bg-white/5 cursor-pointer" onClick={() => { setSelected(t); setViewModal(true); }}>
+                    <td className="px-4 py-3 font-medium text-coffee-700 dark:text-[var(--dark-text)]">{t.transfer_number}</td>
                     <td className="px-4 py-3">{t.from_warehouse?.name || '—'}</td>
                     <td className="px-4 py-3">{t.to_warehouse?.name || '—'}</td>
                     <td className="px-4 py-3">
                       <StatusBadge status={t.status} />
                     </td>
-                    <td className="px-4 py-3 text-gray-500">{formatDate(t.created_at)}</td>
+                    <td className="px-4 py-3 text-muted">{formatDate(t.created_at)}</td>
                     <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
                       <div className="flex justify-end gap-2">
                         <button
-                          className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500"
+                          className="p-1.5 rounded-lg hover:bg-gray-100 dark:bg-gray-700 text-muted"
                           onClick={() => { setSelected(t); setViewModal(true); }}
                         >
                           <HiOutlineEye className="w-4 h-4" />
                         </button>
                         {(t.status === 'pending' || t.status === 'in_transit') && (
                           <button
-                            className="p-1.5 rounded-lg hover:bg-green-50 text-green-600"
+                            className="p-1.5 rounded-lg hover:bg-green-50 dark:hover:bg-white/5 text-green-600 dark:text-green-400"
                             onClick={() => handleAdvanceStatus(t)}
                           >
                             <HiOutlineCheckCircle className="w-4 h-4" />
@@ -230,8 +230,8 @@ export default function StockistStockTransfers() {
                   <div key={s} className="flex items-center gap-2">
                     <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold ${
                       STATUS_STEPS.indexOf(selected.status) >= i
-                        ? 'bg-amber-100 text-amber-800'
-                        : 'bg-gray-100 text-gray-400'
+                        ? 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300'
+                        : 'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300'
                     }`}>
                       {i + 1}. {s === 'in_transit' ? 'In Transit' : s.charAt(0).toUpperCase() + s.slice(1)}
                     </div>
@@ -243,20 +243,20 @@ export default function StockistStockTransfers() {
               {/* Details */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">From</p>
-                  <p className="font-medium text-gray-900">{selected.from_warehouse?.name}</p>
+                  <p className="text-xs text-muted uppercase tracking-wide">From</p>
+                  <p className="font-medium text-strong">{selected.from_warehouse?.name}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">To</p>
-                  <p className="font-medium text-gray-900">{selected.to_warehouse?.name}</p>
+                  <p className="text-xs text-muted uppercase tracking-wide">To</p>
+                  <p className="font-medium text-strong">{selected.to_warehouse?.name}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Status</p>
+                  <p className="text-xs text-muted uppercase tracking-wide">Status</p>
                   <StatusBadge status={selected.status} />
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500 uppercase tracking-wide">Date</p>
-                  <p className="font-medium text-gray-900">{formatDate(selected.created_at)}</p>
+                  <p className="text-xs text-muted uppercase tracking-wide">Date</p>
+                  <p className="font-medium text-strong">{formatDate(selected.created_at)}</p>
                 </div>
               </div>
 
@@ -264,10 +264,10 @@ export default function StockistStockTransfers() {
               {selected.items?.length > 0 && (
                 <>
                   <hr className="border-gray-100" />
-                  <p className="text-sm font-semibold text-gray-700">Items</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)]">Items</p>
                   <table className="w-full text-sm">
                     <thead>
-                      <tr className="text-xs text-gray-500 uppercase">
+                      <tr className="text-xs text-muted uppercase">
                         <th className="text-left py-2">Product</th>
                         <th className="text-right py-2">Quantity</th>
                       </tr>
@@ -285,7 +285,7 @@ export default function StockistStockTransfers() {
               )}
 
               {selected.notes && (
-                <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-600">
+                <div className="bg-gray-50 dark:bg-[var(--dark-card2)] rounded-lg p-3 text-sm text-gray-600 dark:text-[var(--dark-muted)]">
                   <span className="font-medium">Notes: </span>{selected.notes}
                 </div>
               )}
@@ -316,7 +316,7 @@ export default function StockistStockTransfers() {
               <Label htmlFor="from_wh">From Warehouse</Label>
               <select
                 id="from_wh"
-                className="mt-1 block w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900 focus:ring-amber-300 focus:border-amber-400"
+                className="mt-1 block w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-[var(--dark-card2)] text-strong focus:ring-amber-300 focus:border-amber-400"
                 value={form.from_warehouse_id}
                 onChange={(e) => setForm(f => ({ ...f, from_warehouse_id: e.target.value }))}
               >
@@ -328,7 +328,7 @@ export default function StockistStockTransfers() {
               <Label htmlFor="to_wh">To Warehouse</Label>
               <select
                 id="to_wh"
-                className="mt-1 block w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900 focus:ring-amber-300 focus:border-amber-400"
+                className="mt-1 block w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-[var(--dark-card2)] text-strong focus:ring-amber-300 focus:border-amber-400"
                 value={form.to_warehouse_id}
                 onChange={(e) => setForm(f => ({ ...f, to_warehouse_id: e.target.value }))}
               >
@@ -343,7 +343,7 @@ export default function StockistStockTransfers() {
             {form.items.map((item, i) => (
               <div key={i} className="flex gap-2 mt-2">
                 <select
-                  className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900"
+                  className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-[var(--dark-card2)] text-strong"
                   value={item.product_id}
                   onChange={(e) => updateItem(i, 'product_id', e.target.value)}
                 >
@@ -352,7 +352,7 @@ export default function StockistStockTransfers() {
                 </select>
                 <input
                   type="number"
-                  className="w-28 text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900"
+                  className="w-28 text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-[var(--dark-card2)] text-strong"
                   placeholder="Qty"
                   min="1"
                   value={item.quantity}
@@ -363,7 +363,7 @@ export default function StockistStockTransfers() {
                 )}
               </div>
             ))}
-            <button onClick={addItem} className="mt-2 text-sm text-amber-600 hover:text-amber-700 font-medium">+ Add item</button>
+            <button onClick={addItem} className="mt-2 text-sm text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-medium">+ Add item</button>
           </div>
 
           <div>
@@ -371,7 +371,7 @@ export default function StockistStockTransfers() {
             <textarea
               id="notes"
               rows={3}
-              className="mt-1 block w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900 focus:ring-amber-300 focus:border-amber-400"
+              className="mt-1 block w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-[var(--dark-card2)] text-strong focus:ring-amber-300 focus:border-amber-400"
               value={form.notes}
               onChange={(e) => setForm(f => ({ ...f, notes: e.target.value }))}
             />
@@ -379,7 +379,7 @@ export default function StockistStockTransfers() {
         </ModalBody>
         <ModalFooter>
           <Button
-            className="bg-amber-500 hover:bg-amber-600 text-white"
+            className="bg-amber-500 hover:bg-amber-600 text-amber-950"
             onClick={handleCreate}
             disabled={creating || !form.from_warehouse_id || !form.to_warehouse_id}
           >

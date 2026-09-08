@@ -428,7 +428,7 @@ export default function Shop() {
             <img src={BRAND_LOGO} alt="Nogatu" className="w-8 h-8 rounded-xl" />
             <div>
               <p className="font-bold text-gray-900 text-sm">Nogatu Shop</p>
-              <p className="text-xs text-gray-400">Official Store</p>
+              <p className="text-xs text-gray-500">Official Store</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -458,7 +458,7 @@ export default function Shop() {
           <>
             {/* Search */}
             <div className="relative mb-6 max-w-md">
-              <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
               <input
                 type="search"
                 value={search}
@@ -484,7 +484,7 @@ export default function Shop() {
                 </button>
               </div>
             ) : products.length === 0 ? (
-              <div className="flex flex-col items-center py-16 text-gray-400">
+              <div className="flex flex-col items-center py-16 text-gray-500">
                 <FiPackage size={48} className="mb-3 opacity-30" />
                 <p className="text-sm">{search.trim() ? 'No matching products found' : 'No products available'}</p>
               </div>
@@ -515,14 +515,14 @@ export default function Shop() {
                         <div className="text-xs mb-3 font-medium">
                           {stockMap[product.id] !== undefined ? (
                             stockMap[product.id] <= 0 ? (
-                              <span className="text-red-500 font-semibold">Out of Stock</span>
+                              <span className="text-red-600 font-semibold">Out of Stock</span>
                             ) : stockMap[product.id] <= 5 ? (
                               <span className="text-amber-500 font-semibold">Only {stockMap[product.id]} left</span>
                             ) : (
                               <span className="text-gray-500">Stock: {stockMap[product.id]} available</span>
                             )
                           ) : (
-                            <span className="text-gray-400">Checking stock...</span>
+                            <span className="text-gray-500">Checking stock...</span>
                           )}
                         </div>
                         {qty > 0 ? (
@@ -549,7 +549,7 @@ export default function Shop() {
                             type="button"
                             disabled={stockMap[product.id] !== undefined && stockMap[product.id] <= 0}
                             onClick={() => addToCart(product)}
-                            className="w-full py-2 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed active:scale-95 text-white font-semibold rounded-xl text-sm transition-all shadow-sm shadow-amber-500/10 disabled:shadow-none"
+                            className="w-full py-2 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 disabled:text-gray-600 disabled:cursor-not-allowed active:scale-95 text-white font-semibold rounded-xl text-sm transition-all shadow-sm shadow-amber-500/10 disabled:shadow-none"
                           >
                             {stockMap[product.id] !== undefined && stockMap[product.id] <= 0 ? 'Out of Stock' : 'Add to Cart'}
                           </button>
@@ -592,10 +592,10 @@ export default function Shop() {
                 >
                   Shop
                 </button>
-                <HiChevronRight className="w-3.5 h-3.5 text-gray-400" />
+                <HiChevronRight className="w-3.5 h-3.5 text-gray-500" />
                 <span className="font-bold text-amber-600">Secure Checkout</span>
-                <HiChevronRight className="w-3.5 h-3.5 text-gray-400" />
-                <span className="text-gray-400">Order Completed</span>
+                <HiChevronRight className="w-3.5 h-3.5 text-gray-500" />
+                <span className="text-gray-500">Order Completed</span>
               </div>
 
               <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr] items-start">
@@ -604,7 +604,7 @@ export default function Shop() {
                   <h2 className="text-lg font-bold text-gray-900 mb-1 flex items-center gap-2">
                     <FiPackage className="text-amber-500" /> Delivery Details
                   </h2>
-                  <p className="text-xs text-gray-400 mb-6">We only ship within the Philippines. Fields marked with * are required.</p>
+                  <p className="text-xs text-gray-500 mb-6">We only ship within the Philippines. Fields marked with * are required.</p>
 
                   {formError && (
                     <div className="mb-4 p-3 bg-red-50 border border-red-100 text-red-600 rounded-xl text-sm font-medium">
@@ -618,7 +618,7 @@ export default function Shop() {
                         Full Name *
                       </label>
                       <div className="relative">
-                        <FiUser className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <FiUser className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
                         <input
                           id="customerName"
                           type="text"
@@ -636,7 +636,7 @@ export default function Shop() {
                         Phone Number *
                       </label>
                       <div className="relative">
-                        <FiPhone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <FiPhone className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
                         <input
                           id="customerPhone"
                           type="tel"
@@ -654,7 +654,7 @@ export default function Shop() {
                         Email Address (Optional)
                       </label>
                       <div className="relative">
-                        <FiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <FiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
                         <input
                           id="customerEmail"
                           type="email"
@@ -671,7 +671,7 @@ export default function Shop() {
                         Nogatu Member Username (Optional — 30% member discount)
                       </label>
                       <div className="relative">
-                        <FiUser className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <FiUser className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
                         <input
                           id="memberUsername"
                           type="text"
@@ -681,7 +681,7 @@ export default function Shop() {
                           className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-300"
                         />
                       </div>
-                      <p className="mt-1 text-[11px] text-gray-400">Verified at checkout. The discount applies only to active members.</p>
+                      <p className="mt-1 text-[11px] text-gray-500">Verified at checkout. The discount applies only to active members.</p>
                     </div>
 
                     <div>
@@ -689,7 +689,7 @@ export default function Shop() {
                         Delivery Address *
                       </label>
                       <div className="relative">
-                        <FiMapPin className="absolute left-3.5 top-3 text-gray-400 w-4 h-4" />
+                        <FiMapPin className="absolute left-3.5 top-3 text-gray-500 w-4 h-4" />
                         <textarea
                           id="customerAddress"
                           required
@@ -771,11 +771,11 @@ export default function Shop() {
                             <div className="flex-1 min-w-0">
                               <h4 className="text-xs font-semibold text-gray-800 truncate">{item.name}</h4>
                               <div className="flex items-center gap-2 mt-0.5">
-                                <p className="text-[11px] text-gray-400">
+                                <p className="text-[11px] text-gray-500">
                                   {formatCurrency(item.unit_price)} x {item.quantity}
                                 </p>
                                 <span className="text-gray-300 text-[10px]">•</span>
-                                <span className={`text-[10px] font-semibold ${isExceeded ? 'text-red-500' : 'text-gray-400'}`}>
+                                <span className={`text-[10px] font-semibold ${isExceeded ? 'text-red-600' : 'text-gray-500'}`}>
                                   {stock !== undefined ? `Stock: ${stock} available` : 'Checking...'}
                                 </span>
                               </div>
@@ -804,7 +804,7 @@ export default function Shop() {
                       <div className="flex justify-between text-base font-bold text-gray-900 border-t border-dashed border-gray-100 pt-3 mt-2">
                         <div>
                           <span>Total Due</span>
-                          <p className="text-[11px] font-medium text-gray-400">All charges shown above</p>
+                          <p className="text-[11px] font-medium text-gray-500">All charges shown above</p>
                         </div>
                         <span className="text-amber-600 font-extrabold">{formatCurrency(totalDue)}</span>
                       </div>
@@ -830,7 +830,7 @@ export default function Shop() {
                         </button>
                       </div>
 
-                      <div className="border-t border-gray-100 pt-3 flex items-center justify-center gap-2 text-[10px] text-gray-400 font-medium">
+                      <div className="border-t border-gray-100 pt-3 flex items-center justify-center gap-2 text-[10px] text-gray-500 font-medium">
                         <FiLock className="w-3.5 h-3.5 text-emerald-500" />
                         <span>Secure Checkout • 256-Bit SSL Encryption</span>
                       </div>
@@ -881,7 +881,7 @@ export default function Shop() {
                 <button
                   type="button"
                   onClick={() => setCartOpen(false)}
-                  className="p-1 rounded-lg text-gray-400 hover:bg-gray-100 transition-colors"
+                  className="p-1 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
                 >
                   <HiX className="w-5 h-5" />
                 </button>
@@ -890,7 +890,7 @@ export default function Shop() {
               {/* Drawer Content */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin">
                 {cart.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+                  <div className="flex flex-col items-center justify-center h-64 text-gray-500">
                     <FiPackage className="w-12 h-12 mb-3 opacity-30" />
                     <p className="text-sm font-medium">Your cart is empty</p>
                     <button
@@ -925,7 +925,7 @@ export default function Shop() {
                             <button
                               type="button"
                               onClick={() => removeFromCart(item.product_id)}
-                              className="text-gray-400 hover:text-red-500 transition-colors shrink-0"
+                              className="text-gray-500 hover:text-red-500 transition-colors shrink-0"
                               title="Remove item"
                             >
                               <HiX className="w-4 h-4" />
@@ -935,11 +935,11 @@ export default function Shop() {
                           <div className="text-[10px] mt-1 font-semibold">
                             {stock !== undefined ? (
                               stock <= 0 ? (
-                                <span className="text-red-500">Out of Stock</span>
+                                <span className="text-red-600">Out of Stock</span>
                               ) : item.quantity > stock ? (
                                 <span className="text-amber-500">Only {stock} left</span>
                               ) : (
-                                <span className="text-gray-400 font-medium">Stock: {stock} available</span>
+                                <span className="text-gray-500 font-medium">Stock: {stock} available</span>
                               )
                             ) : (
                               <span className="text-gray-300">Checking stock...</span>
@@ -996,11 +996,11 @@ export default function Shop() {
                   <div className="flex justify-between text-sm">
                     <div>
                       <span className="font-semibold text-gray-900">Total Due</span>
-                      <p className="text-[10px] text-gray-400">VAT and System Fee Included</p>
+                      <p className="text-[10px] text-gray-500">VAT and System Fee Included</p>
                     </div>
                     <span className="font-extrabold text-amber-600">{formatCurrency(totalDue)}</span>
                   </div>
-                  <div className="text-[10px] text-gray-400 leading-normal">
+                  <div className="text-[10px] text-gray-500 leading-normal">
                     Final warehouse routing is confirmed during checkout.
                   </div>
                   <button
@@ -1010,7 +1010,7 @@ export default function Shop() {
                       setCartOpen(false);
                       setStep('checkout');
                     }}
-                    className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-sm transition-colors shadow-md shadow-amber-500/10 text-center disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed disabled:shadow-none"
+                    className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-sm transition-colors shadow-md shadow-amber-500/10 text-center disabled:bg-gray-200 disabled:text-gray-600 disabled:cursor-not-allowed disabled:shadow-none"
                   >
                     Go to Checkout
                   </button>

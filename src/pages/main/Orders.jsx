@@ -382,7 +382,7 @@ export default function Orders() {
         {/* Filters */}
         <div className="flex flex-wrap gap-3 mb-4">
           <div className="relative flex-1 min-w-48">
-            <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted w-4 h-4" />
             <TextInput
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -424,7 +424,7 @@ export default function Orders() {
                       ))
                     ) : orders.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center text-gray-400 py-10">
+                        <TableCell colSpan={9} className="text-center text-muted py-10">
                           No orders found
                         </TableCell>
                       </TableRow>
@@ -451,7 +451,7 @@ export default function Orders() {
                           </TableCell>
                           <TableCell className="text-xs">
                             {order.payment_deadline ? (
-                              <span className="text-amber-700 font-medium">
+                              <span className="text-amber-700 dark:text-amber-400 font-medium">
                                 {formatDateTime(order.payment_deadline)}
                               </span>
                             ) : '—'}
@@ -579,7 +579,7 @@ export default function Orders() {
                     )}
                   </div>
                   {selectedOrder.partner_name && (
-                    <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 pt-2 border-t border-orange-100 dark:border-orange-800/50">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 pt-2 border-t border-orange-100 dark:border-orange-800/50">
                       Fulfilled by Stockist: <span className="font-medium text-gray-600 dark:text-gray-300">{selectedOrder.partner_name}</span>
                     </p>
                   )}

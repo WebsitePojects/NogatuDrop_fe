@@ -131,9 +131,9 @@ export default function StockistPurchaseOrders() {
       <Card>
         <div className="flex flex-wrap gap-3 mb-4">
           <div className="relative flex-1 min-w-[200px]">
-            <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted w-4 h-4" />
             <input
-              className="pl-9 pr-4 py-2 w-full text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none bg-white text-gray-900"
+              className="pl-9 pr-4 py-2 w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-amber-300 focus:border-amber-400 outline-none bg-white dark:bg-[var(--dark-card2)] text-strong"
               placeholder="Search PO number..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -144,20 +144,20 @@ export default function StockistPurchaseOrders() {
               key={s}
               onClick={() => setActiveTab(s)}
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-colors ${
-                activeTab === s ? 'bg-amber-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                activeTab === s ? 'bg-amber-500 text-amber-950' : 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-200'
               }`}
             >
               {s.charAt(0).toUpperCase() + s.slice(1)}
             </button>
           ))}
-          <button onClick={fetchPOs} className="p-2 rounded-lg border border-gray-200 hover:bg-gray-50 text-gray-600">
+          <button onClick={fetchPOs} className="p-2 rounded-lg border border-gray-200 dark:border-[var(--dark-border)] hover:bg-gray-50 dark:bg-[var(--dark-card2)] text-gray-600 dark:text-[var(--dark-muted)]">
             <HiOutlineRefresh className="w-4 h-4" />
           </button>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left text-gray-700">
-            <thead className="text-xs text-coffee-700 bg-coffee-50 uppercase">
+          <table className="w-full text-sm text-left text-gray-700 dark:text-[var(--dark-text)]">
+            <thead className="text-xs text-coffee-700 dark:text-[var(--dark-muted)] bg-coffee-50 dark:bg-[var(--dark-card2)] uppercase">
               <tr>
                 <th className="px-4 py-3">PO #</th>
                 <th className="px-4 py-3">Supplier</th>
@@ -178,11 +178,11 @@ export default function StockistPurchaseOrders() {
                   </tr>
                 ))
               ) : filtered.length === 0 ? (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-gray-400">No purchase orders found</td></tr>
+                <tr><td colSpan={7} className="px-4 py-10 text-center text-muted">No purchase orders found</td></tr>
               ) : (
                 filtered.map((po) => (
-                  <tr key={po.id} className="border-b border-gray-100 hover:bg-coffee-50/50 cursor-pointer" onClick={() => { setSelected(po); setViewModal(true); }}>
-                    <td className="px-4 py-3 font-medium text-coffee-700">{po.po_number}</td>
+                  <tr key={po.id} className="border-b border-gray-100 hover:bg-coffee-50/50 dark:hover:bg-white/5 cursor-pointer" onClick={() => { setSelected(po); setViewModal(true); }}>
+                    <td className="px-4 py-3 font-medium text-coffee-700 dark:text-[var(--dark-text)]">{po.po_number}</td>
                     <td className="px-4 py-3">{po.supplier}</td>
                     <td className="px-4 py-3"><StatusBadge status={po.status} /></td>
                     <td className="px-4 py-3">
@@ -191,9 +191,9 @@ export default function StockistPurchaseOrders() {
                       ) : '—'}
                     </td>
                     <td className="px-4 py-3 font-medium">{formatCurrency(po.total_amount)}</td>
-                    <td className="px-4 py-3 text-gray-500">{formatDate(po.created_at)}</td>
+                    <td className="px-4 py-3 text-muted">{formatDate(po.created_at)}</td>
                     <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                      <button className="p-1.5 rounded hover:bg-gray-100 text-gray-500" onClick={() => { setSelected(po); setViewModal(true); }}>
+                      <button className="p-1.5 rounded hover:bg-gray-100 dark:bg-gray-700 text-muted" onClick={() => { setSelected(po); setViewModal(true); }}>
                         <HiOutlineEye className="w-4 h-4" />
                       </button>
                     </td>
@@ -212,18 +212,18 @@ export default function StockistPurchaseOrders() {
           {selected && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><p className="text-xs text-gray-500 uppercase">Supplier</p><p className="font-medium">{selected.supplier}</p></div>
-                <div><p className="text-xs text-gray-500 uppercase">Status</p><StatusBadge status={selected.status} /></div>
-                <div><p className="text-xs text-gray-500 uppercase">Total</p><p className="font-bold text-coffee-700">{formatCurrency(selected.total_amount)}</p></div>
-                <div><p className="text-xs text-gray-500 uppercase">Date</p><p className="font-medium">{formatDate(selected.created_at)}</p></div>
+                <div><p className="text-xs text-muted uppercase">Supplier</p><p className="font-medium">{selected.supplier}</p></div>
+                <div><p className="text-xs text-muted uppercase">Status</p><StatusBadge status={selected.status} /></div>
+                <div><p className="text-xs text-muted uppercase">Total</p><p className="font-bold text-coffee-700 dark:text-[var(--dark-text)]">{formatCurrency(selected.total_amount)}</p></div>
+                <div><p className="text-xs text-muted uppercase">Date</p><p className="font-medium">{formatDate(selected.created_at)}</p></div>
               </div>
-              {selected.notes && <div className="bg-gray-50 rounded-lg p-3 text-sm text-gray-600"><b>Notes:</b> {selected.notes}</div>}
+              {selected.notes && <div className="bg-gray-50 dark:bg-[var(--dark-card2)] rounded-lg p-3 text-sm text-gray-600 dark:text-[var(--dark-muted)]"><b>Notes:</b> {selected.notes}</div>}
               {selected.items?.length > 0 && (
                 <>
                   <hr className="border-gray-100" />
-                  <p className="text-sm font-semibold text-gray-700">Items</p>
+                  <p className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)]">Items</p>
                   <table className="w-full text-sm">
-                    <thead><tr className="text-xs text-gray-400 uppercase"><th className="text-left py-2">Product</th><th className="text-right py-2">Qty</th><th className="text-right py-2">Unit Price</th><th className="text-right py-2">Subtotal</th></tr></thead>
+                    <thead><tr className="text-xs text-muted uppercase"><th className="text-left py-2">Product</th><th className="text-right py-2">Qty</th><th className="text-right py-2">Unit Price</th><th className="text-right py-2">Subtotal</th></tr></thead>
                     <tbody>
                       {selected.items.map((item, i) => (
                         <tr key={i} className="border-t border-gray-100">
@@ -234,7 +234,7 @@ export default function StockistPurchaseOrders() {
                         </tr>
                       ))}
                     </tbody>
-                    <tfoot><tr className="border-t-2 border-gray-200"><td colSpan={3} className="py-2 text-right font-semibold">Total</td><td className="py-2 text-right font-bold text-coffee-700">{formatCurrency(selected.total_amount)}</td></tr></tfoot>
+                    <tfoot><tr className="border-t-2 border-gray-200"><td colSpan={3} className="py-2 text-right font-semibold">Total</td><td className="py-2 text-right font-bold text-coffee-700 dark:text-[var(--dark-text)]">{formatCurrency(selected.total_amount)}</td></tr></tfoot>
                   </table>
                 </>
               )}
@@ -268,11 +268,11 @@ export default function StockistPurchaseOrders() {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label htmlFor="supplier">Supplier</Label>
-              <input id="supplier" className="mt-1 block w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900" value={form.supplier} onChange={e => setForm(f => ({ ...f, supplier: e.target.value }))} placeholder="Nogatu Manufacturing" />
+              <input id="supplier" className="mt-1 block w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-[var(--dark-card2)] text-strong" value={form.supplier} onChange={e => setForm(f => ({ ...f, supplier: e.target.value }))} placeholder="Nogatu Manufacturing" />
             </div>
             <div>
               <Label htmlFor="warehouse">Destination Warehouse</Label>
-              <select id="warehouse" className="mt-1 block w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900" value={form.warehouse_id} onChange={e => setForm(f => ({ ...f, warehouse_id: e.target.value }))}>
+              <select id="warehouse" className="mt-1 block w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-[var(--dark-card2)] text-strong" value={form.warehouse_id} onChange={e => setForm(f => ({ ...f, warehouse_id: e.target.value }))}>
                 <option value="">Select warehouse</option>
                 {warehouses.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}
               </select>
@@ -283,30 +283,30 @@ export default function StockistPurchaseOrders() {
             <Label>Items</Label>
             {form.items.map((item, i) => (
               <div key={i} className="flex gap-2 mt-2">
-                <select className="flex-1 text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900" value={item.product_id} onChange={e => updateItem(i, 'product_id', e.target.value)}>
+                <select className="flex-1 text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-[var(--dark-card2)] text-strong" value={item.product_id} onChange={e => updateItem(i, 'product_id', e.target.value)}>
                   <option value="">Select product</option>
                   {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                 </select>
-                <input type="number" className="w-20 text-sm border border-gray-300 rounded-lg px-2 py-2 bg-white text-gray-900" placeholder="Qty" min="1" value={item.quantity} onChange={e => updateItem(i, 'quantity', e.target.value)} />
-                <input type="number" className="w-28 text-sm border border-gray-300 rounded-lg px-2 py-2 bg-white text-gray-900" placeholder="Unit price" min="0" step="0.01" value={item.unit_price} onChange={e => updateItem(i, 'unit_price', e.target.value)} />
+                <input type="number" className="w-20 text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-2 bg-white dark:bg-[var(--dark-card2)] text-strong" placeholder="Qty" min="1" value={item.quantity} onChange={e => updateItem(i, 'quantity', e.target.value)} />
+                <input type="number" className="w-28 text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-2 bg-white dark:bg-[var(--dark-card2)] text-strong" placeholder="Unit price" min="0" step="0.01" value={item.unit_price} onChange={e => updateItem(i, 'unit_price', e.target.value)} />
                 {form.items.length > 1 && <button onClick={() => removeItem(i)} className="text-red-400 hover:text-red-600 px-1">×</button>}
               </div>
             ))}
-            <button onClick={addItem} className="mt-2 text-sm text-amber-600 hover:text-amber-700 font-medium">+ Add item</button>
+            <button onClick={addItem} className="mt-2 text-sm text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-medium">+ Add item</button>
           </div>
 
-          <div className="flex justify-between items-center bg-amber-50 rounded-lg p-3">
-            <span className="text-sm font-semibold text-gray-700">Total Amount:</span>
-            <span className="text-lg font-bold text-coffee-800">{formatCurrency(totalAmount)}</span>
+          <div className="flex justify-between items-center bg-amber-50 dark:bg-[var(--dark-card2)] rounded-lg p-3">
+            <span className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)]">Total Amount:</span>
+            <span className="text-lg font-bold text-coffee-800 dark:text-amber-400">{formatCurrency(totalAmount)}</span>
           </div>
 
           <div>
             <Label htmlFor="notes">Notes (optional)</Label>
-            <textarea rows={2} className="mt-1 block w-full text-sm border border-gray-300 rounded-lg px-3 py-2 bg-white text-gray-900" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
+            <textarea rows={2} className="mt-1 block w-full text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 bg-white dark:bg-[var(--dark-card2)] text-strong" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} />
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button className="bg-amber-500 hover:bg-amber-600 text-white" onClick={handleCreate} disabled={creating || form.items.some((item) => !item.product_id || Number(item.quantity) < 1)}>
+          <Button className="bg-amber-500 hover:bg-amber-600 text-amber-950" onClick={handleCreate} disabled={creating || form.items.some((item) => !item.product_id || Number(item.quantity) < 1)}>
             {creating ? <Spinner size="sm" className="mr-2" /> : null}Submit PO
           </Button>
           <Button color="light" onClick={() => setCreateModal(false)}>Cancel</Button>

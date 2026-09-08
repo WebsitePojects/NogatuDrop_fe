@@ -21,15 +21,15 @@ import EmptyState from '@/components/EmptyState';
 import { ToastContainer, useToast } from '@/components/Toast';
 
 const TYPE_BADGE = {
-  in: 'bg-emerald-100 text-emerald-700',
-  out: 'bg-red-100 text-red-700',
-  reserve: 'bg-amber-100 text-amber-700',
-  release: 'bg-blue-100 text-blue-700',
-  adjustment: 'bg-gray-100 text-gray-700',
-  grn: 'bg-purple-100 text-purple-700',
-  transfer: 'bg-violet-100 text-violet-700',
-  cycle_count_increase: 'bg-teal-100 text-teal-700',
-  cycle_count_decrease: 'bg-rose-100 text-rose-700',
+  in: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
+  out: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300',
+  reserve: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
+  release: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
+  adjustment: 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300',
+  grn: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
+  transfer: 'bg-violet-100 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300',
+  cycle_count_increase: 'bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-teal-300',
+  cycle_count_decrease: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
 };
 
 // Friendly labels for the raw DB movement_type enum values, shown in the
@@ -117,7 +117,7 @@ export default function StockMovements() {
   };
 
   const typeSpan = (type) => {
-    const cls = TYPE_BADGE[type] || 'bg-gray-100 text-gray-600';
+    const cls = TYPE_BADGE[type] || 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
     return <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${cls}`}>{TYPE_LABELS[type] || type}</span>;
   };
 
@@ -144,27 +144,27 @@ export default function StockMovements() {
 
       <div className="mb-4 grid gap-4 md:grid-cols-4">
         <Card>
-          <p className="text-xs uppercase tracking-wide text-gray-500">Window Opening</p>
-          <p className="mt-2 text-2xl font-semibold text-gray-900">{openingBalance ?? '-'}</p>
+          <p className="text-xs uppercase tracking-wide text-muted">Window Opening</p>
+          <p className="mt-2 text-2xl font-semibold text-strong">{openingBalance ?? '-'}</p>
         </Card>
         <Card>
-          <p className="text-xs uppercase tracking-wide text-gray-500">Window Closing</p>
-          <p className="mt-2 text-2xl font-semibold text-gray-900">{closingBalance ?? '-'}</p>
+          <p className="text-xs uppercase tracking-wide text-muted">Window Closing</p>
+          <p className="mt-2 text-2xl font-semibold text-strong">{closingBalance ?? '-'}</p>
         </Card>
         <Card>
-          <p className="text-xs uppercase tracking-wide text-gray-500">Inbound Qty</p>
-          <p className="mt-2 text-2xl font-semibold text-emerald-600">+{summary.inbound}</p>
+          <p className="text-xs uppercase tracking-wide text-muted">Inbound Qty</p>
+          <p className="mt-2 text-2xl font-semibold text-emerald-600 dark:text-emerald-400">+{summary.inbound}</p>
         </Card>
         <Card>
-          <p className="text-xs uppercase tracking-wide text-gray-500">Outbound Qty</p>
-          <p className="mt-2 text-2xl font-semibold text-red-600">-{summary.outbound}</p>
+          <p className="text-xs uppercase tracking-wide text-muted">Outbound Qty</p>
+          <p className="mt-2 text-2xl font-semibold text-red-600 dark:text-red-400">-{summary.outbound}</p>
         </Card>
       </div>
 
       <Card>
         <div className="mb-4 flex flex-wrap gap-3">
           <div className="relative min-w-40 flex-1">
-            <HiOutlineSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <HiOutlineSearch className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
             <TextInput
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -219,13 +219,13 @@ export default function StockMovements() {
                 </TableRow>
               ) : (
                 movements.map((movement) => (
-                  <TableRow key={movement.id} className="hover:bg-amber-50/20">
+                  <TableRow key={movement.id} className="hover:bg-amber-50/20 dark:hover:bg-white/5">
                     <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{formatDateTime(movement.created_at)}</TableCell>
                     <TableCell className="text-xs font-medium text-gray-900 dark:text-[var(--dark-text)]">{movement.product_name}</TableCell>
                     <TableCell className="text-xs">{movement.warehouse_name}</TableCell>
                     <TableCell>{typeSpan(movement.movement_type)}</TableCell>
                     <TableCell>
-                      <span className={`text-sm font-bold ${Number(movement.quantity) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                      <span className={`text-sm font-bold ${Number(movement.quantity) > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
                         {Number(movement.quantity) > 0 ? '+' : ''}{movement.quantity}
                       </span>
                     </TableCell>

@@ -74,7 +74,9 @@ const MLM_PACKAGES = [
     price: 2500,
     color: 'from-[#b87333]/20 to-[#8b5c2a]/30',
     border: 'border-[#b87333]/40',
-    badge: 'bg-[#b87333]/80',
+    // Darker + fully opaque vs. the other tiers' /80: at #b87333/80 the white
+    // badge label measured 3.79:1 against the card's warm gradient backdrop.
+    badge: 'bg-[#7a4a1f]',
     tagline: 'Start your wellness journey today.',
   },
   {

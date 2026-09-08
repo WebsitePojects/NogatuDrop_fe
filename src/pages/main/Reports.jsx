@@ -20,7 +20,7 @@ const CHART_COLORS = ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#0
 function ChartCard({ title, children, loading }) {
   return (
     <Card>
-      <h3 className="text-sm font-semibold text-gray-700 mb-4">{title}</h3>
+      <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-4">{title}</h3>
       {loading ? <div className="skeleton h-52 w-full rounded-lg" /> : children}
     </Card>
   );
@@ -82,7 +82,7 @@ function RevenueTab() {
         </ChartCard>
       </div>
       <Card>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Revenue by Stockist</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-3">Revenue by Stockist</h3>
         <div className="overflow-x-auto">
           <Table striped>
             <TableHead>
@@ -95,7 +95,7 @@ function RevenueTab() {
             </TableHead>
             <TableBody className="divide-y">
               {byStockist.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="text-center text-gray-400 py-8">No data</TableCell></TableRow>
+                <TableRow><TableCell colSpan={4} className="text-center text-muted py-8">No data</TableCell></TableRow>
               ) : byStockist.map((r, i) => (
                 <TableRow key={i}>
                   <TableCell className="font-medium">{r.partner_name || r.business_name}</TableCell>
@@ -212,7 +212,7 @@ function ProductsTab() {
         </ChartCard>
       </div>
       <Card>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Product Performance</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-3">Product Performance</h3>
         <div className="overflow-x-auto">
           <Table striped>
             <TableHead>
@@ -225,7 +225,7 @@ function ProductsTab() {
             </TableHead>
             <TableBody className="divide-y">
               {data.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="text-center text-gray-400 py-8">No data</TableCell></TableRow>
+                <TableRow><TableCell colSpan={4} className="text-center text-muted py-8">No data</TableCell></TableRow>
               ) : data.map((p, i) => (
                 <TableRow key={i}>
                   <TableCell className="font-medium">{p.product_name || p.name}</TableCell>
@@ -284,7 +284,7 @@ function MovementsTab() {
         </ChartCard>
       </div>
       <Card>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Stock Movement Log</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-3">Stock Movement Log</h3>
         <div className="overflow-x-auto">
           <Table striped>
             <TableHead>
@@ -298,7 +298,7 @@ function MovementsTab() {
             </TableHead>
             <TableBody className="divide-y">
               {data.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center text-gray-400 py-8">No data</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center text-muted py-8">No data</TableCell></TableRow>
               ) : data.slice(0, 50).map((m, i) => (
                 <TableRow key={i}>
                   <TableCell className="text-xs">{formatDate(m.created_at)}</TableCell>
@@ -354,7 +354,7 @@ function StockistsTab() {
         ) : loading ? null : <EmptyState icon={HiOutlineChartBar} title="No data" description="" />}
       </ChartCard>
       <Card>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Stockist Performance</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-3">Stockist Performance</h3>
         <div className="overflow-x-auto">
           <Table striped>
             <TableHead>
@@ -368,14 +368,14 @@ function StockistsTab() {
             </TableHead>
             <TableBody className="divide-y">
               {data.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center text-gray-400 py-8">No data</TableCell></TableRow>
+                <TableRow><TableCell colSpan={5} className="text-center text-muted py-8">No data</TableCell></TableRow>
               ) : data.map((r, i) => (
                 <TableRow key={i}>
                   <TableCell className="font-medium">{r.partner_name || r.business_name}</TableCell>
                   <TableCell className="text-xs capitalize">{(r.stockist_level || '').replace(/_/g, ' ')}</TableCell>
                   <TableCell>{r.total_orders}</TableCell>
                   <TableCell className="font-semibold text-amber-700">{formatCurrency(r.total_revenue)}</TableCell>
-                  <TableCell className="text-xs text-gray-500">{r.last_order_at ? formatDate(r.last_order_at) : '—'}</TableCell>
+                  <TableCell className="text-xs text-muted">{r.last_order_at ? formatDate(r.last_order_at) : '—'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>
@@ -432,11 +432,11 @@ function InventoryTab() {
           </ResponsiveContainer>
         </ChartCard>
         <Card>
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">
+          <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-3">
             Expiring Within 30 Days ({expiringSoon.length})
           </h3>
           {expiringSoon.length === 0 ? (
-            <p className="text-sm text-gray-400">No items expiring soon</p>
+            <p className="text-sm text-muted">No items expiring soon</p>
           ) : (
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {expiringSoon.map((i) => (
@@ -450,9 +450,9 @@ function InventoryTab() {
         </Card>
       </div>
       <Card>
-        <h3 className="text-sm font-semibold text-gray-700 mb-3">Low/Out of Stock Items ({lowStock.length})</h3>
+        <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-3">Low/Out of Stock Items ({lowStock.length})</h3>
         {lowStock.length === 0 ? (
-          <p className="text-sm text-gray-400">All items are adequately stocked</p>
+          <p className="text-sm text-muted">All items are adequately stocked</p>
         ) : (
           <div className="overflow-x-auto">
             <Table striped>

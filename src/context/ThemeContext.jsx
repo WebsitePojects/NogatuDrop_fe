@@ -21,7 +21,7 @@ export const ThemeProvider = ({ children }) => {
   }
 
   useLayoutEffect(() => {
-    const isPublicRoute = ['/', '/login', '/shop', '/track'].some((path) =>
+    const isPublicRoute = ['/', '/login', '/forgot-password', '/shop', '/track'].some((path) =>
       window.location.pathname === path || window.location.pathname.startsWith(path + '/')
     ) || window.location.pathname.startsWith('/deliver/');
 

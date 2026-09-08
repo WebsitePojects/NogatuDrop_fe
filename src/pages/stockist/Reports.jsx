@@ -25,7 +25,7 @@ function DateFilter({ dateFrom, dateTo, setDateFrom, setDateTo, onExportPDF }) {
   return (
     <div className="flex flex-wrap items-center gap-3 mb-5">
       <div className="flex items-center gap-2">
-        <label className="text-xs text-gray-500 font-medium">From</label>
+        <label className="text-xs text-muted font-medium">From</label>
         <input
           type="date"
           value={dateFrom}
@@ -34,7 +34,7 @@ function DateFilter({ dateFrom, dateTo, setDateFrom, setDateTo, onExportPDF }) {
         />
       </div>
       <div className="flex items-center gap-2">
-        <label className="text-xs text-gray-500 font-medium">To</label>
+        <label className="text-xs text-muted font-medium">To</label>
         <input
           type="date"
           value={dateTo}
@@ -44,7 +44,7 @@ function DateFilter({ dateFrom, dateTo, setDateFrom, setDateTo, onExportPDF }) {
       </div>
       <button
         onClick={onExportPDF}
-        className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 text-gray-600 rounded-lg text-sm hover:bg-gray-50 transition-colors"
+        className="flex items-center gap-1.5 px-3 py-1.5 border border-gray-200 dark:border-[var(--dark-border)] text-gray-600 dark:text-[var(--dark-muted)] rounded-lg text-sm hover:bg-gray-50 dark:bg-[var(--dark-card2)] transition-colors"
       >
         <HiDownload className="w-4 h-4" />
         Export PDF
@@ -110,39 +110,39 @@ export default function StockistReports() {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-4 md:p-6" style={{ background: '#FFF8F0' }}>
+      <div className="min-h-screen p-4 md:p-6">
         <div className="mx-auto max-w-6xl animate-pulse space-y-5">
-          <div className="h-8 w-56 rounded-lg bg-gray-100" />
+          <div className="h-8 w-56 rounded-lg bg-gray-100 dark:bg-gray-700" />
           <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
             {Array.from({ length: 4 }).map((_, i) => (
-              <div key={i} className="h-24 rounded-2xl bg-gray-100" />
+              <div key={i} className="h-24 rounded-2xl bg-gray-100 dark:bg-gray-700" />
             ))}
           </div>
-          <div className="h-72 rounded-2xl bg-gray-100" />
+          <div className="h-72 rounded-2xl bg-gray-100 dark:bg-gray-700" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 md:p-6 min-h-screen page-enter" style={{ background: '#FFF8F0' }}>
+    <div className="p-4 md:p-6 min-h-screen page-enter">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <div className="mb-5">
-        <h1 className="text-2xl font-bold text-gray-900">Reports</h1>
-        <p className="text-sm text-gray-500 mt-0.5">Your business performance (scoped to your account)</p>
+        <h1 className="text-2xl font-bold text-strong">Reports</h1>
+        <p className="text-sm text-muted mt-0.5">Your business performance (scoped to your account)</p>
       </div>
 
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="bg-white dark:bg-[var(--dark-card)] rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] shadow-sm overflow-hidden">
         <Tabs aria-label="Reports tabs" variant="underline">
           {/* Revenue Tab */}
           <TabItem title="Revenue">
             <div className="p-4">
               <DateFilter dateFrom={dateFrom} dateTo={dateTo} setDateFrom={setDateFrom} setDateTo={setDateTo} onExportPDF={handleExportPDF} />
-              <div className="bg-gray-50 rounded-xl p-5 mb-4">
-                <p className="text-sm font-semibold text-gray-700 mb-4">Monthly Revenue</p>
+              <div className="bg-gray-50 dark:bg-[var(--dark-card2)] rounded-xl p-5 mb-4">
+                <p className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-4">Monthly Revenue</p>
                 {revenueData.length === 0 ? (
-                  <div className="h-48 flex items-center justify-center text-gray-400 text-sm">No data available</div>
+                  <div className="h-48 flex items-center justify-center text-muted text-sm">No data available</div>
                 ) : (
                   <ResponsiveContainer width="100%" height={220}>
                     <BarChart data={revenueData}>
@@ -157,10 +157,10 @@ export default function StockistReports() {
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 dark:bg-[var(--dark-card2)]">
                     <tr>
                       {['Month', 'Orders', 'Revenue', 'Avg Order'].map(h => (
-                        <th key={h} className="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase">{h}</th>
+                        <th key={h} className="text-left px-4 py-3 text-xs text-muted font-semibold uppercase">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -168,9 +168,9 @@ export default function StockistReports() {
                     {revenueData.map((row, i) => (
                       <tr key={i} className="border-t border-gray-50 hover:bg-amber-50/30">
                         <td className="px-4 py-2.5 font-medium">{row.month}</td>
-                        <td className="px-4 py-2.5 text-gray-600">{row.order_count || 0}</td>
-                        <td className="px-4 py-2.5 font-semibold text-gray-900">{formatCurrency(row.revenue || 0)}</td>
-                        <td className="px-4 py-2.5 text-gray-500">
+                        <td className="px-4 py-2.5 text-gray-600 dark:text-[var(--dark-muted)]">{row.order_count || 0}</td>
+                        <td className="px-4 py-2.5 font-semibold text-strong">{formatCurrency(row.revenue || 0)}</td>
+                        <td className="px-4 py-2.5 text-muted">
                           {row.order_count ? formatCurrency((row.revenue || 0) / row.order_count) : '—'}
                         </td>
                       </tr>
@@ -186,10 +186,10 @@ export default function StockistReports() {
             <div className="p-4">
               <DateFilter dateFrom={dateFrom} dateTo={dateTo} setDateFrom={setDateFrom} setDateTo={setDateTo} onExportPDF={handleExportPDF} />
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-                <div className="bg-gray-50 rounded-xl p-5">
-                  <p className="text-sm font-semibold text-gray-700 mb-4">Order Status Breakdown</p>
+                <div className="bg-gray-50 dark:bg-[var(--dark-card2)] rounded-xl p-5">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-4">Order Status Breakdown</p>
                   {statusBreakdown.length === 0 ? (
-                    <div className="h-48 flex items-center justify-center text-gray-400 text-sm">No data</div>
+                    <div className="h-48 flex items-center justify-center text-muted text-sm">No data</div>
                   ) : (
                     <ResponsiveContainer width="100%" height={200}>
                       <PieChart>
@@ -203,13 +203,13 @@ export default function StockistReports() {
                     </ResponsiveContainer>
                   )}
                 </div>
-                <div className="overflow-x-auto bg-gray-50 rounded-xl p-4">
-                  <p className="text-sm font-semibold text-gray-700 mb-3">Status Summary</p>
+                <div className="overflow-x-auto bg-gray-50 dark:bg-[var(--dark-card2)] rounded-xl p-4">
+                  <p className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-3">Status Summary</p>
                   <div className="space-y-2">
                     {statusBreakdown.map(({ name, value }) => (
                       <div key={name} className="flex items-center justify-between text-sm">
-                        <span className="capitalize text-gray-600">{name}</span>
-                        <span className="font-semibold text-gray-900">{value}</span>
+                        <span className="capitalize text-gray-600 dark:text-[var(--dark-muted)]">{name}</span>
+                        <span className="font-semibold text-strong">{value}</span>
                       </div>
                     ))}
                   </div>
@@ -217,10 +217,10 @@ export default function StockistReports() {
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 dark:bg-[var(--dark-card2)]">
                     <tr>
                       {['Order #', 'Total', 'Status', 'Date'].map(h => (
-                        <th key={h} className="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase">{h}</th>
+                        <th key={h} className="text-left px-4 py-3 text-xs text-muted font-semibold uppercase">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -229,8 +229,8 @@ export default function StockistReports() {
                       <tr key={i} className="border-t border-gray-50 hover:bg-amber-50/30">
                         <td className="px-4 py-2.5 font-mono text-xs">{row.order_number || `#${row.id}`}</td>
                         <td className="px-4 py-2.5 font-semibold">{formatCurrency(row.total_amount || 0)}</td>
-                        <td className="px-4 py-2.5 capitalize text-gray-600">{row.status}</td>
-                        <td className="px-4 py-2.5 text-xs text-gray-400">{formatDate(row.created_at)}</td>
+                        <td className="px-4 py-2.5 capitalize text-gray-600 dark:text-[var(--dark-muted)]">{row.status}</td>
+                        <td className="px-4 py-2.5 text-xs text-muted">{formatDate(row.created_at)}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -243,10 +243,10 @@ export default function StockistReports() {
           <TabItem title="Inventory">
             <div className="p-4">
               <DateFilter dateFrom={dateFrom} dateTo={dateTo} setDateFrom={setDateFrom} setDateTo={setDateTo} onExportPDF={handleExportPDF} />
-              <div className="bg-gray-50 rounded-xl p-5 mb-4">
-                <p className="text-sm font-semibold text-gray-700 mb-4">Stock Levels by Product</p>
+              <div className="bg-gray-50 dark:bg-[var(--dark-card2)] rounded-xl p-5 mb-4">
+                <p className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-4">Stock Levels by Product</p>
                 {inventoryData.length === 0 ? (
-                  <div className="h-48 flex items-center justify-center text-gray-400 text-sm">No data available</div>
+                  <div className="h-48 flex items-center justify-center text-muted text-sm">No data available</div>
                 ) : (
                   <ResponsiveContainer width="100%" height={220}>
                     <BarChart data={inventoryData.slice(0, 10)} layout="vertical">
@@ -261,10 +261,10 @@ export default function StockistReports() {
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 dark:bg-[var(--dark-card2)]">
                     <tr>
                       {['Product', 'On Hand', 'Reserved', 'Available', 'Status'].map(h => (
-                        <th key={h} className="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase">{h}</th>
+                        <th key={h} className="text-left px-4 py-3 text-xs text-muted font-semibold uppercase">{h}</th>
                       ))}
                     </tr>
                   </thead>
@@ -273,13 +273,13 @@ export default function StockistReports() {
                       const avail = (row.current_stock || 0) - (row.reserved_stock || 0);
                       return (
                         <tr key={i} className="border-t border-gray-50 hover:bg-amber-50/30">
-                          <td className="px-4 py-2.5 font-medium text-gray-800">{row.product_name}</td>
+                          <td className="px-4 py-2.5 font-medium text-strong">{row.product_name}</td>
                           <td className="px-4 py-2.5 font-semibold">{row.current_stock || 0}</td>
                           <td className="px-4 py-2.5 text-amber-600">{row.reserved_stock || 0}</td>
                           <td className={`px-4 py-2.5 font-semibold ${avail <= 0 ? 'text-red-600' : 'text-emerald-600'}`}>
                             {avail}
                           </td>
-                          <td className="px-4 py-2.5 capitalize text-gray-500 text-xs">{row.status || 'in_stock'}</td>
+                          <td className="px-4 py-2.5 capitalize text-muted text-xs">{row.status || 'in_stock'}</td>
                         </tr>
                       );
                     })}
@@ -293,10 +293,10 @@ export default function StockistReports() {
           <TabItem title="Movements">
             <div className="p-4">
               <DateFilter dateFrom={dateFrom} dateTo={dateTo} setDateFrom={setDateFrom} setDateTo={setDateTo} onExportPDF={handleExportPDF} />
-              <div className="bg-gray-50 rounded-xl p-5 mb-4">
-                <p className="text-sm font-semibold text-gray-700 mb-4">Stock In/Out Over Time</p>
+              <div className="bg-gray-50 dark:bg-[var(--dark-card2)] rounded-xl p-5 mb-4">
+                <p className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-4">Stock In/Out Over Time</p>
                 {movementsData.length === 0 ? (
-                  <div className="h-48 flex items-center justify-center text-gray-400 text-sm">No data available</div>
+                  <div className="h-48 flex items-center justify-center text-muted text-sm">No data available</div>
                 ) : (
                   <ResponsiveContainer width="100%" height={220}>
                     <AreaChart data={movementsData}>
@@ -323,18 +323,18 @@ export default function StockistReports() {
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50 dark:bg-[var(--dark-card2)]">
                     <tr>
                       {['Date', 'Product', 'Type', 'Qty', 'Reference'].map(h => (
-                        <th key={h} className="text-left px-4 py-3 text-xs text-gray-500 font-semibold uppercase">{h}</th>
+                        <th key={h} className="text-left px-4 py-3 text-xs text-muted font-semibold uppercase">{h}</th>
                       ))}
                     </tr>
                   </thead>
                   <tbody>
                     {movementsData.slice(0, 20).map((row, i) => (
                       <tr key={i} className="border-t border-gray-50 hover:bg-amber-50/30">
-                        <td className="px-4 py-2.5 text-xs text-gray-400">{formatDate(row.created_at || row.date)}</td>
-                        <td className="px-4 py-2.5 font-medium text-gray-800">{row.product_name || '—'}</td>
+                        <td className="px-4 py-2.5 text-xs text-muted">{formatDate(row.created_at || row.date)}</td>
+                        <td className="px-4 py-2.5 font-medium text-strong">{row.product_name || '—'}</td>
                         <td className="px-4 py-2.5">
                           <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                             row.movement_type === 'in' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
@@ -343,7 +343,7 @@ export default function StockistReports() {
                           </span>
                         </td>
                         <td className="px-4 py-2.5 font-semibold">{row.quantity || 0}</td>
-                        <td className="px-4 py-2.5 text-xs text-gray-500 font-mono">{row.reference || '—'}</td>
+                        <td className="px-4 py-2.5 text-xs text-muted font-mono">{row.reference || '—'}</td>
                       </tr>
                     ))}
                   </tbody>

@@ -70,7 +70,7 @@ function UserFormFields({ form, fld, formRoles, partners, warehouses, onWarehous
           <option value="">Select role...</option>
           {formRoles.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
         </Select>
-        <p className="mt-1 text-xs text-gray-500">
+        <p className="mt-1 text-xs text-muted">
           Mobile Stockist accounts are provisioned from the Mobile Stockists module so their user and field profile stay linked.
         </p>
       </div>
@@ -90,7 +90,7 @@ function UserFormFields({ form, fld, formRoles, partners, warehouses, onWarehous
               {partners.map((p) => <option key={p.id} value={p.id}>{p.business_name}</option>)}
             </Select>
             {form.warehouse_id && (
-              <p className="mt-1 text-xs text-gray-500">Derived from warehouse</p>
+              <p className="mt-1 text-xs text-muted">Derived from warehouse</p>
             )}
           </div>
           <div className="col-span-2">
@@ -265,7 +265,7 @@ export default function Users() {
       <Card>
         <div className="flex flex-wrap gap-3 mb-4">
           <div className="relative flex-1 min-w-48">
-            <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted w-4 h-4" />
             <TextInput
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}

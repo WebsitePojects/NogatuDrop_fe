@@ -90,15 +90,15 @@ export default function CatalogDetail() {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-4 md:p-6" style={{ background: '#FFF8F0' }}>
+      <div className="min-h-screen p-4 md:p-6">
         <div className="mx-auto grid max-w-5xl animate-pulse gap-6 md:grid-cols-2">
-          <div className="aspect-square rounded-2xl bg-gray-100" />
+          <div className="aspect-square rounded-2xl bg-gray-100 dark:bg-gray-700" />
           <div className="space-y-3">
-            <div className="h-3 w-24 rounded bg-gray-100" />
-            <div className="h-7 w-4/5 rounded bg-gray-100" />
-            <div className="h-5 w-1/3 rounded bg-gray-100" />
-            <div className="h-24 w-full rounded-xl bg-gray-100 mt-4" />
-            <div className="h-11 w-full rounded-xl bg-gray-100 mt-4" />
+            <div className="h-3 w-24 rounded bg-gray-100 dark:bg-gray-700" />
+            <div className="h-7 w-4/5 rounded bg-gray-100 dark:bg-gray-700" />
+            <div className="h-5 w-1/3 rounded bg-gray-100 dark:bg-gray-700" />
+            <div className="h-24 w-full rounded-xl bg-gray-100 dark:bg-gray-700 mt-4" />
+            <div className="h-11 w-full rounded-xl bg-gray-100 dark:bg-gray-700 mt-4" />
           </div>
         </div>
       </div>
@@ -107,7 +107,7 @@ export default function CatalogDetail() {
 
   if (!product) {
     return (
-      <div className="p-6 text-center text-gray-500 min-h-screen" style={{ background: '#FFF8F0' }}>
+      <div className="p-6 text-center text-muted min-h-screen">
         <p className="mb-4">Product not found.</p>
         <Button color="warning" onClick={() => navigate('/stockist/catalog')}>Back to Catalog</Button>
       </div>
@@ -119,11 +119,11 @@ export default function CatalogDetail() {
   const isOrderable = availableQty > 0;
 
   return (
-    <div className="p-4 md:p-6 min-h-screen page-enter" style={{ background: '#FFF8F0' }}>
+    <div className="p-4 md:p-6 min-h-screen page-enter">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-1.5 text-sm text-gray-500 mb-5">
+      <nav className="flex items-center gap-1.5 text-sm text-muted mb-5">
         <button
           onClick={() => navigate('/stockist/catalog')}
           className="flex items-center gap-1 hover:text-amber-600 transition-colors"
@@ -132,16 +132,16 @@ export default function CatalogDetail() {
           Catalog
         </button>
         <span>/</span>
-        <span className="text-gray-700 font-medium truncate max-w-xs">{product.name}</span>
+        <span className="text-gray-700 dark:text-[var(--dark-text)] font-medium truncate max-w-xs">{product.name}</span>
       </nav>
 
       {/* Product Detail Card */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden mb-8">
+      <div className="bg-white dark:bg-[var(--dark-card)] rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] shadow-sm overflow-hidden mb-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-0">
           {/* Image */}
           <div className="relative flex aspect-square min-h-[280px] items-center justify-center bg-[radial-gradient(circle_at_top,rgba(255,219,174,0.65),transparent_58%),linear-gradient(180deg,#fffaf3_0%,#f8ecdf_100%)] p-6 lg:aspect-auto lg:min-h-[400px] lg:p-10">
             {disc && (
-              <span className="absolute top-4 left-4 bg-red-500 text-white text-xs font-bold px-2.5 py-1 rounded-full z-10">
+              <span className="absolute top-4 left-4 bg-red-600 text-white text-xs font-bold px-2.5 py-1 rounded-full z-10">
                 -{disc}% OFF
               </span>
             )}
@@ -160,18 +160,18 @@ export default function CatalogDetail() {
                 {product.category}
               </span>
             )}
-            <h1 className="text-2xl font-bold text-gray-900 leading-tight mb-1">{product.name}</h1>
+            <h1 className="text-2xl font-bold text-strong leading-tight mb-1">{product.name}</h1>
             {product.sku && (
-              <p className="text-xs text-gray-400 font-mono mb-4">SKU: {product.sku}</p>
+              <p className="text-xs text-muted font-mono mb-4">SKU: {product.sku}</p>
             )}
 
             {/* Pricing */}
             <div className="flex items-end gap-3 mb-4">
-              <span className="text-3xl font-bold text-amber-500">
+              <span className="text-3xl font-bold text-amber-700 dark:text-amber-500">
                 {formatCurrency(product.partner_price || product.price || 0)}
               </span>
               {product.retail_price && product.retail_price > (product.partner_price || 0) && (
-                <span className="text-lg text-gray-400 line-through mb-0.5">
+                <span className="text-lg text-muted line-through mb-0.5">
                   {formatCurrency(product.retail_price)}
                 </span>
               )}
@@ -184,23 +184,23 @@ export default function CatalogDetail() {
 
             {/* Description */}
             {product.description && (
-              <p className="text-sm text-gray-600 leading-relaxed mb-6">{product.description}</p>
+              <p className="text-sm text-gray-600 dark:text-[var(--dark-muted)] leading-relaxed mb-6">{product.description}</p>
             )}
 
             {/* Stock info */}
             {product.available_qty !== undefined && (
-              <p className="text-xs text-gray-400 mb-4">
-                Available from your route: <span className={`font-semibold ${isOrderable ? 'text-gray-700' : 'text-rose-600'}`}>{availableQty}</span>
+              <p className="text-xs text-muted mb-4">
+                Available from your route: <span className={`font-semibold ${isOrderable ? 'text-gray-700 dark:text-[var(--dark-text)]' : 'text-rose-600'}`}>{availableQty}</span>
               </p>
             )}
 
             {/* Quantity Selector */}
             {canUseCart && isOrderable && <div className="flex items-center gap-3 mb-6">
-              <span className="text-sm font-medium text-gray-700">Quantity:</span>
+              <span className="text-sm font-medium text-gray-700 dark:text-[var(--dark-text)]">Quantity:</span>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setQty(q => Math.max(1, q - 1))}
-                  className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold text-lg"
+                  className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-700 font-bold text-lg"
                 >
                   −
                 </button>
@@ -213,7 +213,7 @@ export default function CatalogDetail() {
                 />
                 <button
                   onClick={() => setQty(q => q + 1)}
-                  className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-100 font-bold text-lg"
+                  className="w-9 h-9 rounded-xl border border-gray-200 flex items-center justify-center text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-700 font-bold text-lg"
                 >
                   +
                 </button>
@@ -226,7 +226,7 @@ export default function CatalogDetail() {
                 onClick={handleAddToCart}
                 disabled={addingCart || checkingOut || !isOrderable}
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl disabled:opacity-60 font-semibold text-sm transition-colors ${
-                  isOrderable ? 'bg-amber-500 hover:bg-amber-600 text-white' : 'bg-gray-200 text-gray-500'
+                  isOrderable ? 'bg-amber-500 hover:bg-amber-600 text-amber-950' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300'
                 }`}
               >
                 {addingCart ? (
@@ -242,7 +242,7 @@ export default function CatalogDetail() {
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl disabled:opacity-60 font-semibold text-sm transition-colors ${
                   isOrderable
                     ? 'bg-gray-900 hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 text-white'
-                    : 'bg-gray-200 text-gray-500'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300'
                 }`}
               >
                 <HiLightningBolt className="w-4 h-4" />
@@ -256,15 +256,15 @@ export default function CatalogDetail() {
       {/* Related Products */}
       {related.length > 0 && (
         <div>
-          <h2 className="text-lg font-bold text-gray-900 mb-4">Related Products</h2>
+          <h2 className="text-lg font-bold text-strong mb-4">Related Products</h2>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {related.map(rp => (
               <div
                 key={rp.id}
-                className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer"
+                className="bg-white dark:bg-[var(--dark-card)] rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] overflow-hidden shadow-sm hover:shadow-md transition-all cursor-pointer"
                 onClick={() => navigate(`/stockist/catalog/${rp.id}`)}
               >
-                <div className="aspect-square bg-gray-50 overflow-hidden">
+                <div className="aspect-square bg-gray-50 dark:bg-[var(--dark-card2)] overflow-hidden">
                   <img
                     src={getProductImageSrc(rp)}
                     alt={rp.name}
@@ -273,8 +273,8 @@ export default function CatalogDetail() {
                   />
                 </div>
                 <div className="p-3">
-                  <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 mb-1">{rp.name}</h3>
-                  <p className="text-sm font-bold text-amber-500">
+                  <h3 className="text-sm font-semibold text-strong line-clamp-2 mb-1">{rp.name}</h3>
+                  <p className="text-sm font-bold text-amber-700 dark:text-amber-500">
                     {formatCurrency(rp.partner_price || rp.price || 0)}
                   </p>
                 </div>

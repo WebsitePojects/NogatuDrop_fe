@@ -119,7 +119,7 @@ export default function StockistMobileStockists() {
   );
 
   return (
-    <div className="p-4 md:p-6 min-h-screen page-enter bg-[#FFF8F0] dark:bg-[var(--dark-bg)]">
+    <div className="p-4 md:p-6 min-h-screen page-enter">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <div className="flex items-center justify-between mb-5">
@@ -148,11 +148,11 @@ export default function StockistMobileStockists() {
         {loading ? (
           <div className="p-4 space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-11 rounded-xl bg-gray-100 animate-pulse" />
+              <div key={i} className="h-11 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />
             ))}
           </div>
         ) : items.length === 0 ? (
-          <div className="flex flex-col items-center py-16 text-gray-400">
+          <div className="flex flex-col items-center py-16 text-muted">
             <FiUser size={40} className="mb-3 opacity-30" />
             <p className="text-sm">No mobile stockists found</p>
             <button onClick={openAdd} className="mt-3 text-amber-600 text-sm hover:underline">
@@ -189,7 +189,7 @@ export default function StockistMobileStockists() {
                         <div className="flex items-center gap-2">
                           <button
                             onClick={() => openEdit(item)}
-                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            className="p-1.5 text-muted hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-white/5 rounded-lg transition-colors"
                           >
                             <HiPencil className="w-4 h-4" />
                           </button>
@@ -202,7 +202,7 @@ export default function StockistMobileStockists() {
             </div>
             {totalPages > 1 && (
               <div className="flex items-center justify-between px-4 py-3 border-t border-gray-100">
-                <p className="text-xs text-gray-500">Page {page} of {totalPages}</p>
+                <p className="text-xs text-muted">Page {page} of {totalPages}</p>
                 <div className="flex gap-2">
                   <Button size="xs" color="gray" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>Previous</Button>
                   <Button size="xs" color="gray" disabled={page >= totalPages} onClick={() => setPage(p => p + 1)}>Next</Button>

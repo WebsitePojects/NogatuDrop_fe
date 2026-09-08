@@ -95,7 +95,7 @@ export default function LocationPicker({ value, onChange }) {
           type="button"
           onClick={useLiveLocation}
           disabled={locating}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 disabled:opacity-60"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-amber-50 px-3 py-1.5 text-xs font-semibold text-amber-700 transition hover:bg-amber-100 disabled:opacity-60 dark:bg-amber-900/30 dark:text-amber-300 dark:hover:bg-amber-900/50"
         >
           <FiCrosshair className="h-3.5 w-3.5" />
           {locating ? 'Locating…' : 'Use my live location'}
@@ -103,12 +103,12 @@ export default function LocationPicker({ value, onChange }) {
       </div>
 
       {!consent && (
-        <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-[11px] text-amber-700">
+        <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-[11px] text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
           Accept location use in the privacy banner to auto-detect your spot. You can still tap the map to pin it manually.
         </p>
       )}
 
-      <div className="h-56 w-full overflow-hidden rounded-xl border border-gray-200">
+      <div className="h-56 w-full overflow-hidden rounded-xl border border-gray-200 dark:border-[var(--dark-border)]">
         <MapContainer
           center={[center.lat, center.lng]}
           zoom={value ? 15 : 6}
@@ -128,7 +128,7 @@ export default function LocationPicker({ value, onChange }) {
         </MapContainer>
       </div>
 
-      <div className="mt-2 flex items-start gap-2 text-[11px] text-gray-500">
+      <div className="mt-2 flex items-start gap-2 text-[11px] text-gray-500 dark:text-[var(--dark-muted)]">
         <FiMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
         {value && Number.isFinite(value.lat) ? (
           <span>{place || `Pinned at ${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}`} — tap the map to adjust.</span>
@@ -137,12 +137,12 @@ export default function LocationPicker({ value, onChange }) {
         )}
       </div>
       {outsidePH && (
-        <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-red-600">
+        <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-red-600 dark:text-red-400">
           <FiAlertTriangle className="h-3.5 w-3.5" />
           We only deliver within the Philippines. Tap inside the country to adjust your pin.
         </p>
       )}
-      {error && <p className="mt-1 text-[11px] text-red-500">{error}</p>}
+      {error && <p className="mt-1 text-[11px] text-red-500 dark:text-red-400">{error}</p>}
     </div>
   );
 }

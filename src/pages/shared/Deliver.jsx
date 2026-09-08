@@ -264,7 +264,7 @@ export default function Deliver() {
           <p className="text-sm text-gray-500">
             The delivery has been recorded successfully. The stockist has been notified.
           </p>
-          <p className="mt-4 text-xs text-gray-400">You may close this page.</p>
+          <p className="mt-4 text-xs text-gray-500">You may close this page.</p>
         </div>
       </div>
     );
@@ -287,7 +287,7 @@ export default function Deliver() {
               <HiLocationMarker className="h-4 w-4 text-orange-500" />
             </div>
             <div>
-              <p className="mb-0.5 text-xs text-gray-400">Deliver to</p>
+              <p className="mb-0.5 text-xs text-gray-500">Deliver to</p>
               <p className="text-sm font-semibold text-gray-900">{info?.customer_name}</p>
               <p className="mt-0.5 text-sm text-gray-600">{info?.customer_address}</p>
             </div>
@@ -299,7 +299,7 @@ export default function Deliver() {
                 <HiPhone className="h-4 w-4 text-blue-500" />
               </div>
               <div>
-                <p className="mb-0.5 text-xs text-gray-400">Contact</p>
+                <p className="mb-0.5 text-xs text-gray-500">Contact</p>
                 <a href={`tel:${info.customer_phone}`} className="text-sm font-medium text-blue-600">
                   {info.customer_phone}
                 </a>
@@ -456,7 +456,7 @@ export default function Deliver() {
                 <>
                   <HiCamera className="mb-2 h-8 w-8 text-gray-400" />
                   <p className="text-sm font-medium text-gray-600">Take Delivery Photo</p>
-                  <p className="mt-0.5 text-xs text-gray-400">Tap to capture with camera</p>
+                  <p className="mt-0.5 text-xs text-gray-500">Tap to capture with camera</p>
                 </>
               )}
               <input
@@ -470,7 +470,7 @@ export default function Deliver() {
             {photoPreview && (
               <button
                 onClick={() => { setPhoto(null); setPhotoPreview(null); }}
-                className="mt-1 text-xs text-red-400 hover:text-red-600"
+                className="mt-1 text-xs text-red-600 hover:text-red-700"
               >
                 Remove photo
               </button>
@@ -516,7 +516,7 @@ export default function Deliver() {
               />
             </div>
             {!signatureDirty && (
-              <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-400">
+              <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
                 <HiPencilAlt className="h-3.5 w-3.5" />
                 Sign with your finger or stylus.
               </div>

@@ -201,7 +201,7 @@ export default function Inventory() {
   const fld = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
   const stockStatusBadge = (item) => {
-    const cls = STOCK_STATUS_COLOR[item.status] || 'bg-gray-100 text-gray-600';
+    const cls = STOCK_STATUS_COLOR[item.status] || 'bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300';
     const avail = Math.max(0, (item.current_stock || 0) - (item.reserved_stock || 0));
     return (
       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${cls}`}>
@@ -222,7 +222,7 @@ export default function Inventory() {
         {/* Filters */}
         <div className="flex flex-wrap gap-3 mb-4">
           <div className="relative flex-1 min-w-48">
-            <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted w-4 h-4" />
             <TextInput
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
@@ -289,8 +289,8 @@ export default function Inventory() {
                   const avail = Math.max(0, (item.current_stock || 0) - (item.reserved_stock || 0));
                   return (
                     <TableRow key={item.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(item)}>
-                      <TableCell className="font-medium text-gray-900">{item.product_name}</TableCell>
-                      <TableCell className="text-xs text-gray-600">{item.warehouse_name}</TableCell>
+                      <TableCell className="font-medium text-strong">{item.product_name}</TableCell>
+                      <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{item.warehouse_name}</TableCell>
                       <TableCell className="text-xs font-mono">{item.batch_number || '—'}</TableCell>
                       <TableCell className="text-xs">{item.expiry_date ? formatDate(item.expiry_date) : '—'}</TableCell>
                       <TableCell className="font-semibold">{item.current_stock ?? 0}</TableCell>
@@ -364,7 +364,7 @@ export default function Inventory() {
               <div className="grid grid-cols-2 gap-5">
                 <div>
                   <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block flex items-center gap-1">Current Stock</label>
-                  <TextInput id="add_stock" type="number" min="0" value={form.current_stock} onChange={fld('current_stock')} placeholder="0" className="font-bold text-gray-900" />
+                  <TextInput id="add_stock" type="number" min="0" value={form.current_stock} onChange={fld('current_stock')} placeholder="0" className="font-bold text-strong" />
                 </div>
                 <div>
                   <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Batch Number</label>
@@ -382,12 +382,12 @@ export default function Inventory() {
                 <div>
                   <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Warning Limit</label>
                   <TextInput id="add_warning" type="number" min="0" value={form.warning_threshold} onChange={fld('warning_threshold')} placeholder="e.g. 50" />
-                  <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide">Alert below this</p>
+                  <p className="text-[10px] text-muted mt-1 uppercase tracking-wide">Alert below this</p>
                 </div>
                 <div>
                   <label className="text-xs font-bold text-orange-500 dark:text-orange-400 uppercase tracking-wider mb-2 block">Reorder Limit</label>
                   <TextInput id="add_reorder" type="number" min="0" value={form.reorder_threshold} onChange={fld('reorder_threshold')} placeholder="e.g. 20" />
-                  <p className="text-[10px] text-gray-400 mt-1 uppercase tracking-wide">Critical low stock</p>
+                  <p className="text-[10px] text-muted mt-1 uppercase tracking-wide">Critical low stock</p>
                 </div>
               </div>
             </div>
@@ -416,7 +416,7 @@ export default function Inventory() {
              <div className="grid grid-cols-2 gap-5">
               <div>
                 <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Current Stock</label>
-                <TextInput type="number" min="0" value={form.current_stock} onChange={fld('current_stock')} className="font-bold text-gray-900" />
+                <TextInput type="number" min="0" value={form.current_stock} onChange={fld('current_stock')} className="font-bold text-strong" />
               </div>
               <div>
                 <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Batch Number</label>
@@ -451,8 +451,8 @@ export default function Inventory() {
       <Modal show={showAdjustModal} onClose={() => setShowAdjustModal(false)} size="sm">
         <ModalHeader>Adjust Stock — {selected?.product_name}</ModalHeader>
         <ModalBody>
-          <p className="text-sm text-gray-500 mb-4">
-            Current stock: <span className="font-bold text-gray-900">{selected?.current_stock ?? 0}</span>
+          <p className="text-sm text-muted mb-4">
+            Current stock: <span className="font-bold text-strong">{selected?.current_stock ?? 0}</span>
           </p>
           <div className="space-y-3">
             <div>
@@ -486,16 +486,16 @@ export default function Inventory() {
           {selected && (
             <div className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-3">
-                <div><p className="text-gray-500 text-xs">Product</p><p className="font-semibold">{selected.product_name}</p></div>
-                <div><p className="text-gray-500 text-xs">SKU</p><p className="font-mono">{selected.sku || '—'}</p></div>
-                <div><p className="text-gray-500 text-xs">Warehouse</p><p className="font-semibold">{selected.warehouse_name}</p></div>
-                <div><p className="text-gray-500 text-xs">Batch</p><p className="font-mono">{selected.batch_number || '—'}</p></div>
-                <div><p className="text-gray-500 text-xs">Expiry Date</p><p>{selected.expiry_date ? formatDate(selected.expiry_date) : '—'}</p></div>
-                <div><p className="text-gray-500 text-xs">Status</p>{stockStatusBadge(selected)}</div>
-                <div><p className="text-gray-500 text-xs">Current Stock</p><p className="font-bold text-lg">{selected.current_stock ?? 0}</p></div>
-                <div><p className="text-gray-500 text-xs">Reserved</p><p className="text-amber-600 font-semibold">{selected.reserved_stock ?? 0}</p></div>
-                <div><p className="text-gray-500 text-xs">Available</p><p className="text-green-600 font-semibold">{Math.max(0, (selected.current_stock || 0) - (selected.reserved_stock || 0))}</p></div>
-                <div><p className="text-gray-500 text-xs">Reorder At</p><p>{selected.reorder_threshold ?? '—'}</p></div>
+                <div><p className="text-muted text-xs">Product</p><p className="font-semibold">{selected.product_name}</p></div>
+                <div><p className="text-muted text-xs">SKU</p><p className="font-mono">{selected.sku || '—'}</p></div>
+                <div><p className="text-muted text-xs">Warehouse</p><p className="font-semibold">{selected.warehouse_name}</p></div>
+                <div><p className="text-muted text-xs">Batch</p><p className="font-mono">{selected.batch_number || '—'}</p></div>
+                <div><p className="text-muted text-xs">Expiry Date</p><p>{selected.expiry_date ? formatDate(selected.expiry_date) : '—'}</p></div>
+                <div><p className="text-muted text-xs">Status</p>{stockStatusBadge(selected)}</div>
+                <div><p className="text-muted text-xs">Current Stock</p><p className="font-bold text-lg">{selected.current_stock ?? 0}</p></div>
+                <div><p className="text-muted text-xs">Reserved</p><p className="text-amber-600 font-semibold">{selected.reserved_stock ?? 0}</p></div>
+                <div><p className="text-muted text-xs">Available</p><p className="text-green-600 font-semibold">{Math.max(0, (selected.current_stock || 0) - (selected.reserved_stock || 0))}</p></div>
+                <div><p className="text-muted text-xs">Reorder At</p><p>{selected.reorder_threshold ?? '—'}</p></div>
               </div>
             </div>
           )}

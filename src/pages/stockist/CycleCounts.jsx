@@ -178,7 +178,7 @@ export default function StockistCycleCounts() {
         {loading ? (
           <div className="p-4 space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-11 rounded-xl bg-gray-100 animate-pulse" />
+              <div key={i} className="h-11 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />
             ))}
           </div>
         ) : rows.length === 0 ? (
@@ -201,7 +201,7 @@ export default function StockistCycleCounts() {
                     <TableCell>{row.warehouse_name}</TableCell>
                     <TableCell><StatusBadge status={row.status} /></TableCell>
                     <TableCell className="text-xs">{formatDateTime(row.created_at)}</TableCell>
-                    <TableCell className="text-xs text-gray-500">{row.notes || '-'}</TableCell>
+                    <TableCell className="text-xs text-muted">{row.notes || '-'}</TableCell>
                     <TableCell>
                       <Button size="xs" color={row.status === 'draft' ? 'warning' : 'light'} onClick={() => openDetail(row)}>
                         {row.status === 'draft' ? <HiOutlinePencilAlt className="mr-1 h-3.5 w-3.5" /> : <HiOutlineEye className="mr-1 h-3.5 w-3.5" />}
@@ -220,7 +220,7 @@ export default function StockistCycleCounts() {
         <ModalHeader>Create Cycle Count</ModalHeader>
         <ModalBody className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Warehouse</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-[var(--dark-text)]">Warehouse</label>
             <Select value={form.warehouse_id} onChange={(e) => setForm((prev) => ({ ...prev, warehouse_id: e.target.value }))}>
               <option value="">Select warehouse</option>
               {warehouses.map((warehouse) => (
@@ -229,7 +229,7 @@ export default function StockistCycleCounts() {
             </Select>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">Notes</label>
+            <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-[var(--dark-text)]">Notes</label>
             <Textarea rows={4} value={form.notes} onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))} placeholder="Shift, team, or count context" />
           </div>
         </ModalBody>
@@ -246,30 +246,30 @@ export default function StockistCycleCounts() {
             <div className="space-y-4 animate-pulse">
               <div className="grid gap-3 md:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-16 rounded-xl bg-gray-100" />
+                  <div key={i} className="h-16 rounded-xl bg-gray-100 dark:bg-gray-700" />
                 ))}
               </div>
               {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="h-11 rounded-xl bg-gray-100" />
+                <div key={i} className="h-11 rounded-xl bg-gray-100 dark:bg-gray-700" />
               ))}
             </div>
           ) : (
             <div className="space-y-4">
               <div className="grid gap-3 md:grid-cols-4">
-                <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                  <p className="text-xs uppercase tracking-wide text-gray-500">Warehouse</p>
-                  <p className="mt-1 text-sm font-semibold text-gray-900">{detail.warehouse_name}</p>
+                <div className="rounded-xl border border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)] p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted">Warehouse</p>
+                  <p className="mt-1 text-sm font-semibold text-strong">{detail.warehouse_name}</p>
                 </div>
-                <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                  <p className="text-xs uppercase tracking-wide text-gray-500">Status</p>
+                <div className="rounded-xl border border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)] p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted">Status</p>
                   <div className="mt-1"><StatusBadge status={detail.status} /></div>
                 </div>
-                <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                  <p className="text-xs uppercase tracking-wide text-gray-500">Total Increase</p>
+                <div className="rounded-xl border border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)] p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted">Total Increase</p>
                   <p className="mt-1 text-sm font-semibold text-emerald-600">+{varianceSummary.increase}</p>
                 </div>
-                <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                  <p className="text-xs uppercase tracking-wide text-gray-500">Total Decrease</p>
+                <div className="rounded-xl border border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)] p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted">Total Decrease</p>
                   <p className="mt-1 text-sm font-semibold text-red-600">-{varianceSummary.decrease}</p>
                 </div>
               </div>
@@ -288,7 +288,7 @@ export default function StockistCycleCounts() {
                     {detail.items.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.product_name}</TableCell>
-                        <TableCell className="font-mono text-xs text-gray-500">{item.sku}</TableCell>
+                        <TableCell className="font-mono text-xs text-muted">{item.sku}</TableCell>
                         <TableCell>{item.system_qty}</TableCell>
                         <TableCell className="min-w-32">
                           {detail.status === 'draft' ? (
@@ -309,7 +309,7 @@ export default function StockistCycleCounts() {
                           {detail.status === 'draft' ? (
                             <Textarea rows={2} value={item.notes || ''} onChange={(e) => updateDetailItem(item.id, { notes: e.target.value })} />
                           ) : (
-                            <span className="text-xs text-gray-500">{item.notes || '-'}</span>
+                            <span className="text-xs text-muted">{item.notes || '-'}</span>
                           )}
                         </TableCell>
                       </TableRow>

@@ -17,9 +17,12 @@ export default function ConfirmModal({
       <ModalHeader />
       <ModalBody>
         <div className="text-center">
+          {/* red-400/amber-400 measured 2.77:1 / 1.67:1 against the white modal
+              surface — well under the 3:1 WCAG floor for meaningful graphics.
+              600/700 clear it in light mode; 400 stays for the dark surface. */}
           <HiExclamationCircle
             className={`mx-auto mb-4 w-14 h-14 ${
-              confirmColor === 'failure' ? 'text-red-400' : 'text-amber-400'
+              confirmColor === 'failure' ? 'text-red-600 dark:text-red-400' : 'text-amber-700 dark:text-amber-400'
             }`}
           />
           <h3 className="mb-2 text-lg font-semibold text-gray-900">{title}</h3>

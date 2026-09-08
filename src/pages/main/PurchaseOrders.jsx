@@ -164,7 +164,7 @@ export default function PurchaseOrders() {
                       ))
                     ) : orders.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center text-gray-400 py-10">No purchase orders found</TableCell>
+                        <TableCell colSpan={8} className="text-center text-muted py-10">No purchase orders found</TableCell>
                       </TableRow>
                     ) : (
                       orders.map((o) => (
@@ -176,7 +176,7 @@ export default function PurchaseOrders() {
                           <TableCell>
                             {o.is_auto_generated ? (
                               <span className="badge-approved">Auto</span>
-                            ) : <span className="text-gray-400 text-xs">Manual</span>}
+                            ) : <span className="text-muted text-xs">Manual</span>}
                           </TableCell>
                           <TableCell className="font-semibold text-xs">{formatCurrency(o.total_amount || 0)}</TableCell>
                           <TableCell className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{formatDate(o.created_at)}</TableCell>
@@ -234,18 +234,18 @@ export default function PurchaseOrders() {
                 {items.map((item, i) => (
                   <div key={i} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-gray-50 dark:bg-gray-800/40 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
                     <div className="flex-1 w-full">
-                      <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 block sm:hidden">Product</label>
+                      <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 block sm:hidden">Product</label>
                       <Select className="w-full" value={item.product_id} onChange={(e) => updateItem(i, 'product_id', e.target.value)}>
                         <option value="">Select product...</option>
                         {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                       </Select>
                     </div>
                     <div className="w-full sm:w-24">
-                      <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 block sm:hidden">Quantity</label>
+                      <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 block sm:hidden">Quantity</label>
                       <TextInput type="number" min="1" placeholder="Qty" value={item.quantity} onChange={(e) => updateItem(i, 'quantity', e.target.value)} className="w-full font-bold" />
                     </div>
                     <div className="w-full sm:w-28 flex items-center gap-2">
-                       <label className="text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1 block sm:hidden">Price (₱)</label>
+                       <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 block sm:hidden">Price (₱)</label>
                       <TextInput type="number" min="0" step="0.01" placeholder="Unit ₱" value={item.unit_price} onChange={(e) => updateItem(i, 'unit_price', e.target.value)} className="w-full font-bold text-gray-900 dark:text-white" />
                     </div>
                     {items.length > 1 && (

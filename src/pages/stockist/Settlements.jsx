@@ -59,7 +59,7 @@ export default function StockistSettlements() {
         {loading ? (
           <div className="p-4 space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-11 rounded-xl bg-gray-100 animate-pulse" />
+              <div key={i} className="h-11 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />
             ))}
           </div>
         ) : rows.length === 0 ? (

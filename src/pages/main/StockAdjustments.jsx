@@ -155,7 +155,7 @@ export default function StockAdjustments() {
                       </TableRow>
                     ) : (
                       adjustments.map((a) => (
-                        <TableRow key={a.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(a)}>
+                        <TableRow key={a.id} className="hover:bg-amber-50/30 dark:hover:bg-white/5 cursor-pointer" onClick={() => openDetail(a)}>
                           <TableCell className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{formatDate(a.created_at)}</TableCell>
                           <TableCell className="font-medium text-gray-900 dark:text-[var(--dark-text)] text-xs">{a.product_name}</TableCell>
                           <TableCell className="text-xs">{a.warehouse_name}</TableCell>

@@ -104,8 +104,8 @@ export default function StockistWarehouses() {
           <div className="w-16 h-16 bg-amber-100 rounded-full flex items-center justify-center mb-4">
             <HiOutlineOfficeBuilding className="w-8 h-8 text-amber-400" />
           </div>
-          <h3 className="text-base font-semibold text-gray-900 mb-1">No {activeView === 'owned' ? 'Warehouses' : 'Affiliated Stockists'} Found</h3>
-          <p className="text-sm text-gray-500">{activeView === 'owned' ? 'Assign a warehouse to this Stockist account.' : 'No direct downstream Stockists are linked to this branch yet.'}</p>
+          <h3 className="text-base font-semibold text-strong mb-1">No {activeView === 'owned' ? 'Warehouses' : 'Affiliated Stockists'} Found</h3>
+          <p className="text-sm text-muted">{activeView === 'owned' ? 'Assign a warehouse to this Stockist account.' : 'No direct downstream Stockists are linked to this branch yet.'}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -126,8 +126,8 @@ export default function StockistWarehouses() {
                     <div>
                       <p className="font-semibold text-gray-900 dark:text-[var(--dark-text)] text-sm">{wh.name}</p>
                       <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-                        wh.type === 'manufacturer' ? 'bg-purple-100 text-purple-700' :
-                        wh.type === 'region' ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700'
+                        wh.type === 'manufacturer' ? 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300' :
+                        wh.type === 'region' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300' : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
                       }`}>
                         {wh.type}
                       </span>
@@ -144,17 +144,17 @@ export default function StockistWarehouses() {
 
                 {/* Capacity bar */}
                 <div className="mb-3">
-                  <div className="flex justify-between text-xs text-gray-500 mb-1">
+                  <div className="flex justify-between text-xs text-muted mb-1">
                     <span>Capacity</span>
                     <span>{pct}% used</span>
                   </div>
-                  <div className="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="w-full h-2 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                     <div
                       className={`h-full rounded-full transition-all ${capacityColor(pct)}`}
                       style={{ width: `${pct}%` }}
                     />
                   </div>
-                  <p className="text-xs text-gray-400 mt-1">
+                  <p className="text-xs text-muted mt-1">
                     {(wh.capacity_used || 0).toLocaleString()} / {(wh.capacity_total || 0).toLocaleString()} units
                   </p>
                 </div>
@@ -166,7 +166,7 @@ export default function StockistWarehouses() {
                 </div>
 
                 {/* View button */}
-                <button className="mt-3 w-full py-2 text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 rounded-lg transition-colors">
+                <button className="mt-3 w-full py-2 text-xs font-semibold text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-[var(--dark-card2)] hover:bg-amber-100 dark:hover:bg-white/5 rounded-lg transition-colors">
                   View Details →
                 </button>
               </div>
@@ -194,7 +194,7 @@ export default function StockistWarehouses() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)] uppercase tracking-wide mb-0.5">Status</p>
-                  <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold ${selected.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600'}`}>
+                  <span className={selected.is_active ? 'badge-active' : 'badge-inactive'}>
                     {selected.is_active ? 'Active' : 'Inactive'}
                   </span>
                 </div>
@@ -212,11 +212,11 @@ export default function StockistWarehouses() {
 
               {/* Capacity bar */}
               <div>
-                <div className="flex justify-between text-xs text-gray-500 mb-1.5">
+                <div className="flex justify-between text-xs text-muted mb-1.5">
                   <span className="font-medium">Storage Utilization</span>
                   <span>{capacityPct(selected)}%</span>
                 </div>
-                <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+                <div className="w-full h-3 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
                   <div
                     className={`h-full rounded-full ${capacityColor(capacityPct(selected))}`}
                     style={{ width: `${capacityPct(selected)}%` }}
@@ -234,12 +234,12 @@ export default function StockistWarehouses() {
                   <div>
                     <p className="font-medium text-gray-900 dark:text-[var(--dark-text)] text-sm">{selected.manager_name || 'Not assigned'}</p>
                     {selected.manager_email && (
-                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <p className="text-xs text-muted flex items-center gap-1">
                         <HiOutlineMail className="w-3 h-3" />{selected.manager_email}
                       </p>
                     )}
                     {selected.manager_phone && (
-                      <p className="text-xs text-gray-500 flex items-center gap-1">
+                      <p className="text-xs text-muted flex items-center gap-1">
                         <HiOutlinePhone className="w-3 h-3" />{selected.manager_phone}
                       </p>
                     )}
@@ -262,9 +262,9 @@ export default function StockistWarehouses() {
                     </thead>
                     <tbody>
                       {invLoading ? (
-                        <tr><td colSpan={4} className="px-3 py-4 text-center text-gray-400">Loading inventory...</td></tr>
+                        <tr><td colSpan={4} className="px-3 py-4 text-center text-muted">Loading inventory...</td></tr>
                       ) : warehouseInventory.length === 0 ? (
-                        <tr><td colSpan={4} className="px-3 py-4 text-center text-gray-400">No inventory records</td></tr>
+                        <tr><td colSpan={4} className="px-3 py-4 text-center text-muted">No inventory records</td></tr>
                       ) : (
                         warehouseInventory.map((inv) => (
                           <tr key={inv.id} className="border-t border-gray-100 dark:border-[var(--dark-border)]">
@@ -273,7 +273,7 @@ export default function StockistWarehouses() {
                               inv.status === 'out_of_stock' ? 'text-red-600' :
                               inv.status === 'low_stock' ? 'text-amber-600' : 'text-green-700'
                             }`}>{(inv.current_stock || 0).toLocaleString()}</td>
-                            <td className="px-3 py-2.5 text-right text-gray-500">{(inv.reserved_stock || 0).toLocaleString()}</td>
+                            <td className="px-3 py-2.5 text-right text-muted">{(inv.reserved_stock || 0).toLocaleString()}</td>
                             <td className="px-3 py-2.5 text-center"><StatusBadge status={inv.status} /></td>
                           </tr>
                         ))

@@ -59,11 +59,11 @@ export default function StockistCart() {
 
   if (loading) {
     return (
-      <div className="min-h-screen p-4 md:p-6" style={{ background: '#FFF8F0' }}>
+      <div className="min-h-screen p-4 md:p-6">
         <div className="mx-auto max-w-4xl animate-pulse space-y-3">
-          <div className="h-8 w-40 rounded-lg bg-gray-100" />
+          <div className="h-8 w-40 rounded-lg bg-gray-100 dark:bg-gray-700" />
           {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="h-20 rounded-2xl bg-gray-100" />
+            <div key={i} className="h-20 rounded-2xl bg-gray-100 dark:bg-gray-700" />
           ))}
         </div>
       </div>
@@ -71,25 +71,25 @@ export default function StockistCart() {
   }
 
   return (
-    <div className="p-4 md:p-6 min-h-screen page-enter" style={{ background: '#FFF8F0' }}>
+    <div className="p-4 md:p-6 min-h-screen page-enter">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-strong flex items-center gap-2">
           <HiShoppingCart className="text-amber-500" />
           Shopping Cart
         </h1>
-        <p className="text-sm text-gray-500 mt-0.5">{items.length} item{items.length !== 1 ? 's' : ''} in your cart</p>
+        <p className="text-sm text-muted mt-0.5">{items.length} item{items.length !== 1 ? 's' : ''} in your cart</p>
       </div>
 
       {items.length === 0 ? (
         /* Empty cart */
-        <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex flex-col items-center justify-center py-24 bg-white dark:bg-[var(--dark-card)] rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] shadow-sm">
           <div className="w-20 h-20 rounded-full bg-amber-50 flex items-center justify-center mb-4">
             <FiShoppingBag size={36} className="text-amber-300" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-1">Your cart is empty</h3>
-          <p className="text-sm text-gray-400 mb-6">Browse products and add them to your cart</p>
+          <h3 className="text-lg font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-1">Your cart is empty</h3>
+          <p className="text-sm text-muted mb-6">Browse products and add them to your cart</p>
           <Button color="warning" onClick={() => navigate('/stockist/catalog')}>
             Browse Catalog
           </Button>
@@ -104,7 +104,7 @@ export default function StockistCart() {
               return (
                 <div
                   key={item.id}
-                  className="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 flex items-start gap-4"
+                  className="bg-white dark:bg-[var(--dark-card)] rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] shadow-sm p-4 flex items-start gap-4"
                 >
                   {/* Image */}
                   <div className="h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-[radial-gradient(circle_at_top,rgba(255,219,174,0.65),transparent_58%),linear-gradient(180deg,#fffaf3_0%,#f8ecdf_100%)]">
@@ -118,11 +118,11 @@ export default function StockistCart() {
 
                   {/* Details */}
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-sm font-semibold text-gray-800 leading-snug line-clamp-2">
+                    <h3 className="text-sm font-semibold text-strong leading-snug line-clamp-2">
                       {item.product_name || item.name}
                     </h3>
                     {item.sku && (
-                      <p className="text-xs text-gray-400 font-mono mt-0.5">{item.sku}</p>
+                      <p className="text-xs text-muted font-mono mt-0.5">{item.sku}</p>
                     )}
                     <p className="text-sm font-medium text-amber-600 mt-1">
                       {formatCurrency(price)} / unit
@@ -131,18 +131,18 @@ export default function StockistCart() {
 
                   {/* Qty + subtotal */}
                   <div className="flex flex-col items-end gap-2 flex-shrink-0">
-                    <p className="text-base font-bold text-gray-900">{formatCurrency(subtotal)}</p>
+                    <p className="text-base font-bold text-strong">{formatCurrency(subtotal)}</p>
                     <div className="flex items-center gap-1">
                       <button
                         onClick={() => handleUpdateQty(item.id, (item.quantity || 1) - 1)}
-                        className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+                        className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-muted hover:bg-gray-100 dark:bg-gray-700 transition-colors"
                       >
                         <HiMinus className="w-3 h-3" />
                       </button>
                       <span className="w-8 text-center text-sm font-semibold">{item.quantity || 1}</span>
                       <button
                         onClick={() => handleUpdateQty(item.id, (item.quantity || 1) + 1)}
-                        className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition-colors"
+                        className="w-7 h-7 rounded-lg border border-gray-200 flex items-center justify-center text-muted hover:bg-gray-100 dark:bg-gray-700 transition-colors"
                       >
                         <HiPlus className="w-3 h-3" />
                       </button>
@@ -163,7 +163,7 @@ export default function StockistCart() {
           {/* Order Summary */}
           <div className="lg:col-span-1">
             <Card className="sticky top-6">
-              <h2 className="text-base font-bold text-gray-900 mb-4">Order Summary</h2>
+              <h2 className="text-base font-bold text-strong mb-4">Order Summary</h2>
 
               {/* Item subtotals */}
               <div className="space-y-2 mb-4">
@@ -171,10 +171,10 @@ export default function StockistCart() {
                   const price = item.partner_price || item.price || 0;
                   return (
                     <div key={item.id} className="flex justify-between text-sm">
-                      <span className="text-gray-500 truncate max-w-[60%]">
+                      <span className="text-muted truncate max-w-[60%]">
                         {item.product_name || item.name} ×{item.quantity}
                       </span>
-                      <span className="font-medium text-gray-800">
+                      <span className="font-medium text-strong">
                         {formatCurrency(price * (item.quantity || 1))}
                       </span>
                     </div>
@@ -191,7 +191,7 @@ export default function StockistCart() {
 
               {/* Notes */}
               <div className="mb-4">
-                <label className="block text-xs font-medium text-gray-700 mb-1">Order Notes (optional)</label>
+                <label className="block text-xs font-medium text-gray-700 dark:text-[var(--dark-text)] mb-1">Order Notes (optional)</label>
                 <Textarea
                   rows={3}
                   placeholder="Any special instructions for this order…"

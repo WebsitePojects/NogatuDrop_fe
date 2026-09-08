@@ -110,7 +110,7 @@ export default function MobileInventory() {
               <h2 className="mt-4 min-h-12 text-base font-extrabold text-slate-950 dark:text-white">{item.product_name}</h2>
               <div className="mt-3 flex items-end justify-between">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400">On hand</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-[var(--dark-muted)]">On hand</p>
                   <p className="text-3xl font-black tabular-nums text-slate-950 dark:text-white">{Number(item.current_stock || 0)}</p>
                 </div>
               </div>
@@ -118,7 +118,7 @@ export default function MobileInventory() {
                 <button type="button" onClick={() => openAdjustment(item, 'increase')} className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs font-extrabold text-emerald-800 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
                   <HiOutlinePlus className="h-4 w-4" /> Increase stock
                 </button>
-                <button type="button" onClick={() => openAdjustment(item, 'decrease')} className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-orange-600 px-3 py-2.5 text-xs font-extrabold text-white shadow-sm transition hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
+                <button type="button" onClick={() => openAdjustment(item, 'decrease')} className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-orange-700 px-3 py-2.5 text-xs font-extrabold text-white shadow-sm transition hover:bg-orange-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
                   <HiOutlineMinus className="h-4 w-4" /> Record direct sale
                 </button>
               </div>

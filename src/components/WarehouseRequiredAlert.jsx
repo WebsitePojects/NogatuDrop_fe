@@ -47,12 +47,12 @@ export default function WarehouseRequiredAlert() {
 
   return (
     <div className="fixed inset-0 z-[300] flex items-center justify-center bg-black/50 px-4 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-2xl border border-amber-100 bg-white p-6 shadow-2xl">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600">
+      <div className="w-full max-w-md rounded-2xl border border-amber-100 bg-white p-6 shadow-2xl dark:border-[var(--dark-border)] dark:bg-[var(--dark-card)]">
+        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400">
           <FiAlertTriangle className="h-6 w-6" />
         </div>
-        <h2 className="text-center text-lg font-bold text-gray-900">No warehouse assigned</h2>
-        <p className="mt-2 text-center text-sm leading-relaxed text-gray-500">
+        <h2 className="text-center text-lg font-bold text-gray-900 dark:text-[var(--dark-text)]">No warehouse assigned</h2>
+        <p className="mt-2 text-center text-sm leading-relaxed text-gray-500 dark:text-[var(--dark-muted)]">
           This account has no warehouse/storage set up yet. Inventory, products, and
           order fulfilment all need a warehouse first. Assign one to continue using
           the system safely.
@@ -69,7 +69,7 @@ export default function WarehouseRequiredAlert() {
           <button
             type="button"
             onClick={() => setDismissed(true)}
-            className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50"
+            className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-600 transition hover:bg-gray-50 dark:border-[var(--dark-border)] dark:text-[var(--dark-muted)] dark:hover:bg-white/5"
           >
             Remind me later
           </button>

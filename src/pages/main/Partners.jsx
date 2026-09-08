@@ -193,7 +193,7 @@ export default function Partners() {
       <Card>
         <div className="flex gap-3 mb-4">
           <div className="relative flex-1 max-w-xs">
-            <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted w-4 h-4" />
             <TextInput
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}

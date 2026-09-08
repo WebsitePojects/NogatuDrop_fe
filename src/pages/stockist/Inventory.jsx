@@ -131,7 +131,7 @@ export default function StockistInventory() {
   };
 
   return (
-    <div className="p-4 md:p-6 min-h-screen page-enter bg-[#FFF8F0] dark:bg-[var(--dark-bg)]">
+    <div className="p-4 md:p-6 min-h-screen page-enter">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <div className="mb-5">
@@ -163,11 +163,11 @@ export default function StockistInventory() {
         {loading ? (
           <div className="p-4 space-y-3">
             {Array.from({ length: 6 }).map((_, i) => (
-              <div key={i} className="h-11 rounded-xl bg-gray-100 animate-pulse" />
+              <div key={i} className="h-11 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />
             ))}
           </div>
         ) : inventory.length === 0 ? (
-          <div className="flex flex-col items-center py-16 text-gray-400">
+          <div className="flex flex-col items-center py-16 text-muted">
             <FiPackage size={40} className="mb-3 opacity-30" />
             <p className="text-sm">No inventory found</p>
           </div>
@@ -300,7 +300,7 @@ export default function StockistInventory() {
               onChange={e => setAdjustForm(f => ({ ...f, reason: e.target.value }))}
             />
           </div>
-          <p className="text-xs text-gray-400">
+          <p className="text-xs text-muted">
             This request will be sent to the Super Admin for approval. Stock will only update after approval.
           </p>
         </ModalBody>

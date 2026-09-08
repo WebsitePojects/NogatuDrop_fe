@@ -235,7 +235,7 @@ function OrderTable({ list, onOpenDetail, highlightId }) {
                 <td className="px-4 py-3 text-right">
                   <button
                     type="button"
-                    className="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-white hover:bg-amber-600"
+                    className="rounded-lg bg-amber-500 px-3 py-1.5 text-xs font-semibold text-amber-950 hover:bg-amber-600"
                     onClick={(event) => {
                       event.stopPropagation();
                       onOpenDetail(order);
@@ -628,7 +628,7 @@ export default function StockistOrders() {
             onClick={() => setActiveTab(tabKey)}
             className={`rounded-full px-4 py-2 text-sm font-semibold transition-colors ${
               activeTab === tabKey
-                ? 'bg-amber-500 text-white'
+                ? 'bg-amber-500 text-amber-950'
                 : 'bg-white text-gray-600 hover:bg-amber-50 dark:bg-[var(--dark-card)] dark:text-[var(--dark-muted)] dark:hover:bg-[var(--dark-card2)]'
             }`}
           >
@@ -644,10 +644,10 @@ export default function StockistOrders() {
         <div className="space-y-6">
           {[0, 1].map((s) => (
             <div key={s} className="space-y-3">
-              <div className="h-4 w-40 rounded bg-gray-100 animate-pulse" />
-              <div className="rounded-2xl border border-gray-100 bg-white p-4 space-y-3">
+              <div className="h-4 w-40 rounded bg-gray-100 dark:bg-gray-700 animate-pulse" />
+              <div className="rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] bg-white dark:bg-[var(--dark-card)] p-4 space-y-3">
                 {[0, 1, 2].map((i) => (
-                  <div key={i} className="h-11 rounded-xl bg-gray-100 animate-pulse" />
+                  <div key={i} className="h-11 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />
                 ))}
               </div>
             </div>
@@ -689,13 +689,13 @@ export default function StockistOrders() {
         <ModalBody className="space-y-5">
           {detailLoading ? (
             <div className="animate-pulse space-y-4">
-              <div className="h-10 rounded-xl bg-gray-100" />
+              <div className="h-10 rounded-xl bg-gray-100 dark:bg-gray-700" />
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {Array.from({ length: 4 }).map((_, i) => (
-                  <div key={i} className="h-16 rounded-xl bg-gray-100" />
+                  <div key={i} className="h-16 rounded-xl bg-gray-100 dark:bg-gray-700" />
                 ))}
               </div>
-              <div className="h-32 rounded-xl bg-gray-100" />
+              <div className="h-32 rounded-xl bg-gray-100 dark:bg-gray-700" />
             </div>
           ) : !detail ? null : (
             <>
@@ -746,7 +746,7 @@ export default function StockistOrders() {
                     )}
                   </div>
                   {detail.partner_name && (
-                    <p className="text-xs text-gray-400 dark:text-gray-500 pt-2 border-t border-orange-100 dark:border-orange-800/30">
+                    <p className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-orange-100 dark:border-orange-800/30">
                       Fulfilled by Stockist: <span className="font-medium text-gray-600 dark:text-gray-300">{detail.partner_name}</span>
                     </p>
                   )}

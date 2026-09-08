@@ -214,7 +214,7 @@ export default function BankAccounts() {
                         {a.is_default ? (
                           <span className="badge-paid">Default</span>
                         ) : (
-                          <span className="text-gray-400 text-xs">—</span>
+                          <span className="text-muted text-xs">—</span>
                         )}
                       </TableCell>
                       <TableCell>

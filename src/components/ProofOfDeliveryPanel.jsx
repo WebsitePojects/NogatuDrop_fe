@@ -14,7 +14,7 @@ import { formatDateTime } from '@/utils/formatDate';
 
 function CoordinateText({ lat, lng }) {
   if (lat === null || lat === undefined || lng === null || lng === undefined) {
-    return <span className="text-xs text-gray-400">No GPS capture</span>;
+    return <span className="text-xs text-gray-400 dark:text-gray-500">No GPS capture</span>;
   }
 
   return (
@@ -39,7 +39,7 @@ function PodGpsMap({ lat, lng }) {
   const lngNum = Number(lng);
   if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) {
     return (
-      <div className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-xs text-gray-400">
+      <div className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-xs text-gray-400 dark:border-gray-800 dark:text-gray-500">
         No GPS coordinates captured
       </div>
     );
@@ -120,7 +120,7 @@ export default function ProofOfDeliveryPanel({
                   />
                 </a>
               ) : (
-                <div className="flex h-72 items-center justify-center text-sm text-gray-400">
+                <div className="flex h-72 items-center justify-center text-sm text-gray-400 dark:text-gray-500">
                   No delivery photo
                 </div>
               )}

@@ -74,7 +74,7 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
 
   if (isCancelled) {
     return (
-      <div className={`flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 ${className}`}
+      <div className={`flex items-center gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 dark:border-red-900/40 dark:bg-red-950/30 ${className}`}
         role="status"
         aria-label={isRejected ? 'Order rejected' : 'Order cancelled'}
       >
@@ -85,10 +85,10 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
           </svg>
         </span>
         <div>
-          <p className="text-sm font-bold text-red-700">
+          <p className="text-sm font-bold text-red-700 dark:text-red-400">
             {isRejected ? 'Order Rejected' : 'Order Cancelled'}
           </p>
-          <p className="text-xs text-red-500">
+          <p className="text-xs text-red-500 dark:text-red-400">
             {isRejected
               ? 'This order was rejected. Reserved stock has been released.'
               : 'This order was cancelled. Reserved stock has been released.'}
@@ -118,7 +118,7 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
               {!isLast && (
                 <div className="absolute left-1/2 top-[18px] h-0.5 w-full -translate-y-1/2">
                   {/* track background */}
-                  <div className="absolute inset-0 bg-gray-200" />
+                  <div className="absolute inset-0 bg-gray-200 dark:bg-[var(--dark-border)]" />
                   {/* filled portion — covers right-half of current connector */}
                   <div
                     className="absolute inset-0 bg-amber-400 transition-all duration-700 ease-in-out origin-left"
@@ -136,8 +136,8 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
                     isDone
                       ? 'border-amber-400 bg-amber-400 text-white shadow-md shadow-amber-200'
                       : isCurrent
-                        ? 'border-amber-400 bg-white text-amber-500 shadow-md shadow-amber-100'
-                        : 'border-gray-200 bg-gray-50 text-gray-300',
+                        ? 'border-amber-400 bg-white text-amber-500 shadow-md shadow-amber-100 dark:bg-[var(--dark-card)]'
+                        : 'border-gray-200 bg-gray-50 text-gray-300 dark:border-[var(--dark-border)] dark:bg-[var(--dark-card2)] dark:text-[var(--dark-muted)]',
                   ].join(' ')}
                 >
                   {isDone ? (
@@ -149,7 +149,7 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
                       <span className="relative inline-flex h-3 w-3 rounded-full bg-amber-400" />
                     </span>
                   ) : (
-                    <span className="h-2 w-2 rounded-full bg-gray-200" />
+                    <span className="h-2 w-2 rounded-full bg-gray-200 dark:bg-[var(--dark-border)]" />
                   )}
                 </span>
 
@@ -159,7 +159,7 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
                     'mt-2 text-center text-[11px] font-semibold leading-tight transition-colors duration-300',
                     isDone    ? 'text-amber-500'  : '',
                     isCurrent ? 'text-amber-600'  : '',
-                    isFuture  ? 'text-gray-300'   : '',
+                    isFuture  ? 'text-gray-300 dark:text-[var(--dark-muted)]' : '',
                   ].join(' ')}
                 >
                   {step.label}
@@ -190,8 +190,8 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
                     isDone
                       ? 'border-amber-400 bg-amber-400 text-white'
                       : isCurrent
-                        ? 'border-amber-400 bg-white text-amber-500'
-                        : 'border-gray-200 bg-gray-50 text-gray-300',
+                        ? 'border-amber-400 bg-white text-amber-500 dark:bg-[var(--dark-card)]'
+                        : 'border-gray-200 bg-gray-50 text-gray-300 dark:border-[var(--dark-border)] dark:bg-[var(--dark-card2)] dark:text-[var(--dark-muted)]',
                   ].join(' ')}
                 >
                   {isDone ? (
@@ -202,14 +202,14 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
                       <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-amber-400" />
                     </span>
                   ) : (
-                    <span className="h-1.5 w-1.5 rounded-full bg-gray-200" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-gray-200 dark:bg-[var(--dark-border)]" />
                   )}
                 </span>
 
                 {/* Vertical line below node */}
                 {!isLast && (
                   <div className="relative mt-0.5 w-0.5 flex-1" style={{ minHeight: '1.5rem' }}>
-                    <div className="absolute inset-0 bg-gray-100" />
+                    <div className="absolute inset-0 bg-gray-100 dark:bg-[var(--dark-border)]" />
                     <div
                       className="absolute inset-0 bg-amber-400 transition-all duration-700 ease-in-out origin-top"
                       style={{ transform: isDone ? 'scaleY(1)' : 'scaleY(0)' }}
@@ -225,13 +225,13 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
                     'text-sm font-semibold leading-tight transition-colors duration-300',
                     isDone    ? 'text-amber-500'  : '',
                     isCurrent ? 'text-amber-600'  : '',
-                    isFuture  ? 'text-gray-300'   : '',
+                    isFuture  ? 'text-gray-300 dark:text-[var(--dark-muted)]' : '',
                   ].join(' ')}
                 >
                   {step.label}
                 </span>
                 {isCurrent && (
-                  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-600">
+                  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:bg-amber-900/30 dark:text-amber-300">
                     Current
                   </span>
                 )}

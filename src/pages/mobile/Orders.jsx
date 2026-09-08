@@ -108,10 +108,10 @@ export default function MobileOrders() {
   };
 
   return (
-    <div className="bg-white min-h-screen">
+    <div className="bg-white min-h-screen dark:bg-transparent">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
-      <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4">
+      <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 dark:bg-[var(--dark-topbar)] dark:border-[var(--dark-border)]">
         <div className="flex">
           {[{ v: 'active', l: 'Active' }, { v: 'history', l: 'History' }].map(({ v, l }) => (
             <button
@@ -120,7 +120,7 @@ export default function MobileOrders() {
               className={`flex-1 py-3.5 text-sm font-semibold transition-colors ${
                 tab === v
                   ? 'text-orange-500 border-b-2 border-orange-500'
-                  : 'text-gray-400 hover:text-gray-600'
+                  : 'text-gray-400 hover:text-gray-600 dark:text-[var(--dark-muted)] dark:hover:text-[var(--dark-text)]'
               }`}
             >
               {l}
@@ -137,7 +137,7 @@ export default function MobileOrders() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center py-16 text-gray-400">
+          <div className="flex flex-col items-center py-16 text-gray-400 dark:text-[var(--dark-muted)]">
             <FiPackage size={40} className="mb-3 opacity-30" />
             <p className="text-sm">No orders found</p>
           </div>
@@ -157,7 +157,7 @@ export default function MobileOrders() {
                       <p className="font-mono font-bold text-sm text-gray-900">
                         #{order.order_number || order.id}
                       </p>
-                      <p className="text-xs text-gray-400 mt-0.5">{formatDate(order.created_at)}</p>
+                      <p className="text-xs text-gray-400 mt-0.5 dark:text-[var(--dark-muted)]">{formatDate(order.created_at)}</p>
                     </div>
                     <div className="text-right">
                       <p className="font-bold text-sm text-orange-500">
@@ -175,7 +175,7 @@ export default function MobileOrders() {
                 </div>
 
                 {isExpanded && (
-                  <div className="border-t border-gray-100 px-4 py-4 space-y-3 bg-gray-50/50">
+                  <div className="border-t border-gray-100 px-4 py-4 space-y-3 bg-gray-50/50 dark:border-[var(--dark-border)] dark:bg-[var(--dark-card2)]">
                     {order.items && order.items.length > 0 && (
                       <div>
                         <p className="text-xs font-semibold text-gray-500 uppercase mb-1.5">Items</p>
@@ -240,7 +240,7 @@ export default function MobileOrders() {
                                   <button
                                     type="button"
                                     onClick={() => handleClearPreview(order.id)}
-                                    className="text-gray-400 hover:text-gray-700 p-0.5"
+                                    className="text-gray-400 hover:text-gray-700 p-0.5 dark:text-[var(--dark-muted)] dark:hover:text-[var(--dark-text)]"
                                   >
                                     <HiX size={14} />
                                   </button>
@@ -266,7 +266,7 @@ export default function MobileOrders() {
                             )}
 
                             {uploading === order.id ? (
-                              <div className="flex items-center gap-2 text-sm text-gray-500">
+                              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-[var(--dark-muted)]">
                                 <Spinner size="sm" color="warning" /> Uploading...
                               </div>
                             ) : (

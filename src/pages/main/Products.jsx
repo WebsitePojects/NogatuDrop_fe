@@ -250,7 +250,7 @@ export default function Products() {
       {/* Search */}
       <div className="enterprise-panel mb-5 flex gap-3 p-4">
         <div className="relative flex-1 max-w-sm">
-          <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <HiOutlineSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-muted w-4 h-4" />
           <TextInput
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}

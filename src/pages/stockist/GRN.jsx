@@ -150,14 +150,14 @@ export default function StockistGRN() {
       return (
         <div className="p-4 space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
-            <div key={i} className="h-11 rounded-xl bg-gray-100 animate-pulse" />
+            <div key={i} className="h-11 rounded-xl bg-gray-100 dark:bg-gray-700 animate-pulse" />
           ))}
         </div>
       );
     }
     if (list.length === 0) {
       return (
-        <div className="flex flex-col items-center py-12 text-gray-400">
+        <div className="flex flex-col items-center py-12 text-muted">
           <FiCheckCircle size={36} className="mb-2 opacity-30" />
           <p className="text-sm">No GRNs found</p>
         </div>
@@ -191,7 +191,7 @@ export default function StockistGRN() {
                 <td className="px-4 py-3"><StatusBadge status={grn.status} /></td>
                 <td className="px-4 py-3 text-gray-500 dark:text-[var(--dark-muted)] text-xs">{formatDate(grn.created_at)}</td>
                 <td className="px-4 py-3">
-                  <button className="text-xs text-amber-600 hover:text-amber-700 font-medium">View</button>
+                  <button className="text-xs text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-medium">View</button>
                 </td>
               </tr>
             ))}
@@ -204,7 +204,7 @@ export default function StockistGRN() {
   const detail = detailData || selectedGRN;
 
   return (
-    <div className="p-4 md:p-6 min-h-screen page-enter bg-[#FFF8F0] dark:bg-[var(--dark-bg)]">
+    <div className="p-4 md:p-6 min-h-screen page-enter">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <div className="flex items-center justify-between mb-5">
@@ -232,7 +232,7 @@ export default function StockistGRN() {
         <ModalHeader>
           GRN Details
           {detail?.grn_number && (
-            <span className="ml-2 font-mono text-sm font-normal text-gray-500">#{detail.grn_number}</span>
+            <span className="ml-2 font-mono text-sm font-normal text-muted">#{detail.grn_number}</span>
           )}
         </ModalHeader>
         <ModalBody className="space-y-4">
@@ -240,10 +240,10 @@ export default function StockistGRN() {
             <div className="animate-pulse space-y-4">
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {Array.from({ length: 6 }).map((_, i) => (
-                  <div key={i} className="h-14 rounded-xl bg-gray-100" />
+                  <div key={i} className="h-14 rounded-xl bg-gray-100 dark:bg-gray-700" />
                 ))}
               </div>
-              <div className="h-32 rounded-xl bg-gray-100" />
+              <div className="h-32 rounded-xl bg-gray-100 dark:bg-gray-700" />
             </div>
           ) : detail ? (
             <>
@@ -382,7 +382,7 @@ export default function StockistGRN() {
               <button
                 type="button"
                 onClick={addItem}
-                className="text-xs text-amber-600 hover:text-amber-700 font-medium flex items-center gap-1"
+                className="text-xs text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-medium flex items-center gap-1"
               >
                 <HiPlus className="w-3.5 h-3.5" /> Add Item
               </button>

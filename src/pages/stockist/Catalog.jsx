@@ -80,7 +80,7 @@ export default function StockistCatalog() {
   };
 
   return (
-    <div className="p-4 md:p-6 min-h-screen page-enter" style={{ background: '#FFF8F0' }}>
+    <div className="p-4 md:p-6 min-h-screen page-enter">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <PageHeader
@@ -107,8 +107,8 @@ export default function StockistCatalog() {
             onClick={() => setActiveCategory(cat)}
             className={`flex-shrink-0 px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
               activeCategory === cat
-                ? 'bg-amber-500 text-white'
-                : 'bg-white border border-gray-200 text-gray-600 hover:border-amber-400 hover:text-amber-600'
+                ? 'bg-amber-500 text-amber-950'
+                : 'bg-white dark:bg-[var(--dark-card)] border border-gray-200 dark:border-[var(--dark-border)] text-gray-600 dark:text-[var(--dark-muted)] hover:border-amber-400 hover:text-amber-600'
             }`}
           >
             {cat}
@@ -121,18 +121,18 @@ export default function StockistCatalog() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="catalog-product-card overflow-hidden flex flex-col animate-pulse">
-              <div className="aspect-square bg-gray-100" />
+              <div className="aspect-square bg-gray-100 dark:bg-gray-700" />
               <div className="p-3 space-y-2">
-                <div className="h-2.5 w-1/3 rounded bg-gray-100" />
-                <div className="h-3.5 w-4/5 rounded bg-gray-100" />
-                <div className="h-3.5 w-1/2 rounded bg-gray-100" />
-                <div className="h-8 w-full rounded-xl bg-gray-100 mt-3" />
+                <div className="h-2.5 w-1/3 rounded bg-gray-100 dark:bg-gray-700" />
+                <div className="h-3.5 w-4/5 rounded bg-gray-100 dark:bg-gray-700" />
+                <div className="h-3.5 w-1/2 rounded bg-gray-100 dark:bg-gray-700" />
+                <div className="h-8 w-full rounded-xl bg-gray-100 dark:bg-gray-700 mt-3" />
               </div>
             </div>
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-24 text-gray-400">
+        <div className="flex flex-col items-center justify-center py-24 text-muted">
           <FiShoppingBag size={48} className="mb-3 opacity-30" />
           <p className="text-sm">No products found</p>
           {search && (
@@ -169,7 +169,7 @@ export default function StockistCatalog() {
                     className="h-full w-full object-contain p-4 transition-transform duration-300 group-hover:scale-105"
                   />
                   {disc && (
-                    <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                    <span className="absolute top-2 left-2 bg-red-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
                       -{disc}%
                     </span>
                   )}
@@ -178,13 +178,13 @@ export default function StockistCatalog() {
                 {/* Info */}
                 <div className="p-3 flex flex-col flex-1">
                   <p
-                    className="mb-0.5 truncate text-xs font-mono text-gray-400"
+                    className="mb-0.5 truncate text-xs font-mono text-muted"
                     title={product.sku}
                   >
                     {product.sku || 'SKU —'}
                   </p>
                   <h3
-                    className="mb-1 line-clamp-2 cursor-pointer text-sm font-semibold leading-snug text-gray-800 transition-colors hover:text-amber-600"
+                    className="mb-1 line-clamp-2 cursor-pointer text-sm font-semibold leading-snug text-strong transition-colors hover:text-amber-600"
                     onClick={() => navigate(`/stockist/catalog/${product.id}`)}
                     style={{ minHeight: '2.5rem' }}
                   >
@@ -193,11 +193,11 @@ export default function StockistCatalog() {
 
                   {/* Pricing */}
                   <div className="flex items-baseline gap-2 mb-2">
-                    <span className="text-base font-bold text-amber-500">
+                    <span className="text-base font-bold text-amber-700 dark:text-amber-500">
                       {formatCurrency(product.partner_price || product.price || 0)}
                     </span>
                     {product.retail_price && product.retail_price > (product.partner_price || 0) && (
-                      <span className="text-xs text-gray-400 line-through">
+                      <span className="text-xs text-muted line-through">
                         {formatCurrency(product.retail_price)}
                       </span>
                     )}
@@ -208,7 +208,7 @@ export default function StockistCatalog() {
                       {isOrderable ? `${availableQty} available` : 'Unavailable from your route'}
                     </span>
                     {product.source_warehouse_id ? (
-                      <span className="text-gray-400">Source #{product.source_warehouse_id}</span>
+                      <span className="text-muted">Source #{product.source_warehouse_id}</span>
                     ) : null}
                   </div>
 
@@ -216,7 +216,7 @@ export default function StockistCatalog() {
                   {canUseCart && isOrderable && <div className={`flex items-center gap-1 mb-2 transition-opacity duration-150 ${isHovered ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
                     <button
                       onClick={() => setQty(product.id, (quantities[product.id] || 1) - 1)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 font-bold text-base text-gray-600 hover:bg-gray-100"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 font-bold text-base text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-700"
                     >
                       −
                     </button>
@@ -229,7 +229,7 @@ export default function StockistCatalog() {
                     />
                     <button
                       onClick={() => setQty(product.id, (quantities[product.id] || 1) + 1)}
-                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 font-bold text-base text-gray-600 hover:bg-gray-100"
+                      className="flex h-7 w-7 items-center justify-center rounded-lg border border-gray-200 font-bold text-base text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:bg-gray-700"
                     >
                       +
                     </button>
@@ -241,8 +241,8 @@ export default function StockistCatalog() {
                     disabled={isAdding || !isOrderable}
                     className={`mt-auto w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60 ${
                       isOrderable
-                        ? 'bg-amber-500 hover:bg-amber-600 text-white'
-                        : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+                        ? 'bg-amber-500 hover:bg-amber-600 text-amber-950'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300 cursor-not-allowed'
                     }`}
                   >
                     {isAdding ? (

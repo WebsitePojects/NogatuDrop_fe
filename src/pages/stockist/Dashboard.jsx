@@ -99,22 +99,25 @@ export default function StockistDashboard() {
 
   const quickActions = canUseCart
     ? [
-        { label: 'Browse Catalog', path: '/stockist/catalog', color: 'bg-amber-500 hover:bg-amber-600' },
-        { label: 'View Orders', path: '/stockist/orders', color: 'bg-blue-600 hover:bg-blue-700' },
-        { label: 'View Inventory', path: '/stockist/inventory', color: 'bg-purple-600 hover:bg-purple-700' },
+        // amber-500 can't pass AA with white text (2.15:1 in either theme) —
+        // dark text is the same fix already used for amber-500 CTAs elsewhere.
+        { label: 'Browse Catalog', path: '/stockist/catalog', color: 'bg-amber-500 hover:bg-amber-600', text: 'text-amber-950' },
+        { label: 'View Orders', path: '/stockist/orders', color: 'bg-blue-600 hover:bg-blue-700', text: 'text-white' },
+        { label: 'View Inventory', path: '/stockist/inventory', color: 'bg-purple-600 hover:bg-purple-700', text: 'text-white' },
       ]
     : [
-        { label: 'View Orders', path: '/stockist/orders', color: 'bg-blue-600 hover:bg-blue-700' },
-        { label: 'View Inventory', path: '/stockist/inventory', color: 'bg-purple-600 hover:bg-purple-700' },
+        { label: 'View Orders', path: '/stockist/orders', color: 'bg-blue-600 hover:bg-blue-700', text: 'text-white' },
+        { label: 'View Inventory', path: '/stockist/inventory', color: 'bg-purple-600 hover:bg-purple-700', text: 'text-white' },
         {
           label: canCreateCycleCounts ? 'Open Cycle Counts' : 'Open GRN',
           path: canCreateCycleCounts ? '/stockist/cycle-counts' : '/stockist/grn',
           color: 'bg-emerald-600 hover:bg-emerald-700',
+          text: 'text-white',
         },
       ];
 
   return (
-    <div className="p-4 md:p-6 min-h-screen page-enter" style={{ background: '#FFF8F0' }}>
+    <div className="p-4 md:p-6 min-h-screen page-enter">
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <div className="page-header-shell mb-6 grid gap-5 rounded-[1.8rem] border border-white/60 px-5 py-5 lg:grid-cols-[1fr_0.9fr]">
@@ -176,7 +179,7 @@ export default function StockistDashboard() {
           <Card className="rounded-[1.6rem]">
             <div className="flex items-center gap-2 mb-4">
               <FiTrendingUp className="text-amber-500" />
-              <h2 className="font-semibold text-gray-900 text-sm">Orders Per Week (Last 4 Weeks)</h2>
+              <h2 className="font-semibold text-strong text-sm">Orders Per Week (Last 4 Weeks)</h2>
             </div>
             {loading ? (
               <div className="h-48 flex items-end justify-between gap-3 px-2 pb-2">
@@ -204,11 +207,11 @@ export default function StockistDashboard() {
         {/* Quick Actions */}
         <div className="space-y-3">
           <h2 className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">Quick Actions</h2>
-          {quickActions.map(({ label, path, color }) => (
+          {quickActions.map(({ label, path, color, text }) => (
             <button
               key={path}
               onClick={() => navigate(path)}
-              className={`w-full flex items-center justify-between rounded-[1.2rem] px-4 py-3 text-sm font-semibold text-white shadow-[0_22px_40px_-28px_rgba(15,23,42,0.35)] transition-all hover:-translate-y-0.5 ${color}`}
+              className={`w-full flex items-center justify-between rounded-[1.2rem] px-4 py-3 text-sm font-semibold shadow-[0_22px_40px_-28px_rgba(15,23,42,0.35)] transition-all hover:-translate-y-0.5 ${color} ${text}`}
             >
               {label}
               <HiChevronRight className="w-4 h-4" />
@@ -220,10 +223,10 @@ export default function StockistDashboard() {
       {/* Recent Orders */}
       <div className="mt-6">
         <div className="flex items-center justify-between mb-3">
-          <h2 className="font-semibold text-gray-900">Recent Orders</h2>
+          <h2 className="font-semibold text-strong">Recent Orders</h2>
           <button
             onClick={() => navigate('/stockist/orders')}
-            className="text-sm text-amber-600 hover:text-amber-700 font-medium"
+            className="text-sm text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-medium"
           >
             View all
           </button>
@@ -233,15 +236,15 @@ export default function StockistDashboard() {
             <div className="p-4 space-y-3">
               {[0, 1, 2].map((i) => (
                 <div key={i} className="flex items-center gap-4 animate-pulse">
-                  <div className="h-3.5 w-20 rounded bg-gray-100" />
-                  <div className="h-3.5 w-16 rounded bg-gray-100" />
-                  <div className="h-3.5 w-14 rounded-full bg-gray-100" />
-                  <div className="h-3.5 w-20 rounded bg-gray-100 ml-auto" />
+                  <div className="h-3.5 w-20 rounded bg-gray-100 dark:bg-gray-700" />
+                  <div className="h-3.5 w-16 rounded bg-gray-100 dark:bg-gray-700" />
+                  <div className="h-3.5 w-14 rounded-full bg-gray-100 dark:bg-gray-700" />
+                  <div className="h-3.5 w-20 rounded bg-gray-100 dark:bg-gray-700 ml-auto" />
                 </div>
               ))}
             </div>
           ) : recentOrders.length === 0 ? (
-            <div className="flex flex-col items-center py-10 text-gray-400">
+            <div className="flex flex-col items-center py-10 text-muted">
               <FiInbox size={32} className="mb-2 opacity-30" />
               <p className="text-sm">No orders yet</p>
               <button
@@ -255,10 +258,10 @@ export default function StockistDashboard() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Order #</th>
-                  <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Total</th>
-                  <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
-                  <th className="text-left py-2.5 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">Date</th>
+                  <th className="text-left py-2.5 px-4 text-xs font-semibold text-muted uppercase tracking-wide">Order #</th>
+                  <th className="text-left py-2.5 px-4 text-xs font-semibold text-muted uppercase tracking-wide">Total</th>
+                  <th className="text-left py-2.5 px-4 text-xs font-semibold text-muted uppercase tracking-wide">Status</th>
+                  <th className="text-left py-2.5 px-4 text-xs font-semibold text-muted uppercase tracking-wide">Date</th>
                 </tr>
               </thead>
               <tbody>
@@ -268,16 +271,16 @@ export default function StockistDashboard() {
                     className="border-b border-gray-50 hover:bg-amber-50/40 cursor-pointer transition-colors"
                     onClick={() => navigate('/stockist/orders')}
                   >
-                    <td className="py-2.5 px-4 font-mono font-semibold text-xs text-gray-800">
+                    <td className="py-2.5 px-4 font-mono font-semibold text-xs text-strong">
                       #{order.order_number || order.id}
                     </td>
-                    <td className="py-2.5 px-4 font-semibold text-gray-900">
+                    <td className="py-2.5 px-4 font-semibold text-strong">
                       {formatCurrency(order.total_amount)}
                     </td>
                     <td className="py-2.5 px-4">
                       <StatusBadge status={order.status} />
                     </td>
-                    <td className="py-2.5 px-4 text-gray-500 text-xs">
+                    <td className="py-2.5 px-4 text-muted text-xs">
                       {formatDate(order.created_at)}
                     </td>
                   </tr>

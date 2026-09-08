@@ -161,24 +161,24 @@ export default function MainCycleCounts() {
           ) : (
             <div className="space-y-4">
               <div className="grid gap-3 md:grid-cols-5">
-                <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                  <p className="text-xs uppercase tracking-wide text-gray-500">Warehouse</p>
-                  <p className="mt-1 text-sm font-semibold text-gray-900">{reviewTarget.warehouse_name}</p>
+                <div className="rounded-xl border border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)] p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted">Warehouse</p>
+                  <p className="mt-1 text-sm font-semibold text-strong">{reviewTarget.warehouse_name}</p>
                 </div>
-                <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                  <p className="text-xs uppercase tracking-wide text-gray-500">Status</p>
+                <div className="rounded-xl border border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)] p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted">Status</p>
                   <div className="mt-1"><StatusBadge status={reviewTarget.status} /></div>
                 </div>
-                <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                  <p className="text-xs uppercase tracking-wide text-gray-500">Total Increase</p>
+                <div className="rounded-xl border border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)] p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted">Total Increase</p>
                   <p className="mt-1 text-sm font-semibold text-emerald-600">+{varianceSummary.increase}</p>
                 </div>
-                <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                  <p className="text-xs uppercase tracking-wide text-gray-500">Total Decrease</p>
+                <div className="rounded-xl border border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)] p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted">Total Decrease</p>
                   <p className="mt-1 text-sm font-semibold text-red-600">-{varianceSummary.decrease}</p>
                 </div>
-                <div className="rounded-xl border border-gray-100 bg-gray-50 p-3">
-                  <p className="text-xs uppercase tracking-wide text-gray-500">Net Variance</p>
+                <div className="rounded-xl border border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)] p-3">
+                  <p className="text-xs uppercase tracking-wide text-muted">Net Variance</p>
                   <p className={`mt-1 text-sm font-semibold ${varianceSummary.net >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
                     {varianceSummary.net > 0 ? '+' : ''}{varianceSummary.net}
                   </p>
@@ -200,14 +200,14 @@ export default function MainCycleCounts() {
                     {reviewTarget.items.map((item) => (
                       <TableRow key={item.id}>
                         <TableCell className="font-medium">{item.product_name}</TableCell>
-                        <TableCell className="font-mono text-xs text-gray-500">{item.sku}</TableCell>
+                        <TableCell className="font-mono text-xs text-muted">{item.sku}</TableCell>
                         <TableCell>{item.system_qty}</TableCell>
                         <TableCell>{item.counted_qty}</TableCell>
                         <TableCell className={Number(item.variance_qty) >= 0 ? 'text-emerald-600 font-semibold' : 'text-red-600 font-semibold'}>
                           {Number(item.variance_qty) > 0 ? '+' : ''}{item.variance_qty}
                         </TableCell>
                         <TableCell>{item.reserved_stock || 0}</TableCell>
-                        <TableCell className="text-xs text-gray-500">{item.notes || '-'}</TableCell>
+                        <TableCell className="text-xs text-muted">{item.notes || '-'}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

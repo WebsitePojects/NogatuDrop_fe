@@ -178,22 +178,22 @@ export default function DeliveryLiveMapBoard({
 
   const accentClasses = {
     orange: {
-      border: 'border-orange-200',
-      bg: 'bg-orange-50',
+      border: 'border-orange-200 dark:border-orange-900/40',
+      bg: 'bg-orange-50 dark:bg-orange-950/30',
       badge: 'warning',
-      button: 'bg-orange-100 text-orange-700 hover:bg-orange-200',
+      button: 'bg-orange-100 text-orange-700 hover:bg-orange-200 dark:bg-orange-900/30 dark:text-orange-300 dark:hover:bg-orange-900/50',
     },
     green: {
-      border: 'border-green-200',
-      bg: 'bg-green-50',
+      border: 'border-green-200 dark:border-green-900/40',
+      bg: 'bg-green-50 dark:bg-green-950/30',
       badge: 'success',
-      button: 'bg-green-100 text-green-700 hover:bg-green-200',
+      button: 'bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50',
     },
     blue: {
-      border: 'border-blue-200',
-      bg: 'bg-blue-50',
+      border: 'border-blue-200 dark:border-blue-900/40',
+      bg: 'bg-blue-50 dark:bg-blue-950/30',
       badge: 'info',
-      button: 'bg-blue-100 text-blue-700 hover:bg-blue-200',
+      button: 'bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/30 dark:text-blue-300 dark:hover:bg-blue-900/50',
     },
   }[accent];
 
@@ -222,7 +222,7 @@ export default function DeliveryLiveMapBoard({
             <button
               type="button"
               onClick={() => setAutoRefresh((prev) => !prev)}
-              className={`rounded-lg px-3 py-2 text-xs font-semibold ${autoRefresh ? accentClasses.button : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+              className={`rounded-lg px-3 py-2 text-xs font-semibold ${autoRefresh ? accentClasses.button : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-[var(--dark-card2)] dark:text-[var(--dark-muted)] dark:hover:bg-white/5'}`}
             >
               {autoRefresh ? 'Auto: ON' : 'Auto: OFF'}
             </button>
@@ -240,21 +240,21 @@ export default function DeliveryLiveMapBoard({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
         <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400">
             <HiOutlineTruck className="h-5 w-5" />
           </div>
           <p className="text-2xl font-bold text-gray-900">{routes.length}</p>
           <p className="text-xs text-gray-500">Active Routes</p>
         </div>
         <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-green-50 text-green-600 dark:bg-green-900/30 dark:text-green-400">
             <HiOutlineCheckCircle className="h-5 w-5" />
           </div>
           <p className="text-2xl font-bold text-gray-900">{liveCount}</p>
           <p className="text-xs text-gray-500">Live Signals</p>
         </div>
         <div className="rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-400">
             <HiOutlineExclamationCircle className="h-5 w-5" />
           </div>
           <p className="text-2xl font-bold text-gray-900">{staleCount}</p>
@@ -263,7 +263,7 @@ export default function DeliveryLiveMapBoard({
       </div>
 
       {error && (
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <div className="rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700 dark:border-red-900/40 dark:bg-red-950/30 dark:text-red-300">
           {error}
         </div>
       )}
@@ -276,7 +276,7 @@ export default function DeliveryLiveMapBoard({
           </div>
 
           {!loading && routes.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500">
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500 dark:border-[var(--dark-border)] dark:text-[var(--dark-muted)]">
               No active deliveries are broadcasting GPS right now.
             </div>
           ) : (
@@ -290,7 +290,7 @@ export default function DeliveryLiveMapBoard({
                     type="button"
                     key={route.tracking_id}
                     onClick={() => setSelectedId(route.tracking_id)}
-                    className={`w-full rounded-2xl border p-4 text-left transition ${isSelected ? `${accentClasses.border} ${accentClasses.bg}` : 'border-gray-100 bg-white hover:border-gray-200'}`}
+                    className={`w-full rounded-2xl border p-4 text-left transition ${isSelected ? `${accentClasses.border} ${accentClasses.bg}` : 'border-gray-100 bg-white hover:border-gray-200 dark:hover:border-[var(--dark-border)]'}`}
                   >
                     <div className="mb-3 flex items-start justify-between gap-3">
                       <div>
@@ -301,25 +301,25 @@ export default function DeliveryLiveMapBoard({
                         <StatusBadge status={route.tracking_status || route.order_status} />
                         <span className={`rounded-full px-2 py-0.5 text-[11px] font-semibold ${
                           freshness.tone === 'green'
-                            ? 'bg-green-100 text-green-700'
+                            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
                             : freshness.tone === 'amber'
-                              ? 'bg-amber-100 text-amber-700'
+                              ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300'
                               : freshness.tone === 'red'
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-gray-100 text-gray-600'
+                                ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300'
+                                : 'bg-gray-100 text-gray-600 dark:bg-[var(--dark-card2)] dark:text-[var(--dark-muted)]'
                         }`}>
                           {freshness.label}
                         </span>
                       </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-2 text-xs text-gray-600">
+                    <div className="grid grid-cols-1 gap-2 text-xs text-gray-600 dark:text-[var(--dark-muted)]">
                       <div>
-                        <p className="text-gray-400">Source</p>
+                        <p className="text-gray-400 dark:text-[var(--dark-muted)]">Source</p>
                         <p className="font-medium text-gray-700">{route.source_warehouse?.label || 'Warehouse unavailable'}</p>
                       </div>
                       <div>
-                        <p className="text-gray-400">Destination</p>
+                        <p className="text-gray-400 dark:text-[var(--dark-muted)]">Destination</p>
                         <p className="font-medium text-gray-700">
                           {route.target_warehouse?.label || route.customer?.name || 'Destination unavailable'}
                         </p>
@@ -367,7 +367,7 @@ export default function DeliveryLiveMapBoard({
                 <Spinner size="xl" color="warning" />
               </div>
             ) : !selectedRoute ? (
-              <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-gray-400">
+              <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-gray-400 dark:text-[var(--dark-muted)]">
                 <HiOutlineLocationMarker className="h-12 w-12 opacity-40" />
                 <p className="text-sm">No active route selected</p>
               </div>
@@ -426,7 +426,7 @@ export default function DeliveryLiveMapBoard({
             ) : (
               <div className="flex h-full flex-col justify-between p-5">
                 <div>
-                  <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                  <div className="mb-3 inline-flex items-center gap-2 rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
                     <HiOutlineClock className="h-4 w-4" />
                     Map fallback
                   </div>
@@ -440,9 +440,9 @@ export default function DeliveryLiveMapBoard({
 
                 <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
                   {[
-                    { title: 'Source', point: selectedSnapshot?.source, color: 'text-blue-700 bg-blue-50' },
-                    { title: 'Current', point: selectedSnapshot?.current, color: 'text-orange-700 bg-orange-50' },
-                    { title: 'Destination', point: selectedSnapshot?.destination, color: 'text-green-700 bg-green-50' },
+                    { title: 'Source', point: selectedSnapshot?.source, color: 'text-blue-700 bg-blue-50 dark:text-blue-300 dark:bg-blue-900/30' },
+                    { title: 'Current', point: selectedSnapshot?.current, color: 'text-orange-700 bg-orange-50 dark:text-orange-300 dark:bg-orange-900/30' },
+                    { title: 'Destination', point: selectedSnapshot?.destination, color: 'text-green-700 bg-green-50 dark:text-green-300 dark:bg-green-900/30' },
                   ].map((item) => (
                     <div key={item.title} className="rounded-2xl border border-gray-100 bg-white p-4">
                       <div className={`mb-2 inline-flex rounded-full px-2 py-1 text-xs font-semibold ${item.color}`}>
@@ -450,7 +450,7 @@ export default function DeliveryLiveMapBoard({
                       </div>
                       <p className="text-sm font-semibold text-gray-900">{item.point?.label || 'Unavailable'}</p>
                       <p className="mt-1 text-xs text-gray-500">{item.point?.address || 'No address data'}</p>
-                      <p className="mt-2 font-mono text-xs text-gray-600">
+                      <p className="mt-2 font-mono text-xs text-gray-600 dark:text-[var(--dark-muted)]">
                         {Number.isFinite(Number(item.point?.latitude)) && Number.isFinite(Number(item.point?.longitude))
                           ? `${Number(item.point.latitude).toFixed(5)}, ${Number(item.point.longitude).toFixed(5)}`
                           : 'No coordinates'}
@@ -465,21 +465,21 @@ export default function DeliveryLiveMapBoard({
           {selectedRoute && (
             <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
-                <p className="text-xs text-gray-400">Courier</p>
+                <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)]">Courier</p>
                 <p className="text-sm font-semibold text-gray-900">{selectedRoute.courier_name || selectedRoute.rider_name || 'Pending assignment'}</p>
               </div>
               <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
-                <p className="text-xs text-gray-400">Last Ping</p>
+                <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)]">Last Ping</p>
                 <p className="text-sm font-semibold text-gray-900">
                   {selectedRoute.latest_ping?.pinged_at ? formatDate(selectedRoute.latest_ping.pinged_at, true) : 'No ping yet'}
                 </p>
               </div>
               <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
-                <p className="text-xs text-gray-400">ETA</p>
+                <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)]">ETA</p>
                 <p className="text-sm font-semibold text-gray-900">{selectedRoute.est_delivery_at ? formatDate(selectedRoute.est_delivery_at, true) : 'TBD'}</p>
               </div>
               <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
-                <p className="text-xs text-gray-400">Tracking</p>
+                <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)]">Tracking</p>
                 <div className="mt-1">
                   <StatusBadge status={selectedRoute.tracking_status || selectedRoute.order_status} />
                 </div>
