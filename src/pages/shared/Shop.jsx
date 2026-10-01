@@ -1,5 +1,5 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { useState, useEffect, useCallback, useRef } from 'react';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import {
   HiShoppingCart, HiSearch, HiX, HiPlus, HiMinus,
   HiChevronRight, HiCheckCircle,
@@ -8,6 +8,7 @@ import { FiPackage, FiUser, FiPhone, FiMail, FiMapPin, FiCreditCard, FiLock, FiC
 import { Spinner } from 'flowbite-react';
 import api from '@/services/api';
 import { ORDERS, PRODUCTS } from '@/services/endpoints';
+import { createCheckoutIntent, createIntentHeaders, getCheckoutIntent } from '@/utils/checkoutIntent';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { getPublicCatalogPrice } from '@/utils/publicCatalogPrice';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
@@ -80,6 +81,8 @@ const normalizeIncomingPublicCart = (items, catalog) => {
 
 export default function Shop() {
   const location = useLocation();
+  const { influencerSlug } = useParams();
+  const isInfluencerCheckout = Boolean(influencerSlug);
   const [search, setSearch] = useState('');
   const [products, setProducts] = useState([]);
   const [catalogProducts, setCatalogProducts] = useState([]);
@@ -117,6 +120,13 @@ export default function Shop() {
   const [proofUploading, setProofUploading] = useState(false);
   const [proofMessage, setProofMessage] = useState('');
   const [proofError, setProofError] = useState('');
+  const [paymentProviders, setPaymentProviders] = useState([]);
+  const [paymentProvider, setPaymentProvider] = useState('');
+  const [influencerError, setInfluencerError] = useState('');
+  const [influencerLoading, setInfluencerLoading] = useState(isInfluencerCheckout);
+  const checkoutIntentRef = useRef(createCheckoutIntent());
+  const proofIntentRef = useRef(createCheckoutIntent());
+  const submittingRef = useRef(false);
   
   // Stock availability mapping (product_id -> available_qty)
   const [stockMap, setStockMap] = useState({});
@@ -187,6 +197,46 @@ export default function Shop() {
   }, []);
 
   useEffect(() => {
+    let active = true;
+    api.get(ORDERS.PUBLIC_PAYMENT_OPTIONS)
+      .then(({ data }) => {
+        const providers = Array.isArray(data.data?.providers) ? data.data.providers : [];
+        if (!active) return;
+        setPaymentProviders(providers);
+        setPaymentProvider((current) => current || providers[0] || '');
+      })
+      .catch(() => {
+        if (active) setPaymentProviders([]);
+      });
+    return () => { active = false; };
+  }, []);
+
+  useEffect(() => {
+    if (!isInfluencerCheckout) return undefined;
+    let active = true;
+    setInfluencerLoading(true);
+    setInfluencerError('');
+    api.get(ORDERS.PUBLIC_INFLUENCER(influencerSlug))
+      .then(({ data }) => {
+        const configured = data.data?.product || data.data;
+        if (!configured?.id || !active) throw new Error('Influencer product is unavailable');
+        setCart([{
+          product_id: configured.id,
+          name: configured.name || 'Berry NAD',
+          quantity: 1,
+          unit_price: getPublicCatalogPrice(configured),
+          image_url: getProductImageSrc(configured),
+        }]);
+        setStep('checkout');
+      })
+      .catch((error) => {
+        if (active) setInfluencerError(error?.response?.data?.message || 'This influencer checkout link is not configured.');
+      })
+      .finally(() => active && setInfluencerLoading(false));
+    return () => { active = false; };
+  }, [influencerSlug, isInfluencerCheckout]);
+
+  useEffect(() => {
     const t = setTimeout(() => fetchProducts(), 400);
     return () => clearTimeout(t);
   }, [fetchProducts]);
@@ -249,15 +299,18 @@ export default function Shop() {
 
   const handlePlaceOrder = async (e) => {
     e.preventDefault();
+    if (submittingRef.current) return;
     setFormError('');
     if (!customer.name.trim() || !customer.phone.trim() || !customer.address.trim()) {
       setFormError('Please fill in all required fields.');
       return;
     }
     if (cart.length === 0) { setFormError('Your cart is empty.'); return; }
+    if (!paymentProvider) { setFormError('Please select an available payment provider.'); return; }
+    submittingRef.current = true;
     setSubmitting(true);
     try {
-      const res = await api.post(ORDERS.PUBLIC, {
+      const payload = {
         customer_name: customer.name,
         customer_phone: customer.phone,
         customer_email: customer.email,
@@ -265,10 +318,18 @@ export default function Shop() {
         customer_lat: pinnedLocation?.lat ?? null,
         customer_lng: pinnedLocation?.lng ?? null,
         payment_method: 'bank_transfer',
-        member_username: memberUsername.trim() || undefined,
-        items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
-      });
+        payment_provider: paymentProvider,
+        ...(isInfluencerCheckout ? {} : { member_username: memberUsername.trim() || undefined }),
+        items: isInfluencerCheckout ? [{ product_id: cart[0].product_id, quantity: 1 }] : cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
+      };
+      checkoutIntentRef.current = getCheckoutIntent(checkoutIntentRef.current, payload);
+      const res = await api.post(
+        isInfluencerCheckout ? ORDERS.PUBLIC_INFLUENCER(influencerSlug) : ORDERS.PUBLIC,
+        payload,
+        { headers: createIntentHeaders(checkoutIntentRef.current) },
+      );
       setOrderNumber(res.data.data?.order_number || 'N/A');
+      proofIntentRef.current = createCheckoutIntent();
       setPaymentContext(res.data.data?.payment || null);
       setProofFile(null);
       setProofMessage('');
@@ -277,11 +338,13 @@ export default function Shop() {
     } catch (err) {
       setFormError(err?.response?.data?.message || 'Failed to place order. Please try again.');
     } finally {
+      submittingRef.current = false;
       setSubmitting(false);
     }
   };
 
   const handleUploadProof = async () => {
+    if (proofUploading) return;
     if (!proofFile) {
       setProofError('Please choose a payment proof file first.');
       return;
@@ -296,7 +359,7 @@ export default function Shop() {
       formData.append('customer_phone', customer.phone);
       formData.append('proof', proofFile);
       await api.post(ORDERS.PUBLIC_PAYMENT_PROOF, formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+        headers: { 'Content-Type': 'multipart/form-data', ...createIntentHeaders(proofIntentRef.current) },
       });
       setProofMessage('Payment proof uploaded successfully. We will verify your payment shortly.');
       setPaymentContext((current) => current ? {
@@ -364,6 +427,7 @@ export default function Shop() {
               <input
                 type="file"
                 accept="image/*,.pdf"
+                disabled={proofUploading}
                 onChange={(event) => setProofFile(event.target.files?.[0] || null)}
                 className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-xl file:border-0 file:bg-amber-500 file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-amber-600"
               />
@@ -400,7 +464,12 @@ export default function Shop() {
             </Link>
             <button
               onClick={() => {
+                if (isInfluencerCheckout) {
+                  window.location.reload();
+                  return;
+                }
                 setCart([]);
+                checkoutIntentRef.current = createCheckoutIntent();
                 setStep('browse');
                 setCustomer({ name: '', phone: '', email: '', address: '' });
                 setOrderNumber('');
@@ -411,7 +480,7 @@ export default function Shop() {
               }}
               className="w-full py-3 border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold rounded-xl text-sm transition-colors text-center"
             >
-              Continue Shopping
+              {isInfluencerCheckout ? 'Order Again' : 'Continue Shopping'}
             </button>
           </div>
         </div>
@@ -419,12 +488,20 @@ export default function Shop() {
     );
   }
 
+  if (isInfluencerCheckout && influencerLoading) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50"><Spinner size="xl" color="warning" /></div>;
+  }
+
+  if (isInfluencerCheckout && influencerError) {
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4"><div className="max-w-md rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-amber-900"><h2 className="text-lg font-bold">Checkout unavailable</h2><p className="mt-2 text-sm">{influencerError}</p></div></div>;
+  }
+
   return (
     <div className="min-h-screen bg-gray-50" style={{ colorScheme: 'light' }}>
       {/* Header */}
       <header className="bg-white border-b border-gray-100 sticky top-0 z-30 shadow-sm">
         <div className="max-w-6xl mx-auto px-4 py-3.5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3">
             <img src={BRAND_LOGO} alt="Nogatu" className="w-8 h-8 rounded-xl" />
             <div>
               <p className="font-bold text-gray-900 text-sm">Nogatu Shop</p>
@@ -438,8 +515,8 @@ export default function Shop() {
             <Link to="/track" className="text-xs text-gray-500 hover:text-gray-700 hidden sm:block">
               Track Order
             </Link>
-            <button
-              onClick={() => setCartOpen(true)}
+              {!isInfluencerCheckout && <button
+                onClick={() => setCartOpen(true)}
               className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors"
             >
               <HiShoppingCart className="w-5 h-5 text-gray-700" />
@@ -448,7 +525,7 @@ export default function Shop() {
                   {cartCount}
                 </span>
               )}
-            </button>
+            </button>}
           </div>
         </div>
       </header>
@@ -509,7 +586,7 @@ export default function Shop() {
                         <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 mb-1 min-h-[2.5rem]">
                           {product.name}
                         </h3>
-                        <p className="text-amber-500 font-bold text-sm mb-1.5">
+                        <p className="text-amber-700 font-bold text-sm mb-1.5">
                           {formatCurrency(getPublicCatalogPrice(product))}
                         </p>
                         <div className="text-xs mb-3 font-medium">
@@ -517,7 +594,7 @@ export default function Shop() {
                             stockMap[product.id] <= 0 ? (
                               <span className="text-red-600 font-semibold">Out of Stock</span>
                             ) : stockMap[product.id] <= 5 ? (
-                              <span className="text-amber-500 font-semibold">Only {stockMap[product.id]} left</span>
+                              <span className="text-amber-700 font-semibold">Only {stockMap[product.id]} left</span>
                             ) : (
                               <span className="text-gray-500">Stock: {stockMap[product.id]} available</span>
                             )
@@ -574,7 +651,8 @@ export default function Shop() {
               <p className="text-sm text-gray-500 mb-6">You need to add products to your cart before you can check out.</p>
               <button
                 type="button"
-                onClick={() => setStep('browse')}
+                onClick={() => { if (!isInfluencerCheckout) setStep('browse'); }}
+                disabled={isInfluencerCheckout}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl text-sm transition-colors"
               >
                 <FiChevronLeft className="w-4 h-4" />
@@ -585,13 +663,13 @@ export default function Shop() {
             <div className="max-w-5xl mx-auto">
               {/* Breadcrumbs / Progress */}
               <div className="flex items-center gap-2 text-xs text-gray-500 mb-6 bg-white border border-gray-100 rounded-xl p-3 shadow-sm justify-between sm:justify-start">
-                <button
+                {!isInfluencerCheckout && <button
                   type="button"
                   onClick={() => setStep('browse')}
                   className="hover:text-amber-600 transition-colors font-medium flex items-center gap-1"
                 >
                   Shop
-                </button>
+                </button>}
                 <HiChevronRight className="w-3.5 h-3.5 text-gray-500" />
                 <span className="font-bold text-amber-600">Secure Checkout</span>
                 <HiChevronRight className="w-3.5 h-3.5 text-gray-500" />
@@ -623,6 +701,7 @@ export default function Shop() {
                           id="customerName"
                           type="text"
                           required
+                          disabled={submitting}
                           value={customer.name}
                           onChange={e => setCustomer(prev => ({ ...prev, name: e.target.value }))}
                           placeholder="Juan Dela Cruz"
@@ -641,6 +720,7 @@ export default function Shop() {
                           id="customerPhone"
                           type="tel"
                           required
+                          disabled={submitting}
                           value={customer.phone}
                           onChange={e => setCustomer(prev => ({ ...prev, phone: e.target.value }))}
                           placeholder="09171234567"
@@ -658,6 +738,7 @@ export default function Shop() {
                         <input
                           id="customerEmail"
                           type="email"
+                          disabled={submitting}
                           value={customer.email}
                           onChange={e => setCustomer(prev => ({ ...prev, email: e.target.value }))}
                           placeholder="juan@example.com"
@@ -666,7 +747,7 @@ export default function Shop() {
                       </div>
                     </div>
 
-                    <div>
+                    {!isInfluencerCheckout && <div>
                       <label htmlFor="memberUsername" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
                         Nogatu Member Username (Optional — 30% member discount)
                       </label>
@@ -675,6 +756,7 @@ export default function Shop() {
                         <input
                           id="memberUsername"
                           type="text"
+                          disabled={submitting}
                           value={memberUsername}
                           onChange={e => setMemberUsername(e.target.value)}
                           placeholder="Your Nogatu Alliance username"
@@ -682,7 +764,7 @@ export default function Shop() {
                         />
                       </div>
                       <p className="mt-1 text-[11px] text-gray-500">Verified at checkout. The discount applies only to active members.</p>
-                    </div>
+                    </div>}
 
                     <div>
                       <label htmlFor="customerAddress" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
@@ -694,6 +776,7 @@ export default function Shop() {
                           id="customerAddress"
                           required
                           rows={3}
+                          disabled={submitting}
                           value={customer.address}
                           onChange={e => setCustomer(prev => ({ ...prev, address: e.target.value }))}
                           placeholder="Street name, Barangay, City, Province, Postal Code"
@@ -705,6 +788,21 @@ export default function Shop() {
                     <LocationPicker value={pinnedLocation} onChange={setPinnedLocation} />
 
                     <div className="pt-2">
+                      {paymentProviders.length > 0 && (
+                        <div className="mb-4">
+                          <label htmlFor="paymentProvider" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Payment Provider *</label>
+                          <select
+                            id="paymentProvider"
+                            value={paymentProvider}
+                            onChange={(event) => setPaymentProvider(event.target.value)}
+                            disabled={submitting}
+                            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-amber-500 focus:outline-none"
+                          >
+                            {paymentProviders.map((provider) => <option key={provider} value={provider}>{provider}</option>)}
+                          </select>
+                        </div>
+                      )}
+                      {isInfluencerCheckout && <p className="mb-3 text-xs font-semibold text-amber-700">Berry NAD • Quantity fixed at 1</p>}
                       <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 text-xs text-amber-800 flex items-start gap-2">
                         <FiLock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
                         <div>
@@ -745,13 +843,13 @@ export default function Shop() {
                   <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
                     <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
                       <h3 className="font-bold text-gray-900">Order Summary</h3>
-                      <button
+                      {!isInfluencerCheckout && <button
                         type="button"
                         onClick={() => setStep('browse')}
                         className="text-xs font-semibold text-amber-600 hover:text-amber-700 transition-colors"
                       >
                         Edit Items
-                      </button>
+                      </button>}
                     </div>
 
                     <div className="max-h-[220px] overflow-y-auto space-y-3 pr-1 scrollbar-thin mb-4">
@@ -872,7 +970,7 @@ export default function Shop() {
                 <div className="flex items-center gap-2">
                   <HiShoppingCart className="w-5 h-5 text-amber-500" />
                   <span className="font-bold text-gray-900">Your Shopping Cart</span>
-                  {cartCount > 0 && (
+              {cartCount > 0 && (
                     <span className="bg-amber-100 text-amber-800 text-xs font-bold px-2 py-0.5 rounded-full">
                       {cartCount} {cartCount === 1 ? 'item' : 'items'}
                     </span>
@@ -884,7 +982,7 @@ export default function Shop() {
                   className="p-1 rounded-lg text-gray-500 hover:bg-gray-100 transition-colors"
                 >
                   <HiX className="w-5 h-5" />
-                </button>
+            </button>
               </div>
 
               {/* Drawer Content */}
@@ -937,7 +1035,7 @@ export default function Shop() {
                               stock <= 0 ? (
                                 <span className="text-red-600">Out of Stock</span>
                               ) : item.quantity > stock ? (
-                                <span className="text-amber-500">Only {stock} left</span>
+                                <span className="text-amber-700">Only {stock} left</span>
                               ) : (
                                 <span className="text-gray-500 font-medium">Stock: {stock} available</span>
                               )

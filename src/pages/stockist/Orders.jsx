@@ -187,7 +187,7 @@ function OrderTable({ list, onOpenDetail, highlightId }) {
                 className={`cursor-pointer border-t border-gray-50 transition-all dark:border-[var(--dark-border)] ${highlightId && String(order.id) === highlightId ? 'ring-2 ring-inset ring-amber-400 bg-amber-100/70 animate-pulse' : 'hover:bg-amber-50/30 dark:hover:bg-white/5'}`}
                 onClick={() => onOpenDetail(order)}
               >
-                <td className="px-4 py-3 font-mono text-xs font-semibold text-gray-900 dark:text-[var(--dark-text)]">
+                <td className="px-4 py-3 font-mono whitespace-nowrap text-xs font-semibold text-gray-900 dark:text-[var(--dark-text)]">
                   {order.order_number}
                 </td>
                 <td className="px-4 py-3">
@@ -214,7 +214,7 @@ function OrderTable({ list, onOpenDetail, highlightId }) {
                 <td className="px-4 py-3 text-xs text-gray-600 dark:text-[var(--dark-muted)]">
                   {order.is_public ? 'Public' : roleLabel(order.placed_by_role_slug)}
                 </td>
-                <td className="px-4 py-3 font-semibold text-gray-900 dark:text-[var(--dark-text)]">
+                <td className="px-4 py-3 font-semibold whitespace-nowrap tabular-nums text-gray-900 dark:text-[var(--dark-text)]">
                   {formatCurrency(order.total_amount)}
                 </td>
                 <td className="px-4 py-3">
@@ -229,7 +229,7 @@ function OrderTable({ list, onOpenDetail, highlightId }) {
                 <td className="px-4 py-3">
                   <StatusBadge status={order.status} />
                 </td>
-                <td className="px-4 py-3 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
+                <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-[var(--dark-muted)]">
                   {formatDate(order.created_at)}
                 </td>
                 <td className="px-4 py-3 text-right">

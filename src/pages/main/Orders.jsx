@@ -24,6 +24,26 @@ import OrderPricingBreakdown from '@/components/OrderPricingBreakdown';
 
 const STATUSES = ['all', 'pending', 'approved', 'delivering', 'delivered', 'cancelled', 'archived'];
 const toStatusKey = (value) => String(value || '').trim().toLowerCase();
+
+// The payment deadline only matters while an order is still open and unpaid.
+// Colouring it for delivered/cancelled/paid orders signalled urgency that no
+// longer exists, so those render muted.
+const CLOSED_ORDER_STATUSES = new Set(['delivered', 'cancelled', 'rejected']);
+const DEADLINE_SOON_MS = 6 * 60 * 60 * 1000;
+const getDeadlineUrgency = (order, isArchivedView) => {
+  if (!order.payment_deadline || isArchivedView || order.is_archived) return null;
+  if (CLOSED_ORDER_STATUSES.has(toStatusKey(order.status))) return null;
+  if (toStatusKey(order.payment_status) === 'paid') return null;
+  const deadlineMs = new Date(order.payment_deadline).getTime();
+  if (Number.isNaN(deadlineMs)) return null;
+  const remainingMs = deadlineMs - Date.now();
+  if (remainingMs < 0) return 'overdue';
+  return remainingMs <= DEADLINE_SOON_MS ? 'soon' : null;
+};
+const DEADLINE_CLASSES = {
+  overdue: 'text-red-700 dark:text-red-400 font-semibold',
+  soon: 'text-amber-700 dark:text-amber-400 font-medium',
+};
 const roleLabel = (roleSlug) => {
   const normalized = String(roleSlug || '').trim().toLowerCase();
   if (normalized === 'mobile_stockist') return 'Mobile Stockist';
@@ -431,7 +451,7 @@ export default function Orders() {
                     ) : (
                       orders.map((order) => (
                         <TableRow key={order.id} className={`cursor-pointer transition-all ${highlightId && String(order.id) === highlightId ? 'ring-2 ring-inset ring-amber-400 bg-amber-100/70 animate-pulse' : 'hover:bg-amber-50/30'}`} onClick={() => openDetail(order)}>
-                          <TableCell className="font-mono font-medium text-gray-900 dark:text-[var(--dark-text)] text-xs">
+                          <TableCell className="font-mono whitespace-nowrap font-medium text-gray-900 dark:text-[var(--dark-text)] text-xs">
                             {order.order_number}
                           </TableCell>
                           <TableCell className="text-xs">
@@ -442,21 +462,21 @@ export default function Orders() {
                               </span>
                             ) : (order.partner_name || order.business_name || 'N/A')}</TableCell>
                           <TableCell className="text-xs">{order.items_count ?? order.items?.length ?? '—'}</TableCell>
-                          <TableCell className="font-semibold text-xs">{formatCurrency(order.total_amount)}</TableCell>
+                          <TableCell className="font-semibold text-xs whitespace-nowrap tabular-nums">{formatCurrency(order.total_amount)}</TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <StatusBadge status={order.payment_status || 'unpaid'} />
                           </TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <StatusBadge status={order.status} />
                           </TableCell>
-                          <TableCell className="text-xs">
+                          <TableCell className="text-xs whitespace-nowrap">
                             {order.payment_deadline ? (
-                              <span className="text-amber-700 dark:text-amber-400 font-medium">
+                              <span className={DEADLINE_CLASSES[getDeadlineUrgency(order, isArchivedTab)] || 'text-gray-500 dark:text-[var(--dark-muted)]'}>
                                 {formatDateTime(order.payment_deadline)}
                               </span>
                             ) : '—'}
                           </TableCell>
-                          <TableCell className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{formatDate(order.created_at)}</TableCell>
+                          <TableCell className="text-xs whitespace-nowrap text-gray-500 dark:text-[var(--dark-muted)]">{formatDate(order.created_at)}</TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <Button size="xs" color="light" onClick={() => openDetail(order)}>
                               <HiOutlineEye className="w-3.5 h-3.5" />

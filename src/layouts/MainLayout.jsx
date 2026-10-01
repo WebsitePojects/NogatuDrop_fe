@@ -120,21 +120,6 @@ export default function MainLayout() {
     return () => clearTimeout(timer);
   }, []);
 
-  useEffect(() => {
-    let timer;
-    const handleShowNotifications = () => {
-      setNotifOpen(true);
-      clearTimeout(timer);
-      timer = setTimeout(() => setNotifOpen(false), 5000);
-    };
-
-    window.addEventListener('nogatu:notifications:show', handleShowNotifications);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('nogatu:notifications:show', handleShowNotifications);
-    };
-  }, []);
-
   return (
     <div
       className={`flex min-h-screen ${dark ? 'dark' : ''}`}
@@ -269,9 +254,9 @@ export default function MainLayout() {
                   </div>
                   <div className="hidden md:block text-left">
                     <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 leading-tight">{user?.name || 'Admin'}</p>
-                    <p className="text-xs text-gray-400 leading-tight">Super Admin</p>
+                    <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)] leading-tight">Super Admin</p>
                   </div>
-                  <HiChevronDown className="w-3.5 h-3.5 text-gray-400 hidden md:block" />
+                  <HiChevronDown className="w-3.5 h-3.5 text-gray-500 dark:text-[var(--dark-muted)] hidden md:block" />
                 </div>
               }
               inline

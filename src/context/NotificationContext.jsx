@@ -3,6 +3,7 @@ import api from '@/services/api';
 import { NOTIFICATIONS } from '@/services/endpoints';
 import { useAuth } from './AuthContext';
 import { ToastContainer } from '@/components/NotificationToast';
+import { getNotificationLabel, getNotificationToastType } from '@/utils/notificationMeta';
 
 const NotificationContext = createContext(null);
 
@@ -26,11 +27,6 @@ export const NotificationProvider = ({ children }) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);
 
-  const announceNotificationPopup = useCallback(() => {
-    if (typeof window === 'undefined') return;
-    window.dispatchEvent(new CustomEvent('nogatu:notifications:show'));
-  }, []);
-
   const fetchNotifications = useCallback(async () => {
     if (!user) return;
     try {
@@ -39,12 +35,13 @@ export const NotificationProvider = ({ children }) => {
       setNotifications(fetched);
 
       if (isInitialLoadRef.current) {
-        // First load: record existing IDs so we don't spam toasts, AND force the
-        // notification drawer open once if anything is unread (first-login popup
-        // the user must close) — instead of toasting constantly during the session.
+        // First load: record existing IDs so we don't toast backlog. The board is
+        // NOT auto-opened here — doing so interrupted every page refresh. The
+        // post-login popup is driven only by the `nogatu_show_notifications`
+        // sessionStorage flag set in Login.jsx and read by each layout; the bell
+        // badge carries the unread count on ordinary page loads.
         fetched.forEach((n) => notifiedIdsRef.current.add(n.id));
         isInitialLoadRef.current = false;
-        if (fetched.some((n) => !n.is_read)) announceNotificationPopup();
       } else {
         // Subsequent polling: trigger toast for previously unseen, unread notifications
         const newNotifs = fetched.filter((n) => !notifiedIdsRef.current.has(n.id) && !n.is_read);
@@ -54,18 +51,17 @@ export const NotificationProvider = ({ children }) => {
           addToast({
             title: n.title || n.location || 'New Notification',
             message: n.message || n.subtitle || n.body || '',
-            label: n.type === 'no_stock' ? 'No stocks' : n.type === 'low_stock' ? 'Low Stock' : '',
-            type: n.type || 'default',
+            label: getNotificationLabel(n),
+            type: getNotificationToastType(n),
             notificationId: n.id,
           });
           notifiedIdsRef.current.add(n.id);
         });
-        if (newNotifs.length > 0) announceNotificationPopup();
       }
     } catch {
       // silently fail
     }
-  }, [user, addToast, announceNotificationPopup]);
+  }, [user, addToast]);
 
   const triggerLatestToast = useCallback((opts = {}) => {
     if (!notifications || notifications.length === 0) return null;
@@ -83,8 +79,8 @@ export const NotificationProvider = ({ children }) => {
       addToast({
         title: candidate.title || candidate.location || 'Notification',
         message: candidate.message || candidate.subtitle || candidate.body || '',
-        label: candidate.type === 'no_stock' ? 'No stocks' : candidate.type === 'low_stock' ? 'Low Stock' : '',
-        type: candidate.type || 'default',
+        label: getNotificationLabel(candidate),
+        type: getNotificationToastType(candidate),
         notificationId: candidate.id,
         ...opts,
       });

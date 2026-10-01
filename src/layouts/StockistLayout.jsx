@@ -4,9 +4,7 @@ import { Dropdown } from 'flowbite-react';
 import {
   HiOutlineHome,
   HiOutlineViewGrid,
-  HiOutlineShoppingCart,
   HiOutlineClipboardList,
-  HiOutlineTruck,
   HiOutlineUsers,
   HiOutlineCube,
   HiOutlineChartBar,
@@ -14,8 +12,6 @@ import {
   HiOutlineLogout,
   HiOutlineMenuAlt2,
   HiOutlineX,
-  HiOutlineDocumentText,
-  HiOutlineSwitchHorizontal,
   HiOutlineSun,
   HiOutlineMoon,
   HiOutlineCog,
@@ -42,8 +38,11 @@ function buildNavGroups(role) {
   const isManager = isProvincial || isCity; // can manage things
   const canUseCart = can(normalizedRole, PERMISSIONS.CART_USE);
 
+  // Lean stockist navigation (Wave 3 §1/§2.5). Hidden modules (live map, cycle
+  // counts, stock transfers, purchase orders, warehouses, settlements) keep their
+  // routes and stay on the Super Admin side; the shopping cart is reached from the
+  // catalog and the floating cart button, not the sidebar.
   return [
-    // ── Overview ──────────────────────────────────────────
     {
       label: null,
       items: [
@@ -51,87 +50,40 @@ function buildNavGroups(role) {
       ],
     },
 
-    // ── Selling ───────────────────────────────────────────
     {
-      label: 'Selling',
+      label: 'Orders',
       items: [
-        ...(canUseCart ? [{ path: '/stockist/catalog', label: 'Product Catalog', icon: HiOutlineViewGrid }] : []),
-        ...(canUseCart ? [{ path: '/stockist/cart', label: 'Shopping Cart', icon: HiOutlineShoppingCart }] : []),
+        ...(canUseCart ? [{ path: '/stockist/catalog', label: 'Order Products', icon: HiOutlineViewGrid }] : []),
+        { path: '/stockist/orders', label: 'My Orders', icon: HiOutlineClipboardList },
       ],
     },
 
-    // ── Order Center (Phase 1) ───────────────────────────
-    {
-      label: 'Order Center',
-      items: [
-        { path: '/stockist/orders', label: 'Orders', icon: HiOutlineClipboardList },
-      ],
-    },
-
-    // ── Delivery (Phase 1) ───────────────────────────────
-    {
-      label: 'Delivery',
-      items: [
-        { path: '/stockist/delivery/live', label: 'Live Deliveries Map', icon: HiOutlineTruck },
-      ],
-    },
-
-    // ── Inventory & Warehouse ─────────────────────────────
     {
       label: 'Inventory',
       items: [
         { path: '/stockist/inventory', label: 'Inventory', icon: HiOutlineCube },
-        ...(can(normalizedRole, PERMISSIONS.CYCLE_COUNTS_CREATE)
-          ? [{ path: '/stockist/cycle-counts', label: 'Cycle Counts', icon: HiOutlineClipboardList }]
-          : []),
-        { path: '/stockist/grn', label: 'Goods Receipt (GRN)', icon: HiOutlineArchive },
-        ...(isManager ? [{ path: '/stockist/stock-transfers', label: 'Stock Transfers', icon: HiOutlineSwitchHorizontal }] : []),
-        ...(can(normalizedRole, PERMISSIONS.PURCHASE_ORDERS_CREATE)
-          ? [{ path: '/stockist/purchase-orders', label: 'Purchase Orders', icon: HiOutlineDocumentText }]
-          : []),
+        // Kept until goods receipt is folded into "mark order received".
+        { path: '/stockist/grn', label: 'Receive Goods', icon: HiOutlineArchive },
       ],
     },
 
-    // ── Network ───────────────────────────────────────────
-    ...(can(normalizedRole, PERMISSIONS.WAREHOUSES_MANAGE)
-      ? [
-          {
-            label: 'Mobile Stockists',
-            items: [
-              { path: '/stockist/mobile-stockists', label: 'Mobile Stockists', icon: HiOutlineUsers },
-            ],
-          },
-          {
-            label: 'Network',
-            items: [
-              { path: '/stockist/warehouses', label: 'Warehouses', icon: HiOutlineHome },
-            ],
-          },
-        ]
-      : []),
-
-    // ── Analytics ─────────────────────────────────────────
     {
-      label: 'Analytics',
+      label: 'Reports',
       items: [
-        ...(can(normalizedRole, PERMISSIONS.SETTLEMENTS_VIEW)
-          ? [{ path: '/stockist/settlements', label: 'Settlements', icon: HiOutlineDocumentText }]
-          : []),
-        { path: '/stockist/reports', label: 'Reports', icon: HiOutlineChartBar },
+        { path: '/stockist/reports', label: 'Sales Report', icon: HiOutlineChartBar },
       ],
     },
 
-    // ── Management ────────────────────────────────────────
-    ...(isManager
-      ? [
-          {
-            label: 'Management',
-            items: [
-              { path: '/stockist/users', label: 'Users', icon: HiOutlineCog },
-            ],
-          },
-        ]
-      : []),
+    {
+      label: 'My Team',
+      items: [
+        ...(isManager ? [{ path: '/stockist/users', label: 'Users', icon: HiOutlineCog }] : []),
+        // Same permission as the route guard in App.jsx so a visible link never 403s.
+        ...(can(normalizedRole, PERMISSIONS.MOBILE_STOCKISTS_MANAGE)
+          ? [{ path: '/stockist/mobile-stockists', label: 'Mobile Stockists', icon: HiOutlineUsers }]
+          : []),
+      ],
+    },
   ].filter((group) => Array.isArray(group.items) && group.items.length > 0);
 }
 
@@ -182,21 +134,6 @@ export default function StockistLayout() {
 
     const timer = setTimeout(() => setNotifOpen(false), 5000);
     return () => clearTimeout(timer);
-  }, []);
-
-  useEffect(() => {
-    let timer;
-    const handleShowNotifications = () => {
-      setNotifOpen(true);
-      clearTimeout(timer);
-      timer = setTimeout(() => setNotifOpen(false), 5000);
-    };
-
-    window.addEventListener('nogatu:notifications:show', handleShowNotifications);
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener('nogatu:notifications:show', handleShowNotifications);
-    };
   }, []);
 
   return (
@@ -302,7 +239,8 @@ export default function StockistLayout() {
           {/* Breadcrumb hint */}
           <div className="flex-1 pl-2 hidden sm:block">
             <span className="text-sm text-gray-500 dark:text-gray-400">
-              {navGroups.flatMap(g => g.items).find(i => location.pathname.startsWith(i.path))?.label || ''}
+              {navGroups.flatMap(g => g.items).find(i => location.pathname.startsWith(i.path))?.label
+                || (location.pathname.startsWith('/stockist/cart') ? 'Shopping Cart' : '')}
             </span>
           </div>
 
@@ -339,9 +277,9 @@ export default function StockistLayout() {
                   </div>
                   <div className="hidden md:block text-left">
                     <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 leading-tight">{user?.name || 'Stockist'}</p>
-                    <p className="text-xs text-gray-400 leading-tight">{roleLabel}</p>
+                    <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)] leading-tight">{roleLabel}</p>
                   </div>
-                  <HiChevronDown className="w-3.5 h-3.5 text-gray-400 hidden md:block" />
+                  <HiChevronDown className="w-3.5 h-3.5 text-gray-500 dark:text-[var(--dark-muted)] hidden md:block" />
                 </div>
               }
               inline

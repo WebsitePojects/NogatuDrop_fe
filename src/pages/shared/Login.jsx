@@ -26,7 +26,7 @@ export default function Login() {
       sessionStorage.setItem('nogatu_show_notifications', '1');
       const role = userData?.role_slug;
       if (role === 'super_admin') navigate('/main/dashboard');
-      else if (role === 'mobile_stockist') navigate('/mobile/dashboard');
+      else if (role === 'mobile_stockist') navigate('/mobile/inventory');
       else navigate('/stockist/dashboard');
     } catch (err) {
       setError(err.response?.data?.message || 'Invalid credentials. Please try again.');

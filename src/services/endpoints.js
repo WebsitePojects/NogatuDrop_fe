@@ -83,6 +83,8 @@ export const ORDERS = {
   LIST:          '/orders',
   CREATE:        '/orders',
   PUBLIC:        '/orders/public',
+  PUBLIC_INFLUENCER: (slug) => `/orders/public/influencer/${encodeURIComponent(slug)}`,
+  PUBLIC_PAYMENT_OPTIONS: '/orders/public/payment-options',
   PUBLIC_PAYMENT_PROOF: '/orders/public/payment-proof',
   BY_ID:         (id) => `/orders/${id}`,
   APPROVE:       (id) => `/orders/${id}/approve`,
@@ -174,6 +176,7 @@ export const REPORTS = {
   PURCHASES: '/reports/purchases',
   PRODUCTS:  '/reports/products',
   MOVEMENTS: '/reports/movements',
+  INFLUENCERS: '/reports/influencers',
 };
 
 export const DASHBOARD = {

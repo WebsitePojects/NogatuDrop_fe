@@ -1,8 +1,44 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiAlertTriangle, FiCheckCircle, FiMapPin } from 'react-icons/fi';
+import { FiAlertTriangle, FiBell, FiCheckCircle, FiCreditCard, FiMapPin, FiShoppingBag } from 'react-icons/fi';
 import { useNotifications } from '@/context/NotificationContext';
 import { useAuth } from '@/context/AuthContext';
+import { getNotificationKind, NOTIFICATION_KIND_LABELS } from '@/utils/notificationMeta';
+
+// Visual treatment per notification kind. The label text itself comes from the
+// shared notificationMeta helper so the toast and the drawer can never disagree.
+const KIND_STYLES = {
+  no_stock: {
+    icon: <FiAlertTriangle className="text-red-500" />,
+    labelClass: 'text-red-500',
+    chipClass: 'bg-red-500/10 text-red-500 ring-red-500/15',
+  },
+  low_stock: {
+    icon: <FiAlertTriangle className="text-amber-500" />,
+    labelClass: 'text-amber-500',
+    chipClass: 'bg-amber-500/10 text-amber-500 ring-amber-500/15',
+  },
+  replenished: {
+    icon: <FiCheckCircle className="text-emerald-500" />,
+    labelClass: 'text-emerald-500',
+    chipClass: 'bg-emerald-500/10 text-emerald-500 ring-emerald-500/15',
+  },
+  payment: {
+    icon: <FiCreditCard className="text-sky-600 dark:text-sky-400" />,
+    labelClass: 'text-sky-700 dark:text-sky-400',
+    chipClass: 'bg-sky-500/10 text-sky-700 ring-sky-500/20 dark:text-sky-300',
+  },
+  order: {
+    icon: <FiShoppingBag className="text-orange-600 dark:text-orange-300" />,
+    labelClass: 'text-orange-700 dark:text-orange-300',
+    chipClass: 'bg-orange-500/10 text-orange-700 ring-orange-500/20 dark:text-orange-300',
+  },
+  update: {
+    icon: <FiBell className="text-[#7b5a43] dark:text-[var(--dark-muted)]" />,
+    labelClass: 'text-[#7b5a43] dark:text-[var(--dark-muted)]',
+    chipClass: 'bg-[#7b5a43]/10 text-[#7b5a43] ring-[#7b5a43]/15 dark:bg-white/5 dark:text-[var(--dark-muted)] dark:ring-white/10',
+  },
+};
 
 const NotificationDrawer = ({ isOpen, open, onClose }) => {
   const { notifications, markAsRead, markAsUnread } = useNotifications();
@@ -34,30 +70,8 @@ const NotificationDrawer = ({ isOpen, open, onClose }) => {
   };
 
   const getStatusInfo = (notif) => {
-    if (notif.type === 'no_stock') {
-      return {
-        icon: <FiAlertTriangle className="text-red-500" />,
-        label: 'No stocks',
-        labelClass: 'text-red-500',
-        chipClass: 'bg-red-500/10 text-red-500 ring-red-500/15',
-      };
-    }
-
-    if (notif.type === 'replenished' || notif.type === 'stock_replenished') {
-      return {
-        icon: <FiCheckCircle className="text-emerald-500" />,
-        label: 'Replenished',
-        labelClass: 'text-emerald-500',
-        chipClass: 'bg-emerald-500/10 text-emerald-500 ring-emerald-500/15',
-      };
-    }
-
-    return {
-      icon: <FiAlertTriangle className="text-amber-500" />,
-      label: 'Low Stock',
-      labelClass: 'text-amber-500',
-      chipClass: 'bg-amber-500/10 text-amber-500 ring-amber-500/15',
-    };
+    const kind = getNotificationKind(notif);
+    return { ...KIND_STYLES[kind], label: NOTIFICATION_KIND_LABELS[kind] };
   };
 
   return (
@@ -145,9 +159,15 @@ const NotificationDrawer = ({ isOpen, open, onClose }) => {
                   </div>
 
                   <div className="mt-4 flex items-center justify-between gap-3">
-                    <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${labelClass}`}>
-                      {notif.is_read ? 'Viewed' : 'Needs attention'}
-                    </span>
+                    {notif.is_read ? (
+                      <span className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7b5a43] dark:text-[var(--dark-muted)]">
+                        Read
+                      </span>
+                    ) : (
+                      <span className={`text-xs font-semibold uppercase tracking-[0.18em] ${labelClass}`}>
+                        Needs attention
+                      </span>
+                    )}
                     <button
                       type="button"
                       onClick={(event) => {

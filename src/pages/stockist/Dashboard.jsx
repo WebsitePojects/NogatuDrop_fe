@@ -17,6 +17,7 @@ import { ORDERS, INVENTORY } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
+import { useTheme } from '@/context/ThemeContext';
 import { PERMISSIONS, can } from '@/utils/permissions';
 
 export default function StockistDashboard() {
@@ -24,7 +25,7 @@ export default function StockistDashboard() {
   const { user } = useAuth();
   const { toasts, showToast, dismiss } = useToast();
   const canUseCart = can(user?.role_slug, PERMISSIONS.CART_USE);
-  const canCreateCycleCounts = can(user?.role_slug, PERMISSIONS.CYCLE_COUNTS_CREATE);
+  const { dark } = useTheme();
 
   const [kpis, setKpis] = useState({ totalOrders: 0, revenueMonth: 0, pendingOrders: 0, inventoryItems: 0 });
   const [recentOrders, setRecentOrders] = useState([]);
@@ -97,24 +98,28 @@ export default function StockistDashboard() {
     return 'Good evening';
   };
 
+  // One primary action, the rest secondary — the same brand-btn pair used across
+  // the portal. Cycle counts are no longer in the stockist nav, so the cart-less
+  // roles get Receive Goods instead.
   const quickActions = canUseCart
     ? [
-        // amber-500 can't pass AA with white text (2.15:1 in either theme) —
-        // dark text is the same fix already used for amber-500 CTAs elsewhere.
-        { label: 'Browse Catalog', path: '/stockist/catalog', color: 'bg-amber-500 hover:bg-amber-600', text: 'text-amber-950' },
-        { label: 'View Orders', path: '/stockist/orders', color: 'bg-blue-600 hover:bg-blue-700', text: 'text-white' },
-        { label: 'View Inventory', path: '/stockist/inventory', color: 'bg-purple-600 hover:bg-purple-700', text: 'text-white' },
+        { label: 'Order Products', path: '/stockist/catalog', variant: 'primary' },
+        { label: 'View Orders', path: '/stockist/orders', variant: 'secondary' },
+        { label: 'View Inventory', path: '/stockist/inventory', variant: 'secondary' },
       ]
     : [
-        { label: 'View Orders', path: '/stockist/orders', color: 'bg-blue-600 hover:bg-blue-700', text: 'text-white' },
-        { label: 'View Inventory', path: '/stockist/inventory', color: 'bg-purple-600 hover:bg-purple-700', text: 'text-white' },
-        {
-          label: canCreateCycleCounts ? 'Open Cycle Counts' : 'Open GRN',
-          path: canCreateCycleCounts ? '/stockist/cycle-counts' : '/stockist/grn',
-          color: 'bg-emerald-600 hover:bg-emerald-700',
-          text: 'text-white',
-        },
+        { label: 'View Orders', path: '/stockist/orders', variant: 'primary' },
+        { label: 'View Inventory', path: '/stockist/inventory', variant: 'secondary' },
+        { label: 'Receive Goods', path: '/stockist/grn', variant: 'secondary' },
       ];
+
+  const chartTooltipStyle = {
+    fontSize: 12,
+    borderRadius: 8,
+    border: `1px solid ${dark ? 'var(--dark-border)' : '#e5e7eb'}`,
+    background: dark ? 'var(--dark-card2)' : '#ffffff',
+    color: dark ? 'var(--dark-text)' : '#111827',
+  };
 
   return (
     <div className="p-4 md:p-6 min-h-screen page-enter">
@@ -153,16 +158,16 @@ export default function StockistDashboard() {
 
       {/* Low Stock Alert */}
       {lowStock.length > 0 && (
-        <div className="mb-6 rounded-[1.5rem] border border-amber-200 bg-[linear-gradient(135deg,#fff8eb_0%,#fff2d9_100%)] p-4 shadow-[0_22px_40px_-32px_rgba(217,119,6,0.38)]">
+        <div className="mb-6 rounded-[1.5rem] border border-amber-200 bg-[linear-gradient(135deg,#fff8eb_0%,#fff2d9_100%)] p-4 shadow-[0_22px_40px_-32px_rgba(217,119,6,0.38)] dark:border-amber-500/30 dark:bg-none dark:bg-amber-500/10 dark:shadow-none">
           <div className="flex items-center gap-2 mb-2">
-            <HiExclamation className="w-5 h-5 text-amber-600 flex-shrink-0" />
-            <span className="font-semibold text-amber-800 text-sm">Low Stock Alert</span>
+            <HiExclamation className="w-5 h-5 text-amber-600 dark:text-amber-300 flex-shrink-0" />
+            <span className="font-semibold text-amber-800 dark:text-amber-200 text-sm">Low Stock Alert</span>
           </div>
           <div className="flex flex-wrap gap-2">
             {lowStock.map((item) => (
               <span
                 key={item.id}
-                className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-800 px-2.5 py-1 rounded-full"
+                className="inline-flex items-center gap-1 text-xs bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-200 px-2.5 py-1 rounded-full"
               >
                 <FiPackage size={11} />
                 {item.product?.name || item.product_name || `Item #${item.id}`}
@@ -176,7 +181,7 @@ export default function StockistDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Chart */}
         <div className="lg:col-span-2">
-          <Card className="rounded-[1.6rem]">
+          <Card className="enterprise-panel">
             <div className="flex items-center gap-2 mb-4">
               <FiTrendingUp className="text-amber-500" />
               <h2 className="font-semibold text-strong text-sm">Orders Per Week (Last 4 Weeks)</h2>
@@ -188,18 +193,25 @@ export default function StockistDashboard() {
                 ))}
               </div>
             ) : (
-              <ResponsiveContainer width="100%" height={200}>
-                <BarChart data={weeklyChart} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                  <XAxis dataKey="week" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-                  <Tooltip
-                    contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e5e7eb' }}
-                    formatter={(v) => [v, 'Orders']}
-                  />
-                  <Bar dataKey="orders" fill="#F59E0B" radius={[4, 4, 0, 0]} maxBarSize={48} />
-                </BarChart>
-              </ResponsiveContainer>
+              // Recharts paints grid/axes as SVG attributes; the dark overrides are CSS
+              // (they win over attributes) so they can read the layout's --dark-* tokens.
+              <div className="dark:[&_.recharts-cartesian-grid_line]:stroke-[color:var(--dark-border)] dark:[&_.recharts-cartesian-axis-tick-value]:fill-[color:var(--dark-muted)] dark:[&_.recharts-cartesian-axis-line]:stroke-[color:var(--dark-border)]">
+                <ResponsiveContainer width="100%" height={200}>
+                  <BarChart data={weeklyChart} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+                    <XAxis dataKey="week" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={chartTooltipStyle}
+                      labelStyle={{ color: chartTooltipStyle.color }}
+                      itemStyle={{ color: chartTooltipStyle.color }}
+                      cursor={{ fill: dark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
+                      formatter={(v) => [v, 'Orders']}
+                    />
+                    <Bar dataKey="orders" fill="#F59E0B" radius={[4, 4, 0, 0]} maxBarSize={48} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
             )}
           </Card>
         </div>
@@ -207,11 +219,12 @@ export default function StockistDashboard() {
         {/* Quick Actions */}
         <div className="space-y-3">
           <h2 className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">Quick Actions</h2>
-          {quickActions.map(({ label, path, color, text }) => (
+          {quickActions.map(({ label, path, variant }) => (
             <button
               key={path}
+              type="button"
               onClick={() => navigate(path)}
-              className={`w-full flex items-center justify-between rounded-[1.2rem] px-4 py-3 text-sm font-semibold shadow-[0_22px_40px_-28px_rgba(15,23,42,0.35)] transition-all hover:-translate-y-0.5 ${color} ${text}`}
+              className={`brand-btn brand-btn--${variant} w-full justify-between`}
             >
               {label}
               <HiChevronRight className="w-4 h-4" />
@@ -231,7 +244,7 @@ export default function StockistDashboard() {
             View all
           </button>
         </div>
-        <Card className="overflow-x-auto rounded-[1.6rem] p-0">
+        <Card className="enterprise-panel overflow-x-auto p-0">
           {loading ? (
             <div className="p-4 space-y-3">
               {[0, 1, 2].map((i) => (

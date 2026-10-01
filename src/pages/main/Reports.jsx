@@ -14,6 +14,7 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
+import InfluencerReports from './InfluencerReports.jsx';
 
 const CHART_COLORS = ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#06B6D4', '#F97316'];
 
@@ -440,9 +441,9 @@ function InventoryTab() {
           ) : (
             <div className="space-y-2 max-h-48 overflow-y-auto">
               {expiringSoon.map((i) => (
-                <div key={i.id} className="flex items-center justify-between p-2 bg-amber-50 rounded text-xs">
-                  <span className="font-medium">{i.product_name}</span>
-                  <span className="text-amber-700 font-semibold">{formatDate(i.expiry_date)}</span>
+                <div key={i.id} className="flex items-center justify-between p-2 bg-amber-50 dark:bg-amber-500/10 rounded text-xs">
+                  <span className="font-medium text-gray-900 dark:text-[var(--dark-text)]">{i.product_name}</span>
+                  <span className="text-amber-700 dark:text-amber-300 font-semibold">{formatDate(i.expiry_date)}</span>
                 </div>
               ))}
             </div>
@@ -506,6 +507,7 @@ export default function Reports() {
           <TabItem title="Stockists"><StockistsTab /></TabItem>
           <TabItem title="Inventory"><InventoryTab /></TabItem>
           <TabItem title="Movements"><MovementsTab /></TabItem>
+          <TabItem title="Influencers"><InfluencerReports /></TabItem>
         </Tabs>
       </Card>
     </div>
