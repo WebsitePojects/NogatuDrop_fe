@@ -1,18 +1,15 @@
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import {
-  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Card, Spinner, TextInput, Select, Label, Badge, Pagination } from 'flowbite-react';
+  Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Card, TextInput, Select, Label, Pagination } from 'flowbite-react';
 import { HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineAdjustments } from 'react-icons/hi';
 import api from '@/services/api';
 import { INVENTORY, WAREHOUSES, PRODUCTS } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
-import StatusBadge from '@/components/StatusBadge';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
-import ConfirmModal from '@/components/ConfirmModal';
-import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
-import { QuickStockModal } from '@/pages/stockist/Inventory';
+import QuickStockModal from '@/components/QuickStockModal';
 
 const STOCK_STATUS_COLOR = {
   in_stock: 'bg-green-100 text-green-800',
@@ -41,7 +38,6 @@ export default function Inventory() {
   const [products, setProducts] = useState([]);
 
   const [showQuickStock, setShowQuickStock] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAdjustModal, setShowAdjustModal] = useState(false);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -51,6 +47,8 @@ export default function Inventory() {
   const [adjustType, setAdjustType] = useState('add');
   const [adjustNote, setAdjustNote] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  // `disabled` alone loses to a fast double-click or Enter key repeat; the ref blocks re-entry.
+  const inFlightRef = useRef(false);
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -85,7 +83,6 @@ export default function Inventory() {
     fetchItems();
   };
 
-  const openAdd = () => { setForm(EMPTY_FORM); setShowAddModal(true); };
   const openEdit = (item) => {
     setSelected(item);
     setForm({
@@ -108,21 +105,9 @@ export default function Inventory() {
   };
   const openDetail = (item) => { setSelected(item); setShowDetailModal(true); };
 
-  const handleAdd = async () => {
-    setSubmitting(true);
-    try {
-      await api.post(INVENTORY.CREATE, form);
-      showToast('Inventory item added', 'success');
-      setShowAddModal(false);
-      fetchItems();
-    } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to add item', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
   const handleEdit = async () => {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     setSubmitting(true);
     try {
       await api.put(INVENTORY.UPDATE(selected.id), form);
@@ -132,6 +117,7 @@ export default function Inventory() {
     } catch (err) {
       showToast(err.response?.data?.message || 'Update failed', 'error');
     } finally {
+      inFlightRef.current = false;
       setSubmitting(false);
     }
   };
@@ -141,6 +127,8 @@ export default function Inventory() {
       showToast('Enter a valid quantity', 'warning');
       return;
     }
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     setSubmitting(true);
     try {
       await api.post('/stock-adjustments', {
@@ -155,6 +143,7 @@ export default function Inventory() {
     } catch (err) {
       showToast(err.response?.data?.message || 'Adjustment failed', 'error');
     } finally {
+      inFlightRef.current = false;
       setSubmitting(false);
     }
   };
@@ -224,7 +213,6 @@ export default function Inventory() {
         subtitle="Manage stock levels across all warehouses"
         actions={[
           { label: 'Add Stock', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: () => setShowQuickStock(true) },
-          { label: 'Add Inventory', variant: 'outline', onClick: openAdd },
         ]}
       />
 
@@ -263,15 +251,17 @@ export default function Inventory() {
         <div className="overflow-x-auto">
           <Table striped>
             <TableHead>
-              <TableHeadCell>Product</TableHeadCell>
-              <TableHeadCell>Warehouse</TableHeadCell>
-              <TableHeadCell>Batch</TableHeadCell>
-              <TableHeadCell>Expiry</TableHeadCell>
-              <TableHeadCell>Stock</TableHeadCell>
-              <TableHeadCell>Reserved</TableHeadCell>
-              <TableHeadCell>Available</TableHeadCell>
-              <TableHeadCell>Status</TableHeadCell>
-              <TableHeadCell>Actions</TableHeadCell>
+              <TableRow>
+                <TableHeadCell>Product</TableHeadCell>
+                <TableHeadCell>Warehouse</TableHeadCell>
+                <TableHeadCell>Batch</TableHeadCell>
+                <TableHeadCell>Expiry</TableHeadCell>
+                <TableHeadCell>Stock</TableHeadCell>
+                <TableHeadCell>Reserved</TableHeadCell>
+                <TableHeadCell>Available</TableHeadCell>
+                <TableHeadCell>Status</TableHeadCell>
+                <TableHeadCell>Actions</TableHeadCell>
+              </TableRow>
             </TableHead>
             <TableBody className="divide-y">
               {loading ? (
@@ -355,71 +345,6 @@ export default function Inventory() {
         onSaved={handleStockSaved}
       />
 
-      {/* Add Modal */}
-      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
-        <ModalHeader className="border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 px-6 py-4">
-          <span className="text-xl font-bold text-gray-900 dark:text-white">Add Inventory Item</span>
-        </ModalHeader>
-        <ModalBody className="px-6 py-6">
-          <div className="bg-gray-50/50 dark:bg-gray-800/20 p-5 rounded-xl border border-gray-100 dark:border-gray-700 space-y-5 shadow-sm">
-            <div className="grid grid-cols-2 gap-5">
-              <div className="col-span-2">
-                <label htmlFor="add_product" className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Product<RequiredMark /></label>
-                <Select id="add_product" value={form.product_id} onChange={fld('product_id')} required className="w-full">
-                  <option value="">Select product...</option>
-                  {products.map((p) => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
-                </Select>
-              </div>
-              <div className="col-span-2">
-                <label htmlFor="add_warehouse" className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Warehouse<RequiredMark /></label>
-                <Select id="add_warehouse" value={form.warehouse_id} onChange={fld('warehouse_id')} required className="w-full">
-                  <option value="">Select warehouse...</option>
-                  {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
-                </Select>
-              </div>
-            </div>
-            <div className="border-t border-gray-100 dark:border-gray-700 pt-5 mt-5">
-              <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-4 tracking-wide">Stock Settings</h3>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block flex items-center gap-1">Current Stock</label>
-                  <TextInput id="add_stock" type="number" min="0" value={form.current_stock} onChange={fld('current_stock')} placeholder="0" className="font-bold text-strong" />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Batch Number</label>
-                  <TextInput id="add_batch" value={form.batch_number} onChange={fld('batch_number')} placeholder="e.g. BATCH-001" className="font-mono text-sm" />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block flex items-center gap-1">Expiry Date</label>
-                  <TextInput id="add_expiry" type="date" value={form.expiry_date} onChange={fld('expiry_date')} />
-                </div>
-              </div>
-            </div>
-            <div className="border-t border-gray-100 dark:border-gray-700 pt-5 mt-5">
-              <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-4 tracking-wide">Alert Thresholds</h3>
-              <div className="grid grid-cols-2 gap-5">
-                <div>
-                  <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Warning Limit</label>
-                  <TextInput id="add_warning" type="number" min="0" value={form.warning_threshold} onChange={fld('warning_threshold')} placeholder="e.g. 50" />
-                  <p className="text-[10px] text-muted mt-1 uppercase tracking-wide">Alert below this</p>
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-orange-500 dark:text-orange-400 uppercase tracking-wider mb-2 block">Reorder Limit</label>
-                  <TextInput id="add_reorder" type="number" min="0" value={form.reorder_threshold} onChange={fld('reorder_threshold')} placeholder="e.g. 20" />
-                  <p className="text-[10px] text-muted mt-1 uppercase tracking-wide">Critical low stock</p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </ModalBody>
-        <ModalFooter className="border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 px-6 py-4 flex justify-end gap-3">
-          <Button color="gray" onClick={() => setShowAddModal(false)} className="font-bold shadow-sm">Cancel</Button>
-          <Button color="warning" onClick={handleAdd} disabled={submitting} className="font-bold shadow-sm">
-            {submitting ? 'Adding...' : 'Add Item'}
-          </Button>
-        </ModalFooter>
-      </Modal>
-
       {/* Edit Modal */}
       <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader className="border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 px-6 py-4">
@@ -451,7 +376,7 @@ export default function Inventory() {
                   <TextInput type="number" min="0" value={form.warning_threshold} onChange={fld('warning_threshold')} />
                 </div>
                 <div className="w-1/2">
-                  <label className="text-xs font-bold text-orange-500 dark:text-orange-400 uppercase tracking-wider mb-2 block">Reorder Limit</label>
+                  <label className="text-xs font-bold text-orange-700 dark:text-orange-400 uppercase tracking-wider mb-2 block">Reorder Limit</label>
                   <TextInput type="number" min="0" value={form.reorder_threshold} onChange={fld('reorder_threshold')} />
                 </div>
               </div>
