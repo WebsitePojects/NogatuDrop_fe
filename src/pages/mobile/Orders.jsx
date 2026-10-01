@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Spinner } from 'flowbite-react';
 import { HiUpload, HiCheckCircle, HiX } from 'react-icons/hi';
 import { FiPackage } from 'react-icons/fi';
@@ -119,8 +119,8 @@ export default function MobileOrders() {
               onClick={() => setTab(v)}
               className={`flex-1 py-3.5 text-sm font-semibold transition-colors ${
                 tab === v
-                  ? 'text-orange-500 border-b-2 border-orange-500'
-                  : 'text-gray-400 hover:text-gray-600 dark:text-[var(--dark-muted)] dark:hover:text-[var(--dark-text)]'
+                  ? 'text-orange-700 dark:text-orange-400 border-b-2 border-orange-500'
+                  : 'text-gray-500 hover:text-gray-800 dark:text-[var(--dark-muted)] dark:hover:text-[var(--dark-text)]'
               }`}
             >
               {l}
@@ -137,9 +137,12 @@ export default function MobileOrders() {
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="flex flex-col items-center py-16 text-gray-400 dark:text-[var(--dark-muted)]">
+          <div className="flex flex-col items-center py-16 text-gray-600 dark:text-[var(--dark-muted)]">
             <FiPackage size={40} className="mb-3 opacity-30" />
-            <p className="text-sm">No orders found</p>
+            <p className="text-sm">No orders in this tab yet.</p>
+            <Link to="/mobile/catalog" className="mt-3 rounded-xl bg-orange-700 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-800">
+              Order Products
+            </Link>
           </div>
         ) : (
           filtered.map((order) => {
@@ -157,10 +160,10 @@ export default function MobileOrders() {
                       <p className="font-mono font-bold text-sm text-gray-900">
                         #{order.order_number || order.id}
                       </p>
-                      <p className="text-xs text-gray-400 mt-0.5 dark:text-[var(--dark-muted)]">{formatDate(order.created_at)}</p>
+                      <p className="text-xs text-gray-600 mt-0.5 dark:text-[var(--dark-muted)]">{formatDate(order.created_at)}</p>
                     </div>
                     <div className="text-right">
-                      <p className="font-bold text-sm text-orange-500">
+                      <p className="font-bold text-sm text-orange-700 dark:text-orange-400">
                         {formatCurrency(order.total_amount)}
                       </p>
                       <div className="mt-1">
@@ -197,7 +200,7 @@ export default function MobileOrders() {
                         <p className="text-xs font-semibold text-gray-500 uppercase mb-1.5">Payment</p>
                         {order.payment_status === 'paid' ? (
                           <div className="space-y-2">
-                            <div className="flex items-center gap-1.5 text-emerald-600 text-sm font-medium">
+                            <div className="flex items-center gap-1.5 text-emerald-700 dark:text-emerald-400 text-sm font-medium">
                               <HiCheckCircle className="w-4 h-4" />
                               Payment verified
                             </div>
@@ -227,7 +230,7 @@ export default function MobileOrders() {
                         ) : (
                           <div className="space-y-2 mt-1">
                             {order.payment_deadline && (
-                              <p className="text-xs text-amber-600">
+                              <p className="text-xs text-amber-700 dark:text-amber-500">
                                 Pay by: {formatDate(order.payment_deadline)}
                               </p>
                             )}
@@ -240,7 +243,7 @@ export default function MobileOrders() {
                                   <button
                                     type="button"
                                     onClick={() => handleClearPreview(order.id)}
-                                    className="text-gray-400 hover:text-gray-700 p-0.5 dark:text-[var(--dark-muted)] dark:hover:text-[var(--dark-text)]"
+                                    className="text-gray-600 hover:text-gray-700 p-0.5 dark:text-[var(--dark-muted)] dark:hover:text-[var(--dark-text)]"
                                   >
                                     <HiX size={14} />
                                   </button>
@@ -257,7 +260,7 @@ export default function MobileOrders() {
                                 <button
                                   type="button"
                                   onClick={() => handleUploadProof(order.id)}
-                                  className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600"
+                                  className="flex items-center justify-center gap-1.5 w-full py-2 rounded-lg bg-orange-500 text-orange-950 text-sm font-semibold hover:bg-orange-400"
                                 >
                                   <HiUpload size={14} />
                                   Confirm & Upload
@@ -266,11 +269,11 @@ export default function MobileOrders() {
                             )}
 
                             {uploading === order.id ? (
-                              <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-[var(--dark-muted)]">
+                              <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-[var(--dark-muted)]">
                                 <Spinner size="sm" color="warning" /> Uploading...
                               </div>
                             ) : (
-                              <label className="flex items-center gap-2 text-sm text-orange-500 font-semibold cursor-pointer hover:text-orange-600">
+                              <label className="flex items-center gap-2 text-sm text-orange-700 dark:text-orange-400 font-semibold cursor-pointer hover:text-orange-800 dark:hover:text-orange-300">
                                 <HiUpload size={15} />
                                 {previewByOrder[order.id] ? 'Choose a different image' : 'Choose Payment Proof'}
                                 <input

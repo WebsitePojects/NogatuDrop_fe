@@ -14,6 +14,7 @@ import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
 import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
+import { CENTER_LEVEL } from '@/utils/partnerLevel';
 
 const EMPTY_FORM = {
   business_name: '', email: '', phone: '', address: '', region: '',
@@ -72,6 +73,41 @@ function PartnerFormFields({ form, fld, allPartners }) {
   );
 }
 
+const isCenter = (partner) => partner.stockist_level === CENTER_LEVEL;
+
+// Centers are company-run, so they have no discount, parent, or editable level.
+// They are shown read-only and apart from the Stockist table.
+function FulfillmentCentersCard({ centers, onSelect }) {
+  return (
+    <Card className="mb-4">
+      <div className="mb-3">
+        <h2 className="text-base font-semibold text-strong">Fulfillment Centers</h2>
+        <p className="text-sm text-muted">Company-run centers that fulfill public and Stockist orders.</p>
+      </div>
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHead>
+            <TableHeadCell>Center</TableHeadCell>
+            <TableHeadCell>Region</TableHeadCell>
+            <TableHeadCell>Phone</TableHeadCell>
+            <TableHeadCell>Status</TableHeadCell>
+          </TableHead>
+          <TableBody className="divide-y">
+            {centers.map((center) => (
+              <TableRow key={center.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => onSelect(center)}>
+                <TableCell className="font-medium text-gray-900 dark:text-[var(--dark-text)]">{center.business_name}</TableCell>
+                <TableCell className="text-xs">{center.region || '—'}</TableCell>
+                <TableCell className="text-xs">{center.phone || '—'}</TableCell>
+                <TableCell><StatusBadge status={center.is_active ? 'active' : 'inactive'} /></TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    </Card>
+  );
+}
+
 export default function Partners() {
   const { toasts, showToast, dismiss } = useToast();
   const [partners, setPartners] = useState([]);
@@ -90,6 +126,9 @@ export default function Partners() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [discountVal, setDiscountVal] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const centers = partners.filter(isCenter);
+  const stockists = partners.filter((p) => !isCenter(p));
 
   const fetchPartners = useCallback(async () => {
     setLoading(true);
@@ -133,6 +172,7 @@ export default function Partners() {
   };
 
   const handleAdd = async () => {
+    if (submitting) return;
     setSubmitting(true);
     try {
       await api.post(PARTNERS.CREATE, form);
@@ -147,6 +187,7 @@ export default function Partners() {
   };
 
   const handleEdit = async () => {
+    if (submitting) return;
     setSubmitting(true);
     try {
       await api.put(PARTNERS.UPDATE(selected.id), form);
@@ -161,6 +202,7 @@ export default function Partners() {
   };
 
   const handleDiscount = async () => {
+    if (submitting) return;
     setSubmitting(true);
     try {
       await api.patch(PARTNERS.UPDATE_DISCOUNT(selected.id), { discount_pct: Number(discountVal) });
@@ -179,6 +221,7 @@ export default function Partners() {
   const levelBadge = (level) => {
     if (level === 'provincial_stockist') return <span className="badge-approved">Provincial</span>;
     if (level === 'city_stockist') return <span className="badge-delivering">City</span>;
+    if (level === CENTER_LEVEL) return <span className="badge-active">Fulfillment Center</span>;
     return <span className="badge-inactive">{level?.replace(/_/g, ' ')}</span>;
   };
 
@@ -186,9 +229,11 @@ export default function Partners() {
     <div className="page-enter">
       <PageHeader
         title="Stockists"
-        subtitle="Manage provincial and city stockist accounts"
+        subtitle="Manage provincial and city Stockist accounts and their discounts"
         actions={[{ label: 'Add Stockist', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: openAdd }]}
       />
+
+      {!loading && centers.length > 0 && <FulfillmentCentersCard centers={centers} onSelect={openDetail} />}
 
       <Card>
         <div className="flex gap-3 mb-4">
@@ -225,20 +270,20 @@ export default function Partners() {
                     ))}
                   </TableRow>
                 ))
-              ) : partners.length === 0 ? (
+              ) : stockists.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={8}>
                     <EmptyState
                       icon={HiOutlineUserGroup}
-                      title="No stockists found"
-                      description="Add stockist accounts to start managing distribution"
+                      title="No Stockists yet"
+                      description="Add a Stockist account so they can start ordering from the catalog."
                       actionLabel="Add Stockist"
                       onAction={openAdd}
                     />
                   </TableCell>
                 </TableRow>
               ) : (
-                partners.map((p) => (
+                stockists.map((p) => (
                   <TableRow key={p.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(p)}>
                     <TableCell className="font-medium text-gray-900 dark:text-[var(--dark-text)]">{p.business_name}</TableCell>
                     <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{p.email}</TableCell>
@@ -297,20 +342,26 @@ export default function Partners() {
           {selected && (
             <div className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-3">
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Email</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.email}</p></div>
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Phone</p><p className="dark:text-[var(--dark-text)]">{selected.phone || '—'}</p></div>
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Level</p>{levelBadge(selected.stockist_level)}</div>
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Region</p><p className="dark:text-[var(--dark-text)]">{selected.region || '—'}</p></div>
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Discount</p><p className="font-bold text-amber-600">{selected.discount_pct ?? 0}%</p></div>
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Status</p><StatusBadge status={selected.is_active ? 'active' : 'inactive'} /></div>
-                <div className="col-span-2"><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Address</p><p className="dark:text-[var(--dark-text)]">{selected.address || '—'}</p></div>
+                <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Email</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.email}</p></div>
+                <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Phone</p><p className="dark:text-[var(--dark-text)]">{selected.phone || '—'}</p></div>
+                <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Level</p>{levelBadge(selected.stockist_level)}</div>
+                <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Region</p><p className="dark:text-[var(--dark-text)]">{selected.region || '—'}</p></div>
+                {!isCenter(selected) && (
+                  <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Discount</p><p className="font-bold text-amber-700 dark:text-amber-500">{selected.discount_pct ?? 0}%</p></div>
+                )}
+                <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Status</p><StatusBadge status={selected.is_active ? 'active' : 'inactive'} /></div>
+                <div className="col-span-2"><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Address</p><p className="dark:text-[var(--dark-text)]">{selected.address || '—'}</p></div>
               </div>
             </div>
           )}
         </ModalBody>
         <ModalFooter>
-          <Button color="warning" size="sm" onClick={() => { setShowDetailModal(false); openEdit(selected); }}>Edit</Button>
-          <Button color="light" size="sm" onClick={() => { setShowDetailModal(false); openDiscount(selected); }}>Adjust Discount</Button>
+          {selected && !isCenter(selected) && (
+            <>
+              <Button color="warning" size="sm" onClick={() => { setShowDetailModal(false); openEdit(selected); }}>Edit</Button>
+              <Button color="light" size="sm" onClick={() => { setShowDetailModal(false); openDiscount(selected); }}>Adjust Discount</Button>
+            </>
+          )}
           <Button color="gray" size="sm" onClick={() => setShowDetailModal(false)}>Close</Button>
         </ModalFooter>
       </Modal>
@@ -330,8 +381,8 @@ export default function Partners() {
             onChange={(e) => setDiscountVal(e.target.value)}
             placeholder="0"
           />
-          <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)] mt-2">
-            Applied at checkout: partner_price × (1 − discount / 100)
+          <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)] mt-2">
+            Applied at checkout: Stockist price × (1 − discount / 100)
           </p>
         </ModalBody>
         <ModalFooter>

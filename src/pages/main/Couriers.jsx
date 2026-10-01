@@ -210,7 +210,7 @@ export default function Couriers() {
 
       {/* Info Banner */}
       <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-[var(--dark-card2)] border border-amber-200 dark:border-[var(--dark-border)] rounded-xl mb-5">
-        <HiInformationCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+        <HiInformationCircle className="w-5 h-5 text-amber-700 dark:text-amber-500 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-amber-800 dark:text-amber-300">
           Couriers are third-party delivery partners (J&T, LBC, Flash Express, etc.) assigned to orders when generating delivery magic links.
           No employed riders — all deliveries are via courier partnerships.

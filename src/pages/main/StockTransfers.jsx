@@ -184,7 +184,7 @@ export default function StockTransfers() {
                           </TableCell>
                           <TableCell><StatusBadge status={t.status} /></TableCell>
                           <TableCell>{t.items_count ?? '—'}</TableCell>
-                          <TableCell className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{formatDate(t.created_at)}</TableCell>
+                          <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{formatDate(t.created_at)}</TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <Button size="xs" color="light" onClick={() => openDetail(t)}>View</Button>
                           </TableCell>
@@ -215,14 +215,14 @@ export default function StockTransfers() {
               <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-4 tracking-wide">Route Details</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">From Warehouse</label>
+                  <label className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2 block">From Warehouse</label>
                   <Select value={form.from_warehouse_id} onChange={fld('from_warehouse_id')} required className="w-full">
                     <option value="">Select origin...</option>
                     {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
                   </Select>
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">To Warehouse</label>
+                  <label className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2 block">To Warehouse</label>
                   <Select value={form.to_warehouse_id} onChange={fld('to_warehouse_id')} required className="w-full">
                     <option value="">Select destination...</option>
                     {warehouses.filter((w) => w.id !== Number(form.from_warehouse_id)).map((w) => (
@@ -244,7 +244,7 @@ export default function StockTransfers() {
                 {items.map((item, i) => (
                   <div key={i} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-gray-50 dark:bg-gray-800/40 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
                     <div className="flex-1 w-full">
-                      <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 block sm:hidden">Product</label>
+                      <label className="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1 block sm:hidden">Product</label>
                       <Select
                         className="w-full"
                         value={item.product_id}
@@ -255,7 +255,7 @@ export default function StockTransfers() {
                       </Select>
                     </div>
                     <div className="w-full sm:w-32">
-                      <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 block sm:hidden">Quantity</label>
+                      <label className="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1 block sm:hidden">Quantity</label>
                       <TextInput
                         type="number"
                         min="1"
@@ -276,7 +276,7 @@ export default function StockTransfers() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Additional Notes</label>
+              <label className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2 block">Additional Notes</label>
               <TextInput value={form.notes} onChange={fld('notes')} placeholder="Any optional notes regarding this transfer..." />
             </div>
           </div>
@@ -297,7 +297,7 @@ export default function StockTransfers() {
               Transfer Detail
             </span>
             {selected && (
-              <span className="text-sm font-medium text-gray-500 mt-1 dark:text-gray-400 font-mono tracking-wide">
+              <span className="text-sm font-medium text-gray-600 mt-1 dark:text-gray-400 font-mono tracking-wide">
                 {selected.transfer_number || `TRF-${selected.id}`}
               </span>
             )}
@@ -309,7 +309,7 @@ export default function StockTransfers() {
               {/* Info Cards */}
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm col-span-2 md:col-span-1">
-                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
+                  <p className="text-xs font-bold text-gray-600 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
                     <HiOutlineArrowRight className="w-3 h-3 text-muted" /> From
                   </p>
                   <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2">
@@ -317,7 +317,7 @@ export default function StockTransfers() {
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm col-span-2 md:col-span-1">
-                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
+                  <p className="text-xs font-bold text-gray-600 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
                     <HiOutlineLocationMarker className="w-3.5 h-3.5 text-muted" /> To
                   </p>
                   <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2">
@@ -325,7 +325,7 @@ export default function StockTransfers() {
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5">
+                  <p className="text-xs font-bold text-gray-600 dark:text-gray-400 tracking-wider uppercase mb-1.5">
                     Status
                   </p>
                   <div className="mt-1">
@@ -333,7 +333,7 @@ export default function StockTransfers() {
                   </div>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
+                  <p className="text-xs font-bold text-gray-600 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5">
                     <HiOutlineCalendar className="w-3.5 h-3.5" /> Date
                   </p>
                   <p className="font-bold text-[var(--dark-text)] text-sm">
@@ -356,15 +356,15 @@ export default function StockTransfers() {
                       <React.Fragment key={s}>
                         <div className="flex items-center gap-3">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-extrabold flex-shrink-0 transition-colors shadow-sm
-                            ${isCancelled ? 'bg-red-100 text-red-500 dark:bg-red-900/30' 
+                            ${isCancelled ? 'bg-red-100 text-red-600 dark:bg-red-900/30' 
                             : done 
                               ? 'bg-amber-500 text-amber-950 shadow-amber-200 dark:shadow-none' 
                               : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 border border-gray-200 dark:border-gray-700'}`}>
                             {isCancelled ? <HiOutlineX className="w-4 h-4" /> : stepIdx + 1}
                           </div>
                           <span className={`text-xs font-bold tracking-wide uppercase 
-                            ${isCancelled ? 'text-red-500' 
-                            : done ? 'text-gray-900 dark:text-white' : 'text-gray-500 dark:text-gray-400'}`}>
+                            ${isCancelled ? 'text-red-600' 
+                            : done ? 'text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400'}`}>
                             {s.replace(/_/g, ' ')}
                           </span>
                         </div>
@@ -387,7 +387,7 @@ export default function StockTransfers() {
                   </div>
                   <div className="overflow-x-auto">
                     <table className="w-full text-left text-sm text-gray-600 dark:text-gray-400 tracking-wide">
-                      <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">
+                      <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs text-gray-600 dark:text-gray-400 uppercase font-semibold">
                         <tr>
                           <th className="px-5 py-3 rounded-bl-none">Product</th>
                           <th className="px-5 py-3 text-right">Quantity</th>
@@ -404,7 +404,7 @@ export default function StockTransfers() {
                     </table>
                   </div>
                   <div className="px-6 py-4 bg-gray-50 dark:bg-gray-800/80 border-t border-gray-200 dark:border-gray-700 flex justify-end items-center">
-                    <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mr-4 tracking-wider">Total Items</span>
+                    <span className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mr-4 tracking-wider">Total Items</span>
                     <span className="text-lg font-black text-[var(--dark-text)] dark:text-white tracking-tight">
                       {selected.items.reduce((sum, it) => sum + Number(it.quantity), 0)}
                     </span>

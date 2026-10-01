@@ -266,7 +266,7 @@ export default function StockistCycleCounts() {
                 </div>
                 <div className="rounded-xl border border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)] p-3">
                   <p className="text-xs uppercase tracking-wide text-muted">Total Increase</p>
-                  <p className="mt-1 text-sm font-semibold text-emerald-600">+{varianceSummary.increase}</p>
+                  <p className="mt-1 text-sm font-semibold text-emerald-700 dark:text-emerald-400">+{varianceSummary.increase}</p>
                 </div>
                 <div className="rounded-xl border border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)] p-3">
                   <p className="text-xs uppercase tracking-wide text-muted">Total Decrease</p>
@@ -302,7 +302,7 @@ export default function StockistCycleCounts() {
                             item.counted_qty
                           )}
                         </TableCell>
-                        <TableCell className={Number(item.variance_qty) >= 0 ? 'text-emerald-600 font-semibold' : 'text-red-600 font-semibold'}>
+                        <TableCell className={Number(item.variance_qty) >= 0 ? 'text-emerald-700 dark:text-emerald-400 font-semibold' : 'text-red-600 font-semibold'}>
                           {Number(item.variance_qty) > 0 ? '+' : ''}{item.variance_qty}
                         </TableCell>
                         <TableCell className="min-w-56">

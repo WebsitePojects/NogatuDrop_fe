@@ -20,6 +20,7 @@ const NotFound = lazy(() => import('./pages/shared/NotFound.jsx'));
 const Tracking = lazy(() => import('./pages/shared/Tracking.jsx'));
 const Deliver = lazy(() => import('./pages/shared/Deliver.jsx'));
 const Shop = lazy(() => import('./pages/shared/Shop.jsx'));
+const InfluencerRoute = lazy(() => import('./pages/shared/InfluencerRoute.jsx'));
 const LandingPage = lazy(() => import('./pages/shared/LandingPage.jsx'));
 
 const MainDashboard = lazy(() => import('./pages/main/Dashboard.jsx'));
@@ -31,6 +32,7 @@ const MainProducts = lazy(() => import('./pages/main/Products.jsx'));
 const MainStockTransfers = lazy(() => import('./pages/main/StockTransfers.jsx'));
 const MainPurchaseOrders = lazy(() => import('./pages/main/PurchaseOrders.jsx'));
 const MainReports = lazy(() => import('./pages/main/Reports.jsx'));
+const MainInfluencerReports = lazy(() => import('./pages/main/InfluencerReports.jsx'));
 const MainUsers = lazy(() => import('./pages/main/Users.jsx'));
 const MainBankAccounts = lazy(() => import('./pages/main/BankAccounts.jsx'));
 const MainCouriers = lazy(() => import('./pages/main/Couriers.jsx'));
@@ -155,6 +157,7 @@ const AppRoutes = () => {
           <Route path="bank-accounts" element={<MainBankAccounts />} />
           <Route path="couriers" element={<MainCouriers />} />
           <Route path="reports" element={<MainReports />} />
+          <Route path="influencer-reports" element={<MainInfluencerReports />} />
           <Route path="users" element={<MainUsers />} />
         </Route>
 
@@ -283,7 +286,8 @@ const AppRoutes = () => {
         />
 
         <Route path="/partner/*" element={<Navigate to="/stockist/dashboard" replace />} />
-        <Route path="/:influencerSlug" element={<Shop />} />
+        {/* Single-segment catch-all: static routes above outrank it, and an unknown slug resolves to NotFound. */}
+        <Route path="/:influencerSlug" element={<InfluencerRoute />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

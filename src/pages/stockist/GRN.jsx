@@ -159,7 +159,7 @@ export default function StockistGRN() {
       return (
         <div className="flex flex-col items-center py-12 text-muted">
           <FiCheckCircle size={36} className="mb-2 opacity-30" />
-          <p className="text-sm">No GRNs found</p>
+          <p className="text-sm">No receipts here yet. Tap New GRN when a delivery arrives.</p>
         </div>
       );
     }
@@ -169,7 +169,7 @@ export default function StockistGRN() {
           <thead className="bg-gray-50 dark:bg-[var(--dark-card)] border-b border-gray-100 dark:border-[var(--dark-border)]">
             <tr>
               {['GRN #', 'Supplier', 'Warehouse', 'Received By', 'Status', 'Date', ''].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide">
+                <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-600 dark:text-[var(--dark-muted)] uppercase tracking-wide">
                   {h}
                 </th>
               ))}
@@ -189,7 +189,7 @@ export default function StockistGRN() {
                 <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-xs">{grn.warehouse_name || '—'}</td>
                 <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-xs">{grn.received_by_name || '—'}</td>
                 <td className="px-4 py-3"><StatusBadge status={grn.status} /></td>
-                <td className="px-4 py-3 text-gray-500 dark:text-[var(--dark-muted)] text-xs">{formatDate(grn.created_at)}</td>
+                <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-xs">{formatDate(grn.created_at)}</td>
                 <td className="px-4 py-3">
                   <button className="text-xs text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-medium">View</button>
                 </td>
@@ -209,8 +209,8 @@ export default function StockistGRN() {
 
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)]">Goods Receipt Notes</h1>
-          <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)] mt-0.5">Record incoming stock from your supplier</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)]">Receive Goods</h1>
+          <p className="text-sm text-gray-600 dark:text-[var(--dark-muted)] mt-0.5">Record stock that has arrived. Your inventory goes up when you complete a receipt.</p>
         </div>
         <Button color="warning" onClick={() => setCreateModal(true)}>
           <HiPlus className="mr-2 w-4 h-4" />
@@ -258,7 +258,7 @@ export default function StockistGRN() {
                   { label: 'Date', value: formatDate(detail.created_at) },
                 ].map(({ label, value }) => (
                   <div key={label} className="bg-gray-50 dark:bg-[var(--dark-card2)] rounded-xl p-3">
-                    <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)] mb-0.5">{label}</p>
+                    <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)] mb-0.5">{label}</p>
                     <div className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)]">{value}</div>
                   </div>
                 ))}
@@ -273,7 +273,7 @@ export default function StockistGRN() {
                       <thead className="bg-gray-50 dark:bg-[var(--dark-card)]">
                         <tr>
                           {['Product', 'Expected', 'Received', 'Discrepancy', 'Batch', 'Expiry', 'Unit Cost'].map(h => (
-                            <th key={h} className="text-left px-3 py-2 text-xs text-gray-500 dark:text-[var(--dark-muted)] font-semibold">{h}</th>
+                            <th key={h} className="text-left px-3 py-2 text-xs text-gray-600 dark:text-[var(--dark-muted)] font-semibold">{h}</th>
                           ))}
                         </tr>
                       </thead>
@@ -287,7 +287,7 @@ export default function StockistGRN() {
                               </td>
                               <td className="px-3 py-2.5 text-gray-600 dark:text-[var(--dark-muted)]">{item.expected_qty}</td>
                               <td className="px-3 py-2.5 text-gray-600 dark:text-[var(--dark-muted)]">{item.received_qty}</td>
-                              <td className={`px-3 py-2.5 font-semibold ${disc !== 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                              <td className={`px-3 py-2.5 font-semibold ${disc !== 0 ? 'text-red-600' : 'text-emerald-700 dark:text-emerald-400'}`}>
                                 {disc !== 0 ? (
                                   <span className="flex items-center gap-1">
                                     <FiAlertTriangle size={13} />
@@ -295,8 +295,8 @@ export default function StockistGRN() {
                                   </span>
                                 ) : '—'}
                               </td>
-                              <td className="px-3 py-2.5 text-xs text-gray-500 dark:text-[var(--dark-muted)] font-mono">{item.batch_number || '—'}</td>
-                              <td className="px-3 py-2.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
+                              <td className="px-3 py-2.5 text-xs text-gray-600 dark:text-[var(--dark-muted)] font-mono">{item.batch_number || '—'}</td>
+                              <td className="px-3 py-2.5 text-xs text-gray-600 dark:text-[var(--dark-muted)]">
                                 {item.expiry_date ? formatDate(item.expiry_date) : '—'}
                               </td>
                               <td className="px-3 py-2.5 text-gray-600 dark:text-[var(--dark-muted)]">
@@ -392,9 +392,9 @@ export default function StockistGRN() {
               {form.items.map((item, i) => (
                 <div key={i} className="border border-gray-100 dark:border-[var(--dark-border)] rounded-xl p-3 bg-gray-50 dark:bg-[var(--dark-card2)]">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)]">Item {i + 1}</span>
+                    <span className="text-xs font-semibold text-gray-600 dark:text-[var(--dark-muted)]">Item {i + 1}</span>
                     {form.items.length > 1 && (
-                      <button onClick={() => removeItem(i)} className="text-red-400 hover:text-red-600">
+                      <button onClick={() => removeItem(i)} className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300">
                         <HiX className="w-4 h-4" />
                       </button>
                     )}

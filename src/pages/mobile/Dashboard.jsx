@@ -50,14 +50,14 @@ export default function MobileDashboard() {
   return (
     <div className="min-h-screen bg-white px-4 pb-24 pt-6 dark:bg-transparent">
       <div className="page-header-shell mb-6 rounded-[1.6rem] border border-white/60 px-4 py-5">
-        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#ff8c00]">Mobile Stockist</p>
+        <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-orange-700 dark:text-[#ff8c00]">Mobile Stockist</p>
         <h1 className="mt-3 text-xl font-bold text-gray-900 dark:text-[var(--dark-text)]">
           {greeting()}, {user?.name?.split(' ')[0] || 'there'}
         </h1>
-        <p className="mt-1 text-sm text-gray-400 dark:text-[var(--dark-muted)]">
+        <p className="mt-1 text-sm text-gray-600 dark:text-[var(--dark-muted)]">
           {new Date().toLocaleDateString('en-PH', { weekday: 'long', month: 'long', day: 'numeric' })}
         </p>
-        <p className="mt-3 text-sm leading-6 text-gray-500 dark:text-[var(--dark-muted)]">
+        <p className="mt-3 text-sm leading-6 text-gray-600 dark:text-[var(--dark-muted)]">
           Track orders, browse products, and stay updated with delivery progress from one mobile-first overview.
         </p>
       </div>
@@ -72,7 +72,7 @@ export default function MobileDashboard() {
 
       <div className="mb-6 grid grid-cols-2 gap-3">
         {[
-          { label: 'Total Orders', value: stats.totalOrders, icon: HiShoppingBag, color: 'bg-orange-50 text-orange-500' },
+          { label: 'Total Orders', value: stats.totalOrders, icon: HiShoppingBag, color: 'bg-orange-50 text-orange-700 dark:text-orange-400' },
           { label: "This Month's Orders", value: stats.monthOrders, icon: HiTrendingUp, color: 'bg-emerald-50 text-emerald-500' },
         ].map(({ label, value, icon: Icon, color }) => (
           <div
@@ -87,7 +87,7 @@ export default function MobileDashboard() {
             ) : (
               <p className="text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)]">{value}</p>
             )}
-            <p className="mt-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">{label}</p>
+            <p className="mt-0.5 text-xs text-gray-600 dark:text-[var(--dark-muted)]">{label}</p>
           </div>
         ))}
       </div>
@@ -124,14 +124,15 @@ export default function MobileDashboard() {
       </div>
 
       {!loading && recentOrders.length === 0 ? (
-        <div className="flex flex-col items-center rounded-[1.4rem] border border-dashed border-gray-200 bg-white/60 py-10 text-center text-gray-400 dark:border-[var(--dark-border)]">
+        <div className="flex flex-col items-center rounded-[1.4rem] border border-dashed border-gray-200 bg-white/60 py-10 text-center text-gray-600 dark:text-gray-400 dark:border-[var(--dark-border)]">
           <FiPackage size={30} className="mb-2 opacity-30" />
           <p className="text-sm">You haven&apos;t placed any orders yet</p>
           <button
+            type="button"
             onClick={() => navigate('/mobile/catalog')}
-            className="mt-3 text-xs font-semibold text-orange-500 hover:text-orange-600"
+            className="mt-3 rounded-xl bg-orange-700 px-4 py-2 text-sm font-semibold text-white hover:bg-orange-800"
           >
-            Start shopping
+            Order Products
           </button>
         </div>
       ) : loading ? (
@@ -153,7 +154,7 @@ export default function MobileDashboard() {
         <div>
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)]">Recent Orders</h2>
-            <Link to="/mobile/orders" className="flex items-center gap-0.5 text-xs text-orange-500">
+            <Link to="/mobile/orders" className="flex items-center gap-0.5 text-xs text-orange-700 dark:text-orange-400">
               View all <HiArrowRight size={12} />
             </Link>
           </div>
@@ -167,10 +168,10 @@ export default function MobileDashboard() {
                   <p className="font-mono text-sm font-bold text-gray-900 dark:text-[var(--dark-text)]">
                     #{order.order_number || order.id}
                   </p>
-                  <p className="mt-0.5 text-xs text-gray-400 dark:text-[var(--dark-muted)]">{formatDate(order.created_at)}</p>
+                  <p className="mt-0.5 text-xs text-gray-600 dark:text-[var(--dark-muted)]">{formatDate(order.created_at)}</p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-orange-500">{formatCurrency(order.total_amount)}</p>
+                  <p className="text-sm font-semibold text-orange-700 dark:text-orange-400">{formatCurrency(order.total_amount)}</p>
                   <div className="mt-1">
                     <StatusBadge status={order.status} />
                   </div>

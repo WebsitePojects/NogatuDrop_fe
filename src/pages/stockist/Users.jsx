@@ -183,10 +183,12 @@ export default function StockistUsers() {
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-16 text-muted">
             <FiUser size={40} className="mb-3 opacity-30" />
-            <p className="text-sm">No users found</p>
-            <button onClick={openAdd} className="mt-3 text-amber-600 text-sm hover:underline">
-              Add a user
-            </button>
+            <p className="text-sm">{search ? 'No users match your search.' : 'No team members yet. Add a user so your staff can sign in.'}</p>
+            {!search && (
+              <button type="button" onClick={openAdd} className="brand-btn brand-btn--primary mt-3">
+                Add User
+              </button>
+            )}
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -229,7 +231,7 @@ export default function StockistUsers() {
                           </button>
                           <button
                             onClick={() => setDeleteTarget(u)}
-                            className="text-xs text-red-400 hover:text-red-600 font-medium px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
+                            className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
                           >
                             Remove
                           </button>

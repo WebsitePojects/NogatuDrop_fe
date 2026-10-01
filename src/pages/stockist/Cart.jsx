@@ -89,9 +89,9 @@ export default function StockistCart() {
             <FiShoppingBag size={36} className="text-amber-300" />
           </div>
           <h3 className="text-lg font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-1">Your cart is empty</h3>
-          <p className="text-sm text-muted mb-6">Browse products and add them to your cart</p>
+          <p className="text-sm text-muted mb-6">Add the products you want to order, then come back here to check out.</p>
           <Button color="warning" onClick={() => navigate('/stockist/catalog')}>
-            Browse Catalog
+            Order Products
           </Button>
         </div>
       ) : (
@@ -124,7 +124,7 @@ export default function StockistCart() {
                     {item.sku && (
                       <p className="text-xs text-muted font-mono mt-0.5">{item.sku}</p>
                     )}
-                    <p className="text-sm font-medium text-amber-600 mt-1">
+                    <p className="text-sm font-medium text-amber-700 dark:text-amber-500 mt-1">
                       {formatCurrency(price)} / unit
                     </p>
                   </div>
@@ -149,7 +149,7 @@ export default function StockistCart() {
                     </div>
                     <button
                       onClick={() => handleRemove(item.id, item.product_name || item.name)}
-                      className="text-xs text-red-400 hover:text-red-600 flex items-center gap-0.5 transition-colors"
+                      className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 flex items-center gap-0.5 transition-colors"
                     >
                       <HiTrash className="w-3.5 h-3.5" />
                       Remove
@@ -185,7 +185,7 @@ export default function StockistCart() {
               <div className="border-t border-gray-100 pt-3 mb-4">
                 <div className="flex justify-between font-bold text-base">
                   <span>Total</span>
-                  <span className="text-amber-600">{formatCurrency(cartTotal)}</span>
+                  <span className="text-amber-700 dark:text-amber-500">{formatCurrency(cartTotal)}</span>
                 </div>
               </div>
 

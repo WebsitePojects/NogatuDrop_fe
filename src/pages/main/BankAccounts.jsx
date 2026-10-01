@@ -164,7 +164,7 @@ export default function BankAccounts() {
 
       {/* Info Banner */}
       <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-[var(--dark-card2)] border border-amber-200 dark:border-[var(--dark-border)] rounded-xl mb-5">
-        <HiInformationCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+        <HiInformationCircle className="w-5 h-5 text-amber-700 dark:text-amber-500 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-amber-800 dark:text-amber-300">
           Bank accounts are used to route payment instructions to the correct account when a stockist order is approved.
           Each warehouse can have its own bank account. If no warehouse is assigned, the account acts as the company default.
@@ -209,7 +209,7 @@ export default function BankAccounts() {
                       <TableCell className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{a.bank_name}</TableCell>
                       <TableCell>{a.account_name}</TableCell>
                       <TableCell className="font-mono text-sm">{a.account_number}</TableCell>
-                      <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{a.warehouse_name || <span className="text-gray-400 dark:text-[var(--dark-muted)]">Default</span>}</TableCell>
+                      <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{a.warehouse_name || <span className="text-gray-600 dark:text-[var(--dark-muted)]">Default</span>}</TableCell>
                       <TableCell>
                         {a.is_default ? (
                           <span className="badge-paid">Default</span>

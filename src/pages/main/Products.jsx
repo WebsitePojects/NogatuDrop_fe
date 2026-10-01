@@ -311,12 +311,12 @@ export default function Products() {
               </div>
               <div className="mt-2">
                 <p className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)] truncate">{p.name}</p>
-                <p className="mt-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">{p.sku} · {p.category}</p>
+                <p className="mt-0.5 text-xs text-gray-600 dark:text-[var(--dark-muted)]">{p.sku} · {p.category}</p>
                 <div className="flex justify-between items-center mt-1.5">
-                  <span className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Stockist: {formatCurrency(p.partner_price)}</span>
+                  <span className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">Stockist: {formatCurrency(p.partner_price)}</span>
                 </div>
                 <div className="flex items-center justify-between mt-1">
-                  <p className="text-sm font-semibold text-amber-600">{formatCurrency(p.retail_price)}</p>
+                  <p className="text-sm font-semibold text-amber-700 dark:text-amber-500">{formatCurrency(p.retail_price)}</p>
                   <Button
                     size="xs"
                     color={p.is_active ? 'light' : 'success'}
@@ -368,9 +368,9 @@ export default function Products() {
                   />
                   <div className="flex-1 space-y-1">
                     <p className="text-lg font-bold text-gray-900 dark:text-[var(--dark-text)]">{selected.name}</p>
-                    <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)]">SKU: <span className="font-mono">{selected.sku}</span></p>
-                    <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)]">Category: {selected.category}</p>
-                    <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)]">Unit: {selected.unit}</p>
+                    <p className="text-sm text-gray-600 dark:text-[var(--dark-muted)]">SKU: <span className="font-mono">{selected.sku}</span></p>
+                    <p className="text-sm text-gray-600 dark:text-[var(--dark-muted)]">Category: {selected.category}</p>
+                    <p className="text-sm text-gray-600 dark:text-[var(--dark-muted)]">Unit: {selected.unit}</p>
                     <span className={`badge-${selected.is_active ? 'active' : 'inactive'}`}>
                       {selected.is_active ? 'Active' : 'Inactive'}
                     </span>
@@ -378,11 +378,11 @@ export default function Products() {
                 </div>
                 <div className="grid grid-cols-2 gap-4 p-3 bg-amber-50 dark:bg-[var(--dark-card2)] rounded-lg">
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Retail Price</p>
+                    <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">Retail Price</p>
                     <p className="font-bold text-amber-700">{formatCurrency(selected.retail_price)}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Partner Price</p>
+                    <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">Partner Price</p>
                     <p className="font-bold text-gray-900 dark:text-[var(--dark-text)]">{formatCurrency(selected.partner_price)}</p>
                   </div>
                 </div>

@@ -276,7 +276,7 @@ export default function DeliveryLiveMapBoard({
           </div>
 
           {!loading && routes.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-500 dark:border-[var(--dark-border)] dark:text-[var(--dark-muted)]">
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-600 dark:border-[var(--dark-border)] dark:text-[var(--dark-muted)]">
               No active deliveries are broadcasting GPS right now.
             </div>
           ) : (
@@ -315,11 +315,11 @@ export default function DeliveryLiveMapBoard({
 
                     <div className="grid grid-cols-1 gap-2 text-xs text-gray-600 dark:text-[var(--dark-muted)]">
                       <div>
-                        <p className="text-gray-400 dark:text-[var(--dark-muted)]">Source</p>
+                        <p className="text-gray-600 dark:text-[var(--dark-muted)]">Source</p>
                         <p className="font-medium text-gray-700">{route.source_warehouse?.label || 'Warehouse unavailable'}</p>
                       </div>
                       <div>
-                        <p className="text-gray-400 dark:text-[var(--dark-muted)]">Destination</p>
+                        <p className="text-gray-600 dark:text-[var(--dark-muted)]">Destination</p>
                         <p className="font-medium text-gray-700">
                           {route.target_warehouse?.label || route.customer?.name || 'Destination unavailable'}
                         </p>
@@ -367,7 +367,7 @@ export default function DeliveryLiveMapBoard({
                 <Spinner size="xl" color="warning" />
               </div>
             ) : !selectedRoute ? (
-              <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-gray-400 dark:text-[var(--dark-muted)]">
+              <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-gray-600 dark:text-[var(--dark-muted)]">
                 <HiOutlineLocationMarker className="h-12 w-12 opacity-40" />
                 <p className="text-sm">No active route selected</p>
               </div>
@@ -465,21 +465,21 @@ export default function DeliveryLiveMapBoard({
           {selectedRoute && (
             <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
               <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
-                <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)]">Courier</p>
+                <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">Courier</p>
                 <p className="text-sm font-semibold text-gray-900">{selectedRoute.courier_name || selectedRoute.rider_name || 'Pending assignment'}</p>
               </div>
               <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
-                <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)]">Last Ping</p>
+                <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">Last Ping</p>
                 <p className="text-sm font-semibold text-gray-900">
                   {selectedRoute.latest_ping?.pinged_at ? formatDate(selectedRoute.latest_ping.pinged_at, true) : 'No ping yet'}
                 </p>
               </div>
               <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
-                <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)]">ETA</p>
+                <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">ETA</p>
                 <p className="text-sm font-semibold text-gray-900">{selectedRoute.est_delivery_at ? formatDate(selectedRoute.est_delivery_at, true) : 'TBD'}</p>
               </div>
               <div className="rounded-2xl border border-gray-100 bg-gray-50 p-3">
-                <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)]">Tracking</p>
+                <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">Tracking</p>
                 <div className="mt-1">
                   <StatusBadge status={selectedRoute.tracking_status || selectedRoute.order_status} />
                 </div>

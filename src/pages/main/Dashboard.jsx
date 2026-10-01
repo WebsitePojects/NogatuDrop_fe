@@ -93,7 +93,7 @@ export default function Dashboard() {
       <div className="workspace-summary-band mb-6 grid gap-5 overflow-hidden p-5 sm:p-6 dark:bg-[linear-gradient(135deg,#271c18_0%,#221814_100%)] lg:grid-cols-[1.08fr_0.92fr]">
         <div className="flex flex-col justify-between gap-4">
           <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#b56d1e] dark:text-orange-300/80">Operations Pulse</p>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#9a5614] dark:text-orange-300/80">Operations Pulse</p>
             <h2 className="font-heading mt-3 text-3xl text-[#3d1800] dark:text-[var(--dark-text)]">Professional oversight for orders, stockists, inventory, and delivery movement.</h2>
             <p className="mt-3 max-w-2xl text-sm leading-7 text-[#7b5a43] dark:text-[var(--dark-muted)]">
               The dashboard now groups business-critical information into cleaner, easier-to-scan surfaces so Super Admin can act faster without fighting the layout.
@@ -261,7 +261,7 @@ export default function Dashboard() {
                 <div key={item.id} className="enterprise-soft-panel flex items-center justify-between p-3 dark:bg-white/[0.03]">
                   <div>
                     <p className="text-xs font-semibold text-gray-800 dark:text-[var(--dark-text)]">{item.product_name}</p>
-                    <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{item.warehouse_name}</p>
+                    <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{item.warehouse_name}</p>
                   </div>
                   <span className="text-xs font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-full">
                     {item.current_stock} left

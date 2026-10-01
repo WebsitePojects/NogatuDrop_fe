@@ -14,7 +14,7 @@ import { formatDateTime } from '@/utils/formatDate';
 
 function CoordinateText({ lat, lng }) {
   if (lat === null || lat === undefined || lng === null || lng === undefined) {
-    return <span className="text-xs text-gray-400 dark:text-gray-500">No GPS capture</span>;
+    return <span className="text-xs text-gray-600 dark:text-gray-500">No GPS capture</span>;
   }
 
   return (
@@ -39,7 +39,7 @@ function PodGpsMap({ lat, lng }) {
   const lngNum = Number(lng);
   if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) {
     return (
-      <div className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-xs text-gray-400 dark:border-gray-800 dark:text-gray-500">
+      <div className="rounded-lg border border-dashed border-gray-200 px-3 py-4 text-xs text-gray-600 dark:border-gray-800 dark:text-gray-500">
         No GPS coordinates captured
       </div>
     );
@@ -90,7 +90,7 @@ export default function ProofOfDeliveryPanel({
   return (
     <div className="rounded-xl border border-emerald-100 bg-emerald-50/40 p-4 shadow-sm dark:border-emerald-900/40 dark:bg-emerald-950/10">
       <div className="mb-3 flex items-center gap-2">
-        <HiOutlineCheckCircle className="h-5 w-5 text-emerald-600" />
+        <HiOutlineCheckCircle className="h-5 w-5 text-emerald-700 dark:text-emerald-400" />
         <div>
           <h3 className="text-sm font-bold text-emerald-900 dark:text-emerald-300">{title}</h3>
           <p className="text-xs text-emerald-700/80 dark:text-emerald-400/80">
@@ -104,7 +104,7 @@ export default function ProofOfDeliveryPanel({
           <Spinner size="md" color="success" />
         </div>
       ) : !proof ? (
-        <div className="rounded-xl border border-dashed border-emerald-200 bg-white/70 px-4 py-5 text-sm text-gray-500 dark:border-emerald-900/40 dark:bg-gray-900/40 dark:text-gray-300">
+        <div className="rounded-xl border border-dashed border-emerald-200 bg-white/70 px-4 py-5 text-sm text-gray-600 dark:border-emerald-900/40 dark:bg-gray-900/40 dark:text-gray-300">
           {emptyMessage}
         </div>
       ) : (
@@ -120,7 +120,7 @@ export default function ProofOfDeliveryPanel({
                   />
                 </a>
               ) : (
-                <div className="flex h-72 items-center justify-center text-sm text-gray-400 dark:text-gray-500">
+                <div className="flex h-72 items-center justify-center text-sm text-gray-600 dark:text-gray-500">
                   No delivery photo
                 </div>
               )}
@@ -155,7 +155,7 @@ export default function ProofOfDeliveryPanel({
                   key={label}
                   className="rounded-xl border border-white/80 bg-white p-3 dark:border-gray-800 dark:bg-gray-900/70"
                 >
-                  <p className="mb-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  <p className="mb-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-gray-600 dark:text-gray-400">
                     <Icon className="h-3.5 w-3.5" />
                     {label}
                   </p>
@@ -166,7 +166,7 @@ export default function ProofOfDeliveryPanel({
               {/* Delivery GPS map — where the courier was when POD was submitted */}
               {(proof.gps_lat != null && proof.gps_lng != null) && (
                 <div className="rounded-xl border border-white/80 bg-white p-3 dark:border-gray-800 dark:bg-gray-900/70 sm:col-span-2 lg:col-span-1">
-                  <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+                  <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-gray-600 dark:text-gray-400">
                     <HiOutlineLocationMarker className="h-3.5 w-3.5" />
                     Delivery Map
                   </p>
@@ -178,7 +178,7 @@ export default function ProofOfDeliveryPanel({
 
           <div className="grid gap-4 md:grid-cols-2">
             <div className="rounded-xl border border-white/80 bg-white p-4 dark:border-gray-800 dark:bg-gray-900/70">
-              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              <p className="mb-2 text-xs font-bold uppercase tracking-wide text-gray-600 dark:text-gray-400">
                 Warehouse Route
               </p>
               <div className="space-y-2 text-sm">
@@ -204,7 +204,7 @@ export default function ProofOfDeliveryPanel({
             </div>
 
             <div className="rounded-xl border border-white/80 bg-white p-4 dark:border-gray-800 dark:bg-gray-900/70">
-              <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              <p className="mb-2 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide text-gray-600 dark:text-gray-400">
                 <HiOutlinePencil className="h-3.5 w-3.5" />
                 Recipient Signature
               </p>
@@ -215,7 +215,7 @@ export default function ProofOfDeliveryPanel({
                   className="h-28 w-full rounded-lg border border-gray-100 bg-white object-contain p-2 dark:border-gray-800"
                 />
               ) : (
-                <div className="rounded-lg border border-dashed border-gray-200 px-3 py-6 text-sm text-gray-400 dark:border-gray-800">
+                <div className="rounded-lg border border-dashed border-gray-200 px-3 py-6 text-sm text-gray-600 dark:text-gray-400 dark:border-gray-800">
                   No signature image saved in this environment.
                 </div>
               )}
@@ -224,7 +224,7 @@ export default function ProofOfDeliveryPanel({
 
           {proof.notes && (
             <div className="rounded-xl border border-white/80 bg-white p-4 text-sm text-gray-700 dark:border-gray-800 dark:bg-gray-900/70 dark:text-gray-300">
-              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+              <p className="mb-1 text-xs font-bold uppercase tracking-wide text-gray-600 dark:text-gray-400">
                 Rider Notes
               </p>
               {proof.notes}

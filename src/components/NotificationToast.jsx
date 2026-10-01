@@ -24,7 +24,7 @@ const Toast = ({ toast, onClose }) => {
       border: 'border-green-200/50 dark:border-green-800/50'
     },
     low_stock: {
-      color: 'text-orange-500 dark:text-orange-400',
+      color: 'text-orange-700 dark:text-orange-400',
       bgIcon: 'bg-orange-100/50 dark:bg-orange-500/20',
       icon: <FiAlertCircle className="w-5 h-5" />,
       border: 'border-orange-200/50 dark:border-orange-800/50'
@@ -79,7 +79,7 @@ const Toast = ({ toast, onClose }) => {
             e.stopPropagation();
             onClose(toast.id);
           }}
-          className="absolute top-0 right-0 p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 opacity-0 group-hover:opacity-100 transition-opacity rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="absolute top-0 right-0 p-1 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 opacity-0 group-hover:opacity-100 transition-opacity rounded-full hover:bg-gray-100 dark:hover:bg-gray-800"
         >
           <FiX className="w-4 h-4" />
         </button>

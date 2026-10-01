@@ -179,7 +179,7 @@ export default function PurchaseOrders() {
                             ) : <span className="text-muted text-xs">Manual</span>}
                           </TableCell>
                           <TableCell className="font-semibold text-xs">{formatCurrency(o.total_amount || 0)}</TableCell>
-                          <TableCell className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{formatDate(o.created_at)}</TableCell>
+                          <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{formatDate(o.created_at)}</TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <Button size="xs" color="light" onClick={() => openDetail(o)}>View</Button>
                           </TableCell>
@@ -210,11 +210,11 @@ export default function PurchaseOrders() {
               <h3 className="text-sm font-bold text-gray-800 dark:text-gray-200 mb-4 tracking-wide">General Info</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                  <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Supplier</label>
+                  <label className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2 block">Supplier</label>
                   <TextInput value={form.supplier} onChange={fld('supplier')} placeholder="Goldenstar Inc." required className="w-full" />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Destination Warehouse</label>
+                  <label className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2 block">Destination Warehouse</label>
                   <Select value={form.warehouse_id} onChange={fld('warehouse_id')} className="w-full">
                     <option value="">Select destination...</option>
                     {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
@@ -234,18 +234,18 @@ export default function PurchaseOrders() {
                 {items.map((item, i) => (
                   <div key={i} className="flex flex-col sm:flex-row gap-3 items-start sm:items-center bg-gray-50 dark:bg-gray-800/40 p-3 rounded-lg border border-gray-100 dark:border-gray-700">
                     <div className="flex-1 w-full">
-                      <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 block sm:hidden">Product</label>
+                      <label className="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1 block sm:hidden">Product</label>
                       <Select className="w-full" value={item.product_id} onChange={(e) => updateItem(i, 'product_id', e.target.value)}>
                         <option value="">Select product...</option>
                         {products.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
                       </Select>
                     </div>
                     <div className="w-full sm:w-24">
-                      <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 block sm:hidden">Quantity</label>
+                      <label className="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1 block sm:hidden">Quantity</label>
                       <TextInput type="number" min="1" placeholder="Qty" value={item.quantity} onChange={(e) => updateItem(i, 'quantity', e.target.value)} className="w-full font-bold" />
                     </div>
                     <div className="w-full sm:w-28 flex items-center gap-2">
-                       <label className="text-[10px] font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1 block sm:hidden">Price (₱)</label>
+                       <label className="text-[10px] font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-1 block sm:hidden">Price (₱)</label>
                       <TextInput type="number" min="0" step="0.01" placeholder="Unit ₱" value={item.unit_price} onChange={(e) => updateItem(i, 'unit_price', e.target.value)} className="w-full font-bold text-gray-900 dark:text-white" />
                     </div>
                     {items.length > 1 && (
@@ -257,7 +257,7 @@ export default function PurchaseOrders() {
                 ))}
               </div>
               <div className="flex justify-end mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
-                <span className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase mr-4 tracking-wider self-center">Order Total</span>
+                <span className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase mr-4 tracking-wider self-center">Order Total</span>
                 <span className="text-xl font-black text-gray-900 dark:text-white tracking-tight">
                   {formatCurrency(itemsTotal)}
                 </span>
@@ -265,7 +265,7 @@ export default function PurchaseOrders() {
             </div>
 
             <div>
-              <label className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2 block">Notes</label>
+              <label className="text-xs font-bold text-gray-600 dark:text-gray-400 uppercase tracking-wider mb-2 block">Notes</label>
               <TextInput value={form.notes} onChange={fld('notes')} placeholder="Optional remarks or references..." />
             </div>
           </div>
@@ -285,10 +285,10 @@ export default function PurchaseOrders() {
           {selected && (
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-3 text-sm">
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Supplier</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.supplier}</p></div>
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Status</p><StatusBadge status={selected.status} /></div>
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Date</p><p className="dark:text-[var(--dark-text)]">{formatDate(selected.created_at)}</p></div>
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Warehouse</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.warehouse_name || '—'}</p></div>
+                <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Supplier</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.supplier}</p></div>
+                <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Status</p><StatusBadge status={selected.status} /></div>
+                <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Date</p><p className="dark:text-[var(--dark-text)]">{formatDate(selected.created_at)}</p></div>
+                <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Warehouse</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.warehouse_name || '—'}</p></div>
               </div>
               {(selected.items || []).length > 0 && (
                 <div className="overflow-x-auto border border-gray-100 dark:border-[var(--dark-border)] rounded-lg">

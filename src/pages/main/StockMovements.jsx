@@ -153,7 +153,7 @@ export default function StockMovements() {
         </Card>
         <Card>
           <p className="text-xs uppercase tracking-wide text-muted">Inbound Qty</p>
-          <p className="mt-2 text-2xl font-semibold text-emerald-600 dark:text-emerald-400">+{summary.inbound}</p>
+          <p className="mt-2 text-2xl font-semibold text-emerald-700 dark:text-emerald-400">+{summary.inbound}</p>
         </Card>
         <Card>
           <p className="text-xs uppercase tracking-wide text-muted">Outbound Qty</p>
@@ -231,8 +231,8 @@ export default function StockMovements() {
                     </TableCell>
                     <TableCell className="text-xs">{movement.stock_before ?? '-'}</TableCell>
                     <TableCell className="text-xs">{movement.stock_after ?? '-'}</TableCell>
-                    <TableCell className="font-mono text-xs text-gray-500 dark:text-[var(--dark-muted)]">{movement.reference_id || '-'}</TableCell>
-                    <TableCell className="max-w-xs truncate text-xs text-gray-500 dark:text-[var(--dark-muted)]">{movement.notes || '-'}</TableCell>
+                    <TableCell className="font-mono text-xs text-gray-600 dark:text-[var(--dark-muted)]">{movement.reference_id || '-'}</TableCell>
+                    <TableCell className="max-w-xs truncate text-xs text-gray-600 dark:text-[var(--dark-muted)]">{movement.notes || '-'}</TableCell>
                   </TableRow>
                 ))
               )}

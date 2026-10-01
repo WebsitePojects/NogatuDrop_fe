@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { Button, Spinner } from 'flowbite-react';
 import {
@@ -27,6 +27,8 @@ import { ORDERS, BANK_ACCOUNTS, DELIVERY_TOKENS } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate, formatDateTime } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
+import { PERMISSIONS, can } from '@/utils/permissions';
+import { isCenterStaff } from '@/utils/partnerLevel';
 import OrderPricingBreakdown from '@/components/OrderPricingBreakdown';
 import { extractUploadErrorMessage } from '@/utils/uploadError';
 
@@ -69,29 +71,46 @@ function isOwnScopedOrder(order, viewerRole) {
   return !isManagedChildOrder(order, viewerRole);
 }
 
-function getSectionTitles(viewerRole) {
+function getSectionTitles(viewerRole, centerStaff) {
+  if (centerStaff) {
+    return {
+      page: 'Center Orders',
+      intro: 'Orders to prepare, pay-check, and ship from your center.',
+      own: 'Orders to Fulfill',
+      child: '',
+      ownEmpty: 'No orders in this tab yet. New orders appear here as soon as they are placed.',
+      childEmpty: '',
+    };
+  }
+
   if (viewerRole === 'city_stockist') {
     return {
+      page: 'My Orders',
+      intro: 'Orders you placed, and orders from the Mobile Stockists you supply.',
       own: 'My City Orders',
       child: 'Mobile Stockist Orders',
-      ownEmpty: 'No city orders match this filter.',
-      childEmpty: 'No affiliated mobile stockist orders match this filter.',
+      ownEmpty: 'You have no orders in this tab yet.',
+      childEmpty: 'No Mobile Stockist orders in this tab yet.',
     };
   }
 
   if (viewerRole === 'provincial_stockist') {
     return {
+      page: 'My Orders',
+      intro: 'Orders you placed, and orders from the City Stockists you supply.',
       own: 'My Provincial Orders',
       child: 'Affiliated City Orders',
-      ownEmpty: 'No provincial orders match this filter.',
-      childEmpty: 'No affiliated city orders match this filter.',
+      ownEmpty: 'You have no orders in this tab yet.',
+      childEmpty: 'No City Stockist orders in this tab yet.',
     };
   }
 
   return {
-    own: 'Operational Orders',
+    page: 'Orders',
+    intro: 'Orders for your Stockist account.',
+    own: 'Orders',
     child: '',
-    ownEmpty: 'No orders match this filter.',
+    ownEmpty: 'No orders in this tab yet.',
     childEmpty: '',
   };
 }
@@ -146,11 +165,16 @@ function TonePill({ label, tone }) {
   );
 }
 
-function EmptyState({ label }) {
+function EmptyState({ label, ctaLabel, onCta }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 px-4 py-10 text-center text-gray-400 dark:border-[var(--dark-border)] dark:text-[var(--dark-muted)]">
+    <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-gray-200 px-4 py-10 text-center text-gray-600 dark:border-[var(--dark-border)] dark:text-[var(--dark-muted)]">
       <FiPackage size={34} className="mb-3 opacity-30" />
       <p className="text-sm">{label}</p>
+      {ctaLabel && (
+        <button type="button" onClick={onCta} className="brand-btn brand-btn--primary mt-4">
+          {ctaLabel}
+        </button>
+      )}
     </div>
   );
 }
@@ -165,16 +189,16 @@ function OrderTable({ list, onOpenDetail, highlightId }) {
       <table className="w-full text-sm">
         <thead className="bg-gray-50 dark:bg-[var(--dark-card2)]">
           <tr>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Order #</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Placed By</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Role</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Total</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Payment</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Proof</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Delivery Link</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Status</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Date</th>
-            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-[var(--dark-muted)]">Actions</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Order #</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Placed By</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Role</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Total</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Payment</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Proof</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Delivery Link</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Status</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Date</th>
+            <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -205,7 +229,7 @@ function OrderTable({ list, onOpenDetail, highlightId }) {
                       <div className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">
                         {order.placed_by_name || 'Unknown'}
                       </div>
-                      <div className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">
+                      <div className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">
                         {order.partner_name || 'Stockist'}
                       </div>
                     </>
@@ -229,7 +253,7 @@ function OrderTable({ list, onOpenDetail, highlightId }) {
                 <td className="px-4 py-3">
                   <StatusBadge status={order.status} />
                 </td>
-                <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-500 dark:text-[var(--dark-muted)]">
+                <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-600 dark:text-[var(--dark-muted)]">
                   {formatDate(order.created_at)}
                 </td>
                 <td className="px-4 py-3 text-right">
@@ -255,9 +279,12 @@ function OrderTable({ list, onOpenDetail, highlightId }) {
 
 export default function StockistOrders() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { toasts, showToast, dismiss } = useToast();
   const viewerRole = toStatusKey(user?.role_slug);
-  const titles = getSectionTitles(viewerRole);
+  const centerStaff = isCenterStaff(user);
+  const titles = getSectionTitles(viewerRole, centerStaff);
+  const canPlaceOrders = !centerStaff && can(user?.role_slug, PERMISSIONS.CART_USE);
 
   const [orders, setOrders] = useState([]);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -419,7 +446,7 @@ export default function StockistOrders() {
     setApproving(true);
     try {
       await api.patch(ORDERS.APPROVE(confirmApprove));
-      showToast('Child order approved. Waiting for payment proof.', 'success');
+      showToast('Order approved. Waiting for payment proof.', 'success');
       const approvedOrderId = confirmApprove;
       setConfirmApprove(null);
       await fetchOrders();
@@ -440,7 +467,7 @@ export default function StockistOrders() {
     setRejecting(true);
     try {
       await api.patch(ORDERS.REJECT(selectedOrder.id), { reason: rejectReason });
-      showToast('Child order rejected', 'info');
+      showToast('Order rejected', 'info');
       setShowRejectModal(false);
       setRejectReason('');
       closeDetail();
@@ -613,10 +640,10 @@ export default function StockistOrders() {
       <div className="mb-6">
         <h1 className="flex items-center gap-2 text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)]">
           <HiShoppingCart className="text-amber-500" />
-          Orders
+          {titles.page}
         </h1>
-        <p className="mt-0.5 text-sm text-gray-500 dark:text-[var(--dark-muted)]">
-          Review your orders and the child-order queue routed to your Stockist level.
+        <p className="mt-0.5 text-sm text-gray-600 dark:text-[var(--dark-muted)]">
+          {titles.intro}
         </p>
       </div>
 
@@ -658,7 +685,11 @@ export default function StockistOrders() {
           <section>
             <SectionHeader title={titles.own} count={ownOrders.length} />
             {ownOrders.length === 0 ? (
-              <EmptyState label={titles.ownEmpty} />
+              <EmptyState
+                label={titles.ownEmpty}
+                ctaLabel={canPlaceOrders ? 'Order Products' : undefined}
+                onCta={() => navigate('/stockist/catalog')}
+              />
             ) : (
               <OrderTable list={ownOrders} onOpenDetail={openDetail} highlightId={highlightId} />
             )}
@@ -681,7 +712,7 @@ export default function StockistOrders() {
         <ModalHeader>
           Order Details
           {detail && (
-            <span className="ml-2 font-mono text-sm font-normal text-gray-500 dark:text-[var(--dark-muted)]">
+            <span className="ml-2 font-mono text-sm font-normal text-gray-600 dark:text-[var(--dark-muted)]">
               #{detail.order_number || detail.id}
             </span>
           )}
@@ -709,7 +740,7 @@ export default function StockistOrders() {
                   { label: 'Payment', value: <StatusBadge status={detail.payment_status || 'unpaid'} /> },
                 ].map(({ label, value }) => (
                   <div key={label} className="rounded-xl bg-gray-50 p-3 dark:bg-[var(--dark-card2)]">
-                    <p className="mb-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">{label}</p>
+                    <p className="mb-0.5 text-xs text-gray-600 dark:text-[var(--dark-muted)]">{label}</p>
                     <div className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)]">{value}</div>
                   </div>
                 ))}
@@ -723,37 +754,37 @@ export default function StockistOrders() {
                   </div>
                   <div className="grid grid-cols-2 gap-2 text-sm">
                     <div>
-                      <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Name</p>
+                      <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">Name</p>
                       <p className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{detail.customer_name || '—'}</p>
                     </div>
                     {detail.customer_phone && (
                       <div>
-                        <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Phone</p>
+                        <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">Phone</p>
                         <p className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{detail.customer_phone}</p>
                       </div>
                     )}
                     {detail.customer_email && (
                       <div>
-                        <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Email</p>
+                        <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">Email</p>
                         <p className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{detail.customer_email}</p>
                       </div>
                     )}
                     {detail.customer_address && (
                       <div className="col-span-2">
-                        <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Delivery Address</p>
+                        <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">Delivery Address</p>
                         <p className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{detail.customer_address}</p>
                       </div>
                     )}
                   </div>
                   {detail.partner_name && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 pt-2 border-t border-orange-100 dark:border-orange-800/30">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 pt-2 border-t border-orange-100 dark:border-orange-800/30">
                       Fulfilled by Stockist: <span className="font-medium text-gray-600 dark:text-gray-300">{detail.partner_name}</span>
                     </p>
                   )}
                 </div>
               ) : (
                 <div className="rounded-xl bg-gray-50 p-3 dark:bg-[var(--dark-card2)]">
-                  <p className="mb-0.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">Placed By</p>
+                  <p className="mb-0.5 text-xs text-gray-600 dark:text-[var(--dark-muted)]">Placed By</p>
                   <div className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)]">
                     {detail.placed_by_name || 'Unknown'}
                   </div>
@@ -768,10 +799,10 @@ export default function StockistOrders() {
                 <table className="w-full text-sm">
                   <thead className="bg-gray-50 dark:bg-[var(--dark-card)]">
                     <tr>
-                      <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)]">Product</th>
-                      <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)]">Qty</th>
-                      <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)]">Price</th>
-                      <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)]">Subtotal</th>
+                      <th className="px-4 py-2.5 text-left text-xs font-semibold text-gray-600 dark:text-[var(--dark-muted)]">Product</th>
+                      <th className="px-4 py-2.5 text-center text-xs font-semibold text-gray-600 dark:text-[var(--dark-muted)]">Qty</th>
+                      <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600 dark:text-[var(--dark-muted)]">Price</th>
+                      <th className="px-4 py-2.5 text-right text-xs font-semibold text-gray-600 dark:text-[var(--dark-muted)]">Subtotal</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -787,7 +818,7 @@ export default function StockistOrders() {
                     ))}
                     <tr className="border-t-2 border-gray-200 bg-gray-50 dark:border-[var(--dark-border)] dark:bg-[var(--dark-card2)]">
                       <td colSpan={3} className="px-4 py-3 text-right font-bold text-gray-900 dark:text-[var(--dark-text)]">Total</td>
-                      <td className="px-4 py-3 text-right text-base font-bold text-amber-600">
+                      <td className="px-4 py-3 text-right text-base font-bold text-amber-700 dark:text-amber-500">
                         {formatCurrency(detail.total_amount)}
                       </td>
                     </tr>
@@ -838,7 +869,7 @@ export default function StockistOrders() {
 
               {detail.payment_deadline && selectedPaymentKey !== 'paid' && !['cancelled', 'rejected'].includes(selectedStatusKey) && (
                 <div className="flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50 p-4 dark:border-amber-500/20 dark:bg-amber-500/10">
-                  <div className="rounded-lg bg-amber-100 p-2 text-amber-600 dark:bg-amber-500/10 dark:text-amber-200">
+                  <div className="rounded-lg bg-amber-100 p-2 text-amber-700 dark:bg-amber-500/10 dark:text-amber-200">
                     <HiOutlineClock className="h-5 w-5" />
                   </div>
                   <div>
@@ -863,7 +894,7 @@ export default function StockistOrders() {
                 </div>
               ) : detail.status === 'approved' && detail.payment_status !== 'paid' && isChildManagedOrder ? (
                 <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
-                  This child order is awaiting payment verification. Review the uploaded proof, verify payment, and generate the delivery link once payment is confirmed.
+                  This order is waiting for you to verify payment. Review the uploaded proof, verify payment, and generate the delivery link once payment is confirmed.
                 </div>
               ) : null}
 
@@ -924,11 +955,11 @@ export default function StockistOrders() {
                   <>
                     <Button color="success" onClick={() => setConfirmApprove(detail.id)}>
                       <HiCheckCircle className="mr-2 h-4 w-4" />
-                      Approve Child Order
+                      Approve Order
                     </Button>
                     <Button color="failure" outline onClick={() => setShowRejectModal(true)}>
                       <HiExclamationCircle className="mr-2 h-4 w-4" />
-                      Reject Child Order
+                      Reject Order
                     </Button>
                   </>
                 )}
@@ -972,9 +1003,9 @@ export default function StockistOrders() {
 
       <ConfirmModal
         show={Boolean(confirmApprove)}
-        title="Approve Child Order"
-        message="Approve this child order and move it into payment collection?"
-        confirmLabel="Approve Child Order"
+        title="Approve Order"
+        message="Approve this order so the buyer can pay within the deadline?"
+        confirmLabel="Approve Order"
         confirmColor="success"
         loading={approving}
         onConfirm={handleApprove}
@@ -982,10 +1013,10 @@ export default function StockistOrders() {
       />
 
       <Modal show={showRejectModal} onClose={() => setShowRejectModal(false)} size="md" backdropClasses="bg-black/50 backdrop-blur-sm">
-        <ModalHeader>Reject Child Order</ModalHeader>
+        <ModalHeader>Reject Order</ModalHeader>
         <ModalBody className="space-y-3">
-          <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)]">
-            Provide a short reason so the child Stockist knows what to fix before resubmitting.
+          <p className="text-sm text-gray-600 dark:text-[var(--dark-muted)]">
+            Provide a short reason so the Stockist knows what to fix before resubmitting.
           </p>
           <textarea
             value={rejectReason}
@@ -997,7 +1028,7 @@ export default function StockistOrders() {
         </ModalBody>
         <ModalFooter>
           <Button color="failure" onClick={handleReject} isProcessing={rejecting} disabled={rejecting}>
-            Reject Child Order
+            Reject Order
           </Button>
           <Button color="gray" onClick={() => setShowRejectModal(false)}>
             Cancel

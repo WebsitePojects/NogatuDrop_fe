@@ -11,7 +11,7 @@ let _toastId = 0;
 
 const ICONS = {
   success: <HiCheckCircle className="text-green-500 w-5 h-5" />,
-  error: <HiXCircle className="text-red-500 w-5 h-5" />,
+  error: <HiXCircle className="text-red-600 dark:text-red-400 w-5 h-5" />,
   warning: <HiExclamationCircle className="text-amber-500 w-5 h-5" />,
   info: <HiInformationCircle className="text-blue-500 w-5 h-5" />,
 };

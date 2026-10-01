@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { Link, useLocation, useParams } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import {
   HiShoppingCart, HiSearch, HiX, HiPlus, HiMinus,
   HiChevronRight, HiCheckCircle,
@@ -15,6 +15,7 @@ import { getProductImageSrc, attachProductImageFallback } from '@/utils/productI
 import { getPublicOrderPricingTotals } from '@/utils/publicCheckoutPricing';
 import { extractUploadErrorMessage } from '@/utils/uploadError';
 import LocationPicker from '@/components/LocationPicker';
+import { normalizePaymentProviders } from './paymentProviders.js';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
@@ -79,16 +80,92 @@ const normalizeIncomingPublicCart = (items, catalog) => {
   return Array.from(merged.values());
 };
 
-export default function Shop() {
+const buildInfluencerCartItem = (product) => ({
+  product_id: product.id,
+  name: product.name || 'Berry NAD+',
+  quantity: 1,
+  unit_price: getPublicCatalogPrice(product),
+  image_url: getProductImageSrc(product),
+});
+
+const CHECKOUT_STEPS = [
+  { title: 'Pay', detail: 'Send the total by bank transfer or e-wallet.' },
+  { title: 'Upload proof', detail: 'Attach a screenshot or photo of your receipt.' },
+  { title: 'We confirm', detail: 'We check your payment and prepare your order.' },
+];
+
+function CheckoutSteps() {
+  return (
+    <ol className="grid gap-2 rounded-xl border border-amber-100 bg-amber-50 p-4 sm:grid-cols-3">
+      {CHECKOUT_STEPS.map((step, index) => (
+        <li key={step.title} className="flex gap-2 text-xs text-amber-900">
+          <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-amber-700 text-[11px] font-bold text-white">{index + 1}</span>
+          <span><span className="block font-semibold">{step.title}</span><span className="leading-relaxed">{step.detail}</span></span>
+        </li>
+      ))}
+    </ol>
+  );
+}
+
+function PaymentProviderPicker({ options, selected, onSelect, disabled, loadError, onRetry }) {
+  if (loadError) {
+    return (
+      <div className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700" role="alert">
+        <p>{loadError}</p>
+        <button type="button" onClick={onRetry} className="mt-2 font-semibold underline">Try again</button>
+      </div>
+    );
+  }
+  if (options.length === 0) {
+    return <p className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">Payment accounts are not available right now. Please check back shortly.</p>;
+  }
+  return (
+    <fieldset disabled={disabled}>
+      <legend className="mb-1 block text-xs font-bold uppercase tracking-wider text-gray-700">Pay with *</legend>
+      <div className="grid gap-2 sm:grid-cols-3">
+        {options.map((option) => {
+          const isSelected = option.provider === selected;
+          return (
+            <label
+              key={option.provider}
+              className={`cursor-pointer rounded-xl border p-3 text-sm transition-colors focus-within:ring-4 focus-within:ring-amber-500/20 ${isSelected ? 'border-amber-700 bg-amber-50' : 'border-gray-200 bg-white hover:border-amber-300'}`}
+            >
+              <span className="flex items-center gap-2 font-bold text-gray-900">
+                <input
+                  type="radio"
+                  name="paymentProvider"
+                  value={option.provider}
+                  checked={isSelected}
+                  onChange={() => onSelect(option.provider)}
+                  className="h-4 w-4 accent-amber-700"
+                />
+                {option.provider}
+              </span>
+              {option.accountName && <span className="mt-2 block text-xs text-gray-700">{option.accountName}</span>}
+              {option.accountNumber && <span className="block font-mono text-xs font-bold text-gray-900">{option.accountNumber}</span>}
+            </label>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
+/**
+ * Public storefront. With `influencer` ({ slug, product }, resolved by
+ * InfluencerRoute) it becomes the fixed one-item influencer checkout.
+ */
+export default function Shop({ influencer = null }) {
   const location = useLocation();
-  const { influencerSlug } = useParams();
-  const isInfluencerCheckout = Boolean(influencerSlug);
+  const influencerSlug = influencer?.slug;
+  const isInfluencerCheckout = Boolean(influencer);
   const [search, setSearch] = useState('');
   const [products, setProducts] = useState([]);
   const [catalogProducts, setCatalogProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [productsError, setProductsError] = useState('');
   const [cart, setCart] = useState(() => {
+    if (influencer) return [buildInfluencerCartItem(influencer.product)];
     if (location.state?.cart) {
       return location.state.cart.map(item => ({
         product_id: item.product_id ?? item.id ?? null,
@@ -104,7 +181,7 @@ export default function Shop() {
   }); // { product_id, name, quantity, unit_price, image_url }
   const [cartOpen, setCartOpen] = useState(false);
   const [step, setStep] = useState(() => {
-    if (location.state?.openCheckout) {
+    if (influencer || location.state?.openCheckout) {
       return 'checkout';
     }
     return 'browse';
@@ -122,8 +199,7 @@ export default function Shop() {
   const [proofError, setProofError] = useState('');
   const [paymentProviders, setPaymentProviders] = useState([]);
   const [paymentProvider, setPaymentProvider] = useState('');
-  const [influencerError, setInfluencerError] = useState('');
-  const [influencerLoading, setInfluencerLoading] = useState(isInfluencerCheckout);
+  const [paymentOptionsError, setPaymentOptionsError] = useState('');
   const checkoutIntentRef = useRef(createCheckoutIntent());
   const proofIntentRef = useRef(createCheckoutIntent());
   const submittingRef = useRef(false);
@@ -196,50 +272,30 @@ export default function Shop() {
     loadMasterStocks();
   }, []);
 
-  useEffect(() => {
-    let active = true;
-    api.get(ORDERS.PUBLIC_PAYMENT_OPTIONS)
+  const loadPaymentOptions = useCallback(() => {
+    setPaymentOptionsError('');
+    return api.get(ORDERS.PUBLIC_PAYMENT_OPTIONS)
       .then(({ data }) => {
-        const providers = Array.isArray(data.data?.providers) ? data.data.providers : [];
-        if (!active) return;
+        const providers = normalizePaymentProviders(data.data?.providers);
         setPaymentProviders(providers);
-        setPaymentProvider((current) => current || providers[0] || '');
+        setPaymentProvider((current) => (
+          providers.some((option) => option.provider === current) ? current : providers[0]?.provider || ''
+        ));
       })
-      .catch(() => {
-        if (active) setPaymentProviders([]);
+      .catch((err) => {
+        setPaymentProviders([]);
+        setPaymentOptionsError(err?.response?.data?.message || 'We could not load payment options. Please try again.');
       });
-    return () => { active = false; };
   }, []);
 
-  useEffect(() => {
-    if (!isInfluencerCheckout) return undefined;
-    let active = true;
-    setInfluencerLoading(true);
-    setInfluencerError('');
-    api.get(ORDERS.PUBLIC_INFLUENCER(influencerSlug))
-      .then(({ data }) => {
-        const configured = data.data?.product || data.data;
-        if (!configured?.id || !active) throw new Error('Influencer product is unavailable');
-        setCart([{
-          product_id: configured.id,
-          name: configured.name || 'Berry NAD',
-          quantity: 1,
-          unit_price: getPublicCatalogPrice(configured),
-          image_url: getProductImageSrc(configured),
-        }]);
-        setStep('checkout');
-      })
-      .catch((error) => {
-        if (active) setInfluencerError(error?.response?.data?.message || 'This influencer checkout link is not configured.');
-      })
-      .finally(() => active && setInfluencerLoading(false));
-    return () => { active = false; };
-  }, [influencerSlug, isInfluencerCheckout]);
+  useEffect(() => { loadPaymentOptions(); }, [loadPaymentOptions]);
 
   useEffect(() => {
+    // The influencer checkout has no catalog to browse.
+    if (isInfluencerCheckout) return undefined;
     const t = setTimeout(() => fetchProducts(), 400);
     return () => clearTimeout(t);
-  }, [fetchProducts]);
+  }, [fetchProducts, isInfluencerCheckout]);
 
   useEffect(() => {
     if (catalogProducts.length === 0) {
@@ -398,7 +454,7 @@ export default function Shop() {
               <div className="text-right">
                 <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Total Due</p>
                 <p className="text-xl font-extrabold text-amber-700">{formatCurrency(paymentTotal)}</p>
-                <p className="text-[11px] text-amber-700/70">VAT and System Fee Included</p>
+                <p className="text-[11px] text-amber-700">VAT and System Fee Included</p>
               </div>
             </div>
 
@@ -429,7 +485,7 @@ export default function Shop() {
                 accept="image/*,.pdf"
                 disabled={proofUploading}
                 onChange={(event) => setProofFile(event.target.files?.[0] || null)}
-                className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-xl file:border-0 file:bg-amber-500 file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-amber-600"
+                className="block w-full text-sm text-gray-600 file:mr-4 file:rounded-xl file:border-0 file:bg-amber-700 file:px-4 file:py-2 file:font-semibold file:text-white hover:file:bg-amber-800"
               />
             </label>
             <p className="mt-2 text-xs text-gray-500">
@@ -449,7 +505,7 @@ export default function Shop() {
               type="button"
               onClick={handleUploadProof}
               disabled={proofUploading}
-              className="mt-4 w-full rounded-xl bg-amber-500 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-amber-600 disabled:cursor-not-allowed disabled:opacity-60"
+              className="mt-4 w-full rounded-xl bg-amber-700 px-4 py-3 text-sm font-bold text-white transition-colors hover:bg-amber-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {proofUploading ? 'Submitting Payment Proof...' : 'Submit Payment Proof'}
             </button>
@@ -458,7 +514,7 @@ export default function Shop() {
           <div className="flex flex-col gap-3">
             <Link
               to={`/track/${orderNumber}`}
-              className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-sm transition-colors text-center shadow-md shadow-amber-500/10"
+              className="w-full py-3 bg-amber-700 hover:bg-amber-800 text-white font-bold rounded-xl text-sm transition-colors text-center shadow-md shadow-amber-500/10"
             >
               Track my order
             </Link>
@@ -488,14 +544,6 @@ export default function Shop() {
     );
   }
 
-  if (isInfluencerCheckout && influencerLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50"><Spinner size="xl" color="warning" /></div>;
-  }
-
-  if (isInfluencerCheckout && influencerError) {
-    return <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4"><div className="max-w-md rounded-2xl border border-amber-200 bg-amber-50 p-6 text-center text-amber-900"><h2 className="text-lg font-bold">Checkout unavailable</h2><p className="mt-2 text-sm">{influencerError}</p></div></div>;
-  }
-
   return (
     <div className="min-h-screen bg-gray-50" style={{ colorScheme: 'light' }}>
       {/* Header */}
@@ -521,7 +569,7 @@ export default function Shop() {
             >
               <HiShoppingCart className="w-5 h-5 text-gray-700" />
               {cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-amber-500 text-white text-xs font-bold rounded-full flex items-center justify-center text-[10px] min-w-[18px] px-0.5">
+                <span className="absolute -top-0.5 -right-0.5 w-4.5 h-4.5 bg-amber-700 text-white text-xs font-bold rounded-full flex items-center justify-center text-[10px] min-w-[18px] px-0.5">
                   {cartCount}
                 </span>
               )}
@@ -541,7 +589,7 @@ export default function Shop() {
                 value={search}
                 onChange={e => setSearch(e.target.value)}
                 placeholder="Search products..."
-                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:border-amber-400 placeholder-gray-300"
+                className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:border-amber-400 placeholder-gray-500"
               />
             </div>
 
@@ -555,7 +603,7 @@ export default function Shop() {
                 <button
                   type="button"
                   onClick={() => fetchProducts()}
-                  className="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-amber-500 px-4 py-2 font-semibold text-white transition-colors hover:bg-amber-600 focus:outline-none focus:ring-4 focus:ring-amber-200"
+                  className="mt-4 inline-flex min-h-11 items-center justify-center rounded-xl bg-amber-700 px-4 py-2 font-semibold text-white transition-colors hover:bg-amber-800 focus:outline-none focus:ring-4 focus:ring-amber-200"
                 >
                   Retry catalog load
                 </button>
@@ -626,7 +674,7 @@ export default function Shop() {
                             type="button"
                             disabled={stockMap[product.id] !== undefined && stockMap[product.id] <= 0}
                             onClick={() => addToCart(product)}
-                            className="w-full py-2 bg-amber-500 hover:bg-amber-600 disabled:bg-gray-200 disabled:text-gray-600 disabled:cursor-not-allowed active:scale-95 text-white font-semibold rounded-xl text-sm transition-all shadow-sm shadow-amber-500/10 disabled:shadow-none"
+                            className="w-full py-2 bg-amber-700 hover:bg-amber-800 disabled:bg-gray-200 disabled:text-gray-600 disabled:cursor-not-allowed active:scale-95 text-white font-semibold rounded-xl text-sm transition-all shadow-sm shadow-amber-500/10 disabled:shadow-none"
                           >
                             {stockMap[product.id] !== undefined && stockMap[product.id] <= 0 ? 'Out of Stock' : 'Add to Cart'}
                           </button>
@@ -653,7 +701,7 @@ export default function Shop() {
                 type="button"
                 onClick={() => { if (!isInfluencerCheckout) setStep('browse'); }}
                 disabled={isInfluencerCheckout}
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl text-sm transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-700 hover:bg-amber-800 text-white font-semibold rounded-xl text-sm transition-colors"
               >
                 <FiChevronLeft className="w-4 h-4" />
                 Back to Products
@@ -666,12 +714,12 @@ export default function Shop() {
                 {!isInfluencerCheckout && <button
                   type="button"
                   onClick={() => setStep('browse')}
-                  className="hover:text-amber-600 transition-colors font-medium flex items-center gap-1"
+                  className="hover:text-amber-800 transition-colors font-medium flex items-center gap-1"
                 >
                   Shop
                 </button>}
                 <HiChevronRight className="w-3.5 h-3.5 text-gray-500" />
-                <span className="font-bold text-amber-600">Secure Checkout</span>
+                <span className="font-bold text-amber-700">Secure Checkout</span>
                 <HiChevronRight className="w-3.5 h-3.5 text-gray-500" />
                 <span className="text-gray-500">Order Completed</span>
               </div>
@@ -705,7 +753,7 @@ export default function Shop() {
                           value={customer.name}
                           onChange={e => setCustomer(prev => ({ ...prev, name: e.target.value }))}
                           placeholder="Juan Dela Cruz"
-                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-300"
+                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-500"
                         />
                       </div>
                     </div>
@@ -724,7 +772,7 @@ export default function Shop() {
                           value={customer.phone}
                           onChange={e => setCustomer(prev => ({ ...prev, phone: e.target.value }))}
                           placeholder="09171234567"
-                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-300"
+                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-500"
                         />
                       </div>
                     </div>
@@ -742,7 +790,7 @@ export default function Shop() {
                           value={customer.email}
                           onChange={e => setCustomer(prev => ({ ...prev, email: e.target.value }))}
                           placeholder="juan@example.com"
-                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-300"
+                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-500"
                         />
                       </div>
                     </div>
@@ -760,7 +808,7 @@ export default function Shop() {
                           value={memberUsername}
                           onChange={e => setMemberUsername(e.target.value)}
                           placeholder="Your Nogatu Alliance username"
-                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-300"
+                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-500"
                         />
                       </div>
                       <p className="mt-1 text-[11px] text-gray-500">Verified at checkout. The discount applies only to active members.</p>
@@ -780,7 +828,7 @@ export default function Shop() {
                           value={customer.address}
                           onChange={e => setCustomer(prev => ({ ...prev, address: e.target.value }))}
                           placeholder="Street name, Barangay, City, Province, Postal Code"
-                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-300"
+                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-500"
                         />
                       </div>
                     </div>
@@ -788,28 +836,19 @@ export default function Shop() {
                     <LocationPicker value={pinnedLocation} onChange={setPinnedLocation} />
 
                     <div className="pt-2">
-                      {paymentProviders.length > 0 && (
-                        <div className="mb-4">
-                          <label htmlFor="paymentProvider" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Payment Provider *</label>
-                          <select
-                            id="paymentProvider"
-                            value={paymentProvider}
-                            onChange={(event) => setPaymentProvider(event.target.value)}
-                            disabled={submitting}
-                            className="w-full rounded-xl border border-gray-200 px-3 py-2.5 text-sm text-gray-900 focus:border-amber-500 focus:outline-none"
-                          >
-                            {paymentProviders.map((provider) => <option key={provider} value={provider}>{provider}</option>)}
-                          </select>
-                        </div>
-                      )}
-                      {isInfluencerCheckout && <p className="mb-3 text-xs font-semibold text-amber-700">Berry NAD • Quantity fixed at 1</p>}
-                      <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 text-xs text-amber-800 flex items-start gap-2">
-                        <FiLock className="w-4 h-4 text-amber-500 shrink-0 mt-0.5" />
-                        <div>
-                          <p className="font-semibold mb-1">Payment Method: Bank Transfer Only</p>
-                          <p className="leading-relaxed">After placing your order, we will show you our bank account details. Please transfer the total amount and upload the screenshot of your receipt/payment proof.</p>
-                        </div>
+                      <div className="mb-4">
+                        <PaymentProviderPicker
+                          options={paymentProviders}
+                          selected={paymentProvider}
+                          onSelect={setPaymentProvider}
+                          disabled={submitting}
+                          loadError={paymentOptionsError}
+                          onRetry={loadPaymentOptions}
+                        />
                       </div>
+                      {isInfluencerCheckout && <p className="mb-3 text-xs font-semibold text-amber-700">Berry NAD+ &bull; Quantity fixed at 1</p>}
+                      <CheckoutSteps />
+                      <p className="mt-2 text-xs text-gray-600">After you place your order we show the account to pay and the upload button.</p>
                     </div>
 
                     {isCartStockInvalid && (
@@ -822,7 +861,7 @@ export default function Shop() {
                       <button
                         type="submit"
                         disabled={submitting || isCartStockInvalid}
-                        className="w-full flex items-center justify-center gap-2 py-3 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-amber-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full flex items-center justify-center gap-2 py-3 bg-amber-700 hover:bg-amber-800 active:scale-95 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-amber-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {submitting ? (
                           <>
@@ -846,7 +885,7 @@ export default function Shop() {
                       {!isInfluencerCheckout && <button
                         type="button"
                         onClick={() => setStep('browse')}
-                        className="text-xs font-semibold text-amber-600 hover:text-amber-700 transition-colors"
+                        className="text-xs font-semibold text-amber-700 hover:text-amber-800 transition-colors"
                       >
                         Edit Items
                       </button>}
@@ -904,7 +943,7 @@ export default function Shop() {
                           <span>Total Due</span>
                           <p className="text-[11px] font-medium text-gray-500">All charges shown above</p>
                         </div>
-                        <span className="text-amber-600 font-extrabold">{formatCurrency(totalDue)}</span>
+                        <span className="text-amber-700 font-extrabold">{formatCurrency(totalDue)}</span>
                       </div>
                     </div>
 
@@ -914,7 +953,7 @@ export default function Shop() {
                           type="button"
                           onClick={handlePlaceOrder}
                           disabled={submitting || isCartStockInvalid}
-                          className="w-full flex items-center justify-center gap-2 py-3 bg-amber-500 hover:bg-amber-600 active:scale-95 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-amber-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="w-full flex items-center justify-center gap-2 py-3 bg-amber-700 hover:bg-amber-800 active:scale-95 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-amber-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {submitting ? (
                             <>
@@ -997,7 +1036,7 @@ export default function Shop() {
                         setCartOpen(false);
                         setStep('browse');
                       }}
-                      className="mt-4 text-xs font-bold text-amber-600 hover:underline"
+                      className="mt-4 text-xs font-bold text-amber-700 hover:underline"
                     >
                       Browse our products
                     </button>
@@ -1040,7 +1079,7 @@ export default function Shop() {
                                 <span className="text-gray-500 font-medium">Stock: {stock} available</span>
                               )
                             ) : (
-                              <span className="text-gray-300">Checking stock...</span>
+                              <span className="text-gray-500">Checking stock...</span>
                             )}
                           </div>
                           <div className="flex items-center justify-between mt-2">
@@ -1096,7 +1135,7 @@ export default function Shop() {
                       <span className="font-semibold text-gray-900">Total Due</span>
                       <p className="text-[10px] text-gray-500">VAT and System Fee Included</p>
                     </div>
-                    <span className="font-extrabold text-amber-600">{formatCurrency(totalDue)}</span>
+                    <span className="font-extrabold text-amber-700">{formatCurrency(totalDue)}</span>
                   </div>
                   <div className="text-[10px] text-gray-500 leading-normal">
                     Final warehouse routing is confirmed during checkout.
@@ -1108,7 +1147,7 @@ export default function Shop() {
                       setCartOpen(false);
                       setStep('checkout');
                     }}
-                    className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-sm transition-colors shadow-md shadow-amber-500/10 text-center disabled:bg-gray-200 disabled:text-gray-600 disabled:cursor-not-allowed disabled:shadow-none"
+                    className="w-full py-3 bg-amber-700 hover:bg-amber-800 text-white font-bold rounded-xl text-sm transition-colors shadow-md shadow-amber-500/10 text-center disabled:bg-gray-200 disabled:text-gray-600 disabled:cursor-not-allowed disabled:shadow-none"
                   >
                     Go to Checkout
                   </button>

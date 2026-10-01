@@ -19,12 +19,14 @@ import { formatDate } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { PERMISSIONS, can } from '@/utils/permissions';
+import { isCenterStaff } from '@/utils/partnerLevel';
 
 export default function StockistDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toasts, showToast, dismiss } = useToast();
-  const canUseCart = can(user?.role_slug, PERMISSIONS.CART_USE);
+  const centerStaff = isCenterStaff(user);
+  const canUseCart = !centerStaff && can(user?.role_slug, PERMISSIONS.CART_USE);
   const { dark } = useTheme();
 
   const [kpis, setKpis] = useState({ totalOrders: 0, revenueMonth: 0, pendingOrders: 0, inventoryItems: 0 });
@@ -127,15 +129,19 @@ export default function StockistDashboard() {
 
       <div className="page-header-shell mb-6 grid gap-5 rounded-[1.8rem] border border-white/60 px-5 py-5 lg:grid-cols-[1fr_0.9fr]">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#2d8a2d]">Stockist Portal</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#237023] dark:text-green-400">
+            {centerStaff ? 'Fulfillment Center' : 'Stockist Portal'}
+          </p>
           <h1 className="mt-3 text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)]">
             {greeting()}, {user?.name?.split(' ')[0] || 'Stockist'}
           </h1>
-          <p className="mt-2 text-sm leading-6 text-gray-500 dark:text-[var(--dark-muted)]">
+          <p className="mt-2 text-sm leading-6 text-gray-600 dark:text-[var(--dark-muted)]">
             {new Date().toLocaleDateString('en-PH', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
           </p>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-500 dark:text-[var(--dark-muted)]">
-            Review fulfillment, watch inventory pressure, and move quickly between catalog, orders, reports, and warehouse work without losing context.
+          <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-600 dark:text-[var(--dark-muted)]">
+            {centerStaff
+              ? 'Check new orders, confirm payments, send out deliveries, and keep your stock count up to date.'
+              : 'Order products, follow your deliveries, and see at a glance what is running low.'}
           </p>
         </div>
 
@@ -150,7 +156,7 @@ export default function StockistDashboard() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <KpiCard title="My Orders" value={kpis.totalOrders} icon={HiShoppingCart} iconBg="bg-blue-100" />
+        <KpiCard title={centerStaff ? 'Center Orders' : 'My Orders'} value={kpis.totalOrders} icon={HiShoppingCart} iconBg="bg-blue-100" />
         <KpiCard title="Revenue This Month" value={formatCurrency(kpis.revenueMonth)} icon={HiCurrencyDollar} iconBg="bg-green-100" />
         <KpiCard title="Pending Orders" value={kpis.pendingOrders} icon={HiClock} iconBg="bg-amber-100" />
         <KpiCard title="Inventory Items" value={kpis.inventoryItems} icon={HiArchive} iconBg="bg-purple-100" />
@@ -160,7 +166,7 @@ export default function StockistDashboard() {
       {lowStock.length > 0 && (
         <div className="mb-6 rounded-[1.5rem] border border-amber-200 bg-[linear-gradient(135deg,#fff8eb_0%,#fff2d9_100%)] p-4 shadow-[0_22px_40px_-32px_rgba(217,119,6,0.38)] dark:border-amber-500/30 dark:bg-none dark:bg-amber-500/10 dark:shadow-none">
           <div className="flex items-center gap-2 mb-2">
-            <HiExclamation className="w-5 h-5 text-amber-600 dark:text-amber-300 flex-shrink-0" />
+            <HiExclamation className="w-5 h-5 text-amber-700 dark:text-amber-300 flex-shrink-0" />
             <span className="font-semibold text-amber-800 dark:text-amber-200 text-sm">Low Stock Alert</span>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -260,12 +266,17 @@ export default function StockistDashboard() {
             <div className="flex flex-col items-center py-10 text-muted">
               <FiInbox size={32} className="mb-2 opacity-30" />
               <p className="text-sm">No orders yet</p>
-              <button
-                onClick={() => navigate('/stockist/catalog')}
-                className="mt-3 text-xs font-semibold text-amber-600 hover:text-amber-700"
-              >
-                Browse the catalog to place your first order
-              </button>
+              {canUseCart ? (
+                <button
+                  type="button"
+                  onClick={() => navigate('/stockist/catalog')}
+                  className="brand-btn brand-btn--primary mt-3"
+                >
+                  Order Products
+                </button>
+              ) : (
+                <p className="mt-1 text-xs">New orders will show up here as soon as they are placed.</p>
+              )}
             </div>
           ) : (
             <table className="w-full text-sm">

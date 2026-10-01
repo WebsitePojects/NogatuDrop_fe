@@ -9,9 +9,9 @@ import { getNotificationKind, NOTIFICATION_KIND_LABELS } from '@/utils/notificat
 // shared notificationMeta helper so the toast and the drawer can never disagree.
 const KIND_STYLES = {
   no_stock: {
-    icon: <FiAlertTriangle className="text-red-500" />,
-    labelClass: 'text-red-500',
-    chipClass: 'bg-red-500/10 text-red-500 ring-red-500/15',
+    icon: <FiAlertTriangle className="text-red-600 dark:text-red-400" />,
+    labelClass: 'text-red-600 dark:text-red-400',
+    chipClass: 'bg-red-500/10 text-red-700 dark:text-red-400 ring-red-500/15',
   },
   low_stock: {
     icon: <FiAlertTriangle className="text-amber-500" />,

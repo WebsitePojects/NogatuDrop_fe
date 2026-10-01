@@ -86,7 +86,7 @@ export default function MobileLayout() {
           <img src={BRAND_LOGO} alt="Nogatu" className="w-9 h-9 rounded-xl object-cover flex-shrink-0" />
           <div className="overflow-hidden">
             <p className="text-white text-sm font-bold leading-none">NCDMS</p>
-            <p className="text-white/40 text-xs mt-0.5">Mobile Stockist</p>
+            <p className="text-white/65 text-xs mt-0.5">Mobile Stockist</p>
           </div>
         </div>
 
@@ -117,7 +117,7 @@ export default function MobileLayout() {
             </div>
             <div className="overflow-hidden flex-1">
               <p className="text-white text-xs font-semibold truncate">{user?.name || 'Mobile Stockist'}</p>
-              <p className="text-white/40 text-xs">Mobile Stockist</p>
+              <p className="text-white/65 text-xs">Mobile Stockist</p>
             </div>
           </div>
           <button onClick={handleLogout} className="sidebar-item w-full text-left">
@@ -146,7 +146,7 @@ export default function MobileLayout() {
           </button>
 
           <div className="flex-1 pl-2 hidden sm:block">
-            <span className="text-sm text-gray-500 dark:text-gray-400">{currentLabel}</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">{currentLabel}</span>
           </div>
 
           <div className="flex items-center gap-1">
@@ -183,7 +183,7 @@ export default function MobileLayout() {
                     <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 leading-tight">{user?.name || 'Mobile'}</p>
                     <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)] leading-tight">Mobile Stockist</p>
                   </div>
-                  <HiChevronDown className="w-3.5 h-3.5 text-gray-500 dark:text-[var(--dark-muted)] hidden md:block" />
+                  <HiChevronDown className="w-3.5 h-3.5 text-gray-600 dark:text-[var(--dark-muted)] hidden md:block" />
                 </div>
               }
               inline
@@ -191,7 +191,7 @@ export default function MobileLayout() {
             >
               <div className="px-4 py-2 border-b border-gray-100">
                 <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                <p className="text-xs text-gray-400">{user?.email}</p>
+                <p className="text-xs text-gray-600">{user?.email}</p>
               </div>
             </Dropdown>
           </div>

@@ -14,7 +14,6 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
-import InfluencerReports from './InfluencerReports.jsx';
 
 const CHART_COLORS = ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#06B6D4', '#F97316'];
 
@@ -507,7 +506,6 @@ export default function Reports() {
           <TabItem title="Stockists"><StockistsTab /></TabItem>
           <TabItem title="Inventory"><InventoryTab /></TabItem>
           <TabItem title="Movements"><MovementsTab /></TabItem>
-          <TabItem title="Influencers"><InfluencerReports /></TabItem>
         </Tabs>
       </Card>
     </div>

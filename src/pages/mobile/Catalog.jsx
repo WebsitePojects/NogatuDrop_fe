@@ -79,7 +79,7 @@ export default function MobileCatalog() {
       {/* Sticky search */}
       <div className="sticky top-0 z-10 bg-white border-b border-gray-100 px-4 py-3 dark:bg-[var(--dark-topbar)] dark:border-[var(--dark-border)]">
         <div className="relative">
-          <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <HiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400 w-4 h-4" />
           <input
             type="search"
             value={search}
@@ -102,11 +102,11 @@ export default function MobileCatalog() {
             ))}
           </div>
         ) : products.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400 dark:text-[var(--dark-muted)]">
+          <div className="flex flex-col items-center justify-center py-20 text-gray-600 dark:text-[var(--dark-muted)]">
             <HiSearch size={40} className="mb-3 opacity-30" />
             <p className="text-sm">No products found</p>
             {search && (
-              <button onClick={() => setSearch('')} className="mt-2 text-orange-500 text-sm">
+              <button onClick={() => setSearch('')} className="mt-2 text-orange-700 dark:text-orange-400 text-sm">
                 Clear search
               </button>
             )}
@@ -135,10 +135,10 @@ export default function MobileCatalog() {
                     <h3 className="text-sm font-semibold text-gray-800 line-clamp-2 leading-snug mb-1">
                       {product.name}
                     </h3>
-                    <p className="text-orange-500 font-bold text-sm mb-2.5">
+                    <p className="text-orange-700 dark:text-orange-400 font-bold text-sm mb-2.5">
                       {formatCurrency(product.partner_price || product.price || 0)}
                     </p>
-                    <div className={`mb-2 text-[11px] font-semibold ${isOrderable ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <div className={`mb-2 text-[11px] font-semibold ${isOrderable ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600'}`}>
                       {isOrderable ? `${availableQty} available` : 'Unavailable from your route'}
                     </div>
                     {qty > 0 && isOrderable ? (
@@ -152,7 +152,7 @@ export default function MobileCatalog() {
                         <span className="text-sm font-bold text-gray-900">{qty}</span>
                         <button
                           onClick={() => handleUpdateQty(product, qty + 1)}
-                          className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center font-bold text-white hover:bg-orange-600 shadow-sm"
+                          className="w-7 h-7 rounded-lg bg-orange-500 flex items-center justify-center font-bold text-orange-950 hover:bg-orange-400 shadow-sm"
                         >
                           +
                         </button>
@@ -163,8 +163,8 @@ export default function MobileCatalog() {
                         disabled={isAdding || !isOrderable}
                         className={`w-full py-2 rounded-xl text-xs font-semibold active:scale-95 transition-all disabled:opacity-60 ${
                           isOrderable
-                            ? 'bg-orange-500 text-white hover:bg-orange-600'
-                            : 'bg-gray-200 text-gray-500 dark:bg-[var(--dark-card2)] dark:text-[var(--dark-muted)]'
+                            ? 'bg-orange-500 text-orange-950 hover:bg-orange-400'
+                            : 'bg-gray-200 text-gray-600 dark:bg-[var(--dark-card2)] dark:text-[var(--dark-muted)]'
                         }`}
                       >
                         {isAdding ? (

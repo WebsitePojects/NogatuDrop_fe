@@ -171,7 +171,7 @@ export default function MainCycleCounts() {
                 </div>
                 <div className="rounded-xl border border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)] p-3">
                   <p className="text-xs uppercase tracking-wide text-muted">Total Increase</p>
-                  <p className="mt-1 text-sm font-semibold text-emerald-600">+{varianceSummary.increase}</p>
+                  <p className="mt-1 text-sm font-semibold text-emerald-700 dark:text-emerald-400">+{varianceSummary.increase}</p>
                 </div>
                 <div className="rounded-xl border border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)] p-3">
                   <p className="text-xs uppercase tracking-wide text-muted">Total Decrease</p>
@@ -179,7 +179,7 @@ export default function MainCycleCounts() {
                 </div>
                 <div className="rounded-xl border border-gray-100 dark:border-[var(--dark-border)] bg-gray-50 dark:bg-[var(--dark-card2)] p-3">
                   <p className="text-xs uppercase tracking-wide text-muted">Net Variance</p>
-                  <p className={`mt-1 text-sm font-semibold ${varianceSummary.net >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+                  <p className={`mt-1 text-sm font-semibold ${varianceSummary.net >= 0 ? 'text-emerald-700 dark:text-emerald-400' : 'text-red-600'}`}>
                     {varianceSummary.net > 0 ? '+' : ''}{varianceSummary.net}
                   </p>
                 </div>
@@ -203,7 +203,7 @@ export default function MainCycleCounts() {
                         <TableCell className="font-mono text-xs text-muted">{item.sku}</TableCell>
                         <TableCell>{item.system_qty}</TableCell>
                         <TableCell>{item.counted_qty}</TableCell>
-                        <TableCell className={Number(item.variance_qty) >= 0 ? 'text-emerald-600 font-semibold' : 'text-red-600 font-semibold'}>
+                        <TableCell className={Number(item.variance_qty) >= 0 ? 'text-emerald-700 dark:text-emerald-400 font-semibold' : 'text-red-600 font-semibold'}>
                           {Number(item.variance_qty) > 0 ? '+' : ''}{item.variance_qty}
                         </TableCell>
                         <TableCell>{item.reserved_stock || 0}</TableCell>

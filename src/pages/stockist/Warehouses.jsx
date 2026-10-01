@@ -121,7 +121,7 @@ export default function StockistWarehouses() {
                 <div className="flex items-start justify-between mb-3">
                   <div className="flex items-center gap-2.5">
                     <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
-                      <HiOutlineOfficeBuilding className="w-5 h-5 text-amber-600" />
+                      <HiOutlineOfficeBuilding className="w-5 h-5 text-amber-700 dark:text-amber-500" />
                     </div>
                     <div>
                       <p className="font-semibold text-gray-900 dark:text-[var(--dark-text)] text-sm">{wh.name}</p>
@@ -137,7 +137,7 @@ export default function StockistWarehouses() {
                 </div>
 
                 {/* Location */}
-                <div className="flex items-center gap-1.5 text-sm text-gray-500 dark:text-[var(--dark-muted)] mb-3">
+                <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-[var(--dark-muted)] mb-3">
                   <HiOutlineLocationMarker className="w-4 h-4 flex-shrink-0" />
                   <span className="truncate">{wh.location}</span>
                 </div>
@@ -160,7 +160,7 @@ export default function StockistWarehouses() {
                 </div>
 
                 {/* Manager */}
-                <div className="flex items-center gap-1.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
+                <div className="flex items-center gap-1.5 text-xs text-gray-600 dark:text-[var(--dark-muted)]">
                   <HiOutlineUser className="w-3.5 h-3.5" />
                   <span>{wh.manager_name || 'No manager assigned'}</span>
                 </div>
@@ -189,21 +189,21 @@ export default function StockistWarehouses() {
               {/* Info grid */}
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
-                  <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)] uppercase tracking-wide mb-0.5">Type</p>
+                  <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)] uppercase tracking-wide mb-0.5">Type</p>
                   <p className="font-medium text-gray-900 dark:text-[var(--dark-text)] capitalize">{selected.type}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)] uppercase tracking-wide mb-0.5">Status</p>
+                  <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)] uppercase tracking-wide mb-0.5">Status</p>
                   <span className={selected.is_active ? 'badge-active' : 'badge-inactive'}>
                     {selected.is_active ? 'Active' : 'Inactive'}
                   </span>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)] uppercase tracking-wide mb-0.5">Location</p>
+                  <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)] uppercase tracking-wide mb-0.5">Location</p>
                   <p className="font-medium text-gray-900 dark:text-[var(--dark-text)]">{selected.location}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)] uppercase tracking-wide mb-0.5">Capacity</p>
+                  <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)] uppercase tracking-wide mb-0.5">Capacity</p>
                   <p className="font-medium text-gray-900 dark:text-[var(--dark-text)]">
                     {(selected.capacity_used || 0).toLocaleString()} / {(selected.capacity_total || 0).toLocaleString()} units
                   </p>
@@ -226,7 +226,7 @@ export default function StockistWarehouses() {
 
               {/* Manager info */}
               <div className="bg-coffee-50 dark:bg-[var(--dark-card2)] rounded-xl p-4">
-                <p className="text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase mb-2">Warehouse Manager</p>
+                <p className="text-xs font-semibold text-gray-600 dark:text-[var(--dark-muted)] uppercase mb-2">Warehouse Manager</p>
                 <div className="flex items-center gap-3">
                   <div className="w-9 h-9 bg-amber-200 rounded-full flex items-center justify-center text-amber-800 font-bold text-sm">
                     {selected.manager_name?.[0] || '?'}
@@ -271,7 +271,7 @@ export default function StockistWarehouses() {
                             <td className="px-3 py-2.5 font-medium text-gray-800 dark:text-[var(--dark-text)]">{inv.product_name || inv.product?.name}</td>
                             <td className={`px-3 py-2.5 text-right font-semibold ${
                               inv.status === 'out_of_stock' ? 'text-red-600' :
-                              inv.status === 'low_stock' ? 'text-amber-600' : 'text-green-700'
+                              inv.status === 'low_stock' ? 'text-amber-700 dark:text-amber-500' : 'text-green-700'
                             }`}>{(inv.current_stock || 0).toLocaleString()}</td>
                             <td className="px-3 py-2.5 text-right text-muted">{(inv.reserved_stock || 0).toLocaleString()}</td>
                             <td className="px-3 py-2.5 text-center"><StatusBadge status={inv.status} /></td>

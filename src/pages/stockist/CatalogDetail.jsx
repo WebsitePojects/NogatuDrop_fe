@@ -156,7 +156,7 @@ export default function CatalogDetail() {
           {/* Info */}
           <div className="p-6 lg:p-8 flex flex-col">
             {product.category && (
-              <span className="text-xs font-semibold text-amber-600 uppercase tracking-wide mb-2">
+              <span className="text-xs font-semibold text-amber-700 dark:text-amber-500 uppercase tracking-wide mb-2">
                 {product.category}
               </span>
             )}
@@ -177,7 +177,7 @@ export default function CatalogDetail() {
               )}
             </div>
             {disc && (
-              <p className="text-sm text-emerald-600 font-medium mb-4">
+              <p className="text-sm text-emerald-700 dark:text-emerald-400 font-medium mb-4">
                 You save {formatCurrency((product.retail_price || 0) - (product.partner_price || 0))} ({disc}% off retail)
               </p>
             )}
@@ -226,7 +226,7 @@ export default function CatalogDetail() {
                 onClick={handleAddToCart}
                 disabled={addingCart || checkingOut || !isOrderable}
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl disabled:opacity-60 font-semibold text-sm transition-colors ${
-                  isOrderable ? 'bg-amber-500 hover:bg-amber-600 text-amber-950' : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300'
+                  isOrderable ? 'bg-amber-500 hover:bg-amber-600 text-amber-950' : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                 }`}
               >
                 {addingCart ? (
@@ -242,7 +242,7 @@ export default function CatalogDetail() {
                 className={`flex-1 flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl disabled:opacity-60 font-semibold text-sm transition-colors ${
                   isOrderable
                     ? 'bg-gray-900 hover:bg-gray-800 dark:bg-gray-700 dark:hover:bg-gray-600 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300'
                 }`}
               >
                 <HiLightningBolt className="w-4 h-4" />

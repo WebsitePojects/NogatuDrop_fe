@@ -289,7 +289,7 @@ export default function StockistPurchaseOrders() {
                 </select>
                 <input type="number" className="w-20 text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-2 bg-white dark:bg-[var(--dark-card2)] text-strong" placeholder="Qty" min="1" value={item.quantity} onChange={e => updateItem(i, 'quantity', e.target.value)} />
                 <input type="number" className="w-28 text-sm border border-gray-300 dark:border-gray-600 rounded-lg px-2 py-2 bg-white dark:bg-[var(--dark-card2)] text-strong" placeholder="Unit price" min="0" step="0.01" value={item.unit_price} onChange={e => updateItem(i, 'unit_price', e.target.value)} />
-                {form.items.length > 1 && <button onClick={() => removeItem(i)} className="text-red-400 hover:text-red-600 px-1">×</button>}
+                {form.items.length > 1 && <button onClick={() => removeItem(i)} className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 px-1">×</button>}
               </div>
             ))}
             <button onClick={addItem} className="mt-2 text-sm text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-medium">+ Add item</button>

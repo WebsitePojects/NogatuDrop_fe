@@ -156,7 +156,7 @@ export default function StockAdjustments() {
                     ) : (
                       adjustments.map((a) => (
                         <TableRow key={a.id} className="hover:bg-amber-50/30 dark:hover:bg-white/5 cursor-pointer" onClick={() => openDetail(a)}>
-                          <TableCell className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{formatDate(a.created_at)}</TableCell>
+                          <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{formatDate(a.created_at)}</TableCell>
                           <TableCell className="font-medium text-gray-900 dark:text-[var(--dark-text)] text-xs">{a.product_name}</TableCell>
                           <TableCell className="text-xs">{a.warehouse_name}</TableCell>
                           <TableCell>{typeBadge(a.type)}</TableCell>
@@ -243,13 +243,13 @@ export default function StockAdjustments() {
           {selected && (
             <div className="space-y-3 text-sm">
               <div className="grid grid-cols-2 gap-3">
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Product</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.product_name}</p></div>
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Warehouse</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.warehouse_name}</p></div>
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Type</p>{typeBadge(selected.type)}</div>
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Quantity</p><p className="font-bold text-lg dark:text-[var(--dark-text)]">{selected.quantity}</p></div>
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Status</p><StatusBadge status={selected.status} /></div>
-                <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Requested By</p><p className="dark:text-[var(--dark-text)]">{selected.requested_by_name || '—'}</p></div>
-                <div className="col-span-2"><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Reason</p><p className="dark:text-[var(--dark-text)]">{selected.reason || '—'}</p></div>
+                <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Product</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.product_name}</p></div>
+                <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Warehouse</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.warehouse_name}</p></div>
+                <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Type</p>{typeBadge(selected.type)}</div>
+                <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Quantity</p><p className="font-bold text-lg dark:text-[var(--dark-text)]">{selected.quantity}</p></div>
+                <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Status</p><StatusBadge status={selected.status} /></div>
+                <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Requested By</p><p className="dark:text-[var(--dark-text)]">{selected.requested_by_name || '—'}</p></div>
+                <div className="col-span-2"><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Reason</p><p className="dark:text-[var(--dark-text)]">{selected.reason || '—'}</p></div>
               </div>
             </div>
           )}

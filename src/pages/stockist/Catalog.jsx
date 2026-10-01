@@ -84,8 +84,8 @@ export default function StockistCatalog() {
       <ToastContainer toasts={toasts} dismiss={dismiss} />
 
       <PageHeader
-        title="Product Catalog"
-        subtitle="Browse live catalog inventory, compare Stockist pricing, and place cleaner, faster replenishment orders."
+        title="Order Products"
+        subtitle="Choose the products you need, set the quantity, and add them to your cart."
       />
 
       {/* Search */}
@@ -134,9 +134,9 @@ export default function StockistCatalog() {
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 text-muted">
           <FiShoppingBag size={48} className="mb-3 opacity-30" />
-          <p className="text-sm">No products found</p>
+          <p className="text-sm">{search ? 'No products match your search.' : 'No products are available to order right now.'}</p>
           {search && (
-            <button onClick={() => setSearch('')} className="mt-2 text-amber-600 text-sm hover:underline">
+            <button type="button" onClick={() => setSearch('')} className="brand-btn brand-btn--primary mt-3">
               Clear search
             </button>
           )}
@@ -204,7 +204,7 @@ export default function StockistCatalog() {
                   </div>
 
                   <div className="mb-2 flex items-center justify-between gap-2 text-xs">
-                    <span className={`font-semibold ${isOrderable ? 'text-emerald-600' : 'text-rose-600'}`}>
+                    <span className={`font-semibold ${isOrderable ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600'}`}>
                       {isOrderable ? `${availableQty} available` : 'Unavailable from your route'}
                     </span>
                     {product.source_warehouse_id ? (
@@ -242,7 +242,7 @@ export default function StockistCatalog() {
                     className={`mt-auto w-full flex items-center justify-center gap-2 py-2 rounded-xl text-sm font-semibold transition-colors disabled:opacity-60 ${
                       isOrderable
                         ? 'bg-amber-500 hover:bg-amber-600 text-amber-950'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-300 cursor-not-allowed'
+                        : 'bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 cursor-not-allowed'
                     }`}
                   >
                     {isAdding ? (

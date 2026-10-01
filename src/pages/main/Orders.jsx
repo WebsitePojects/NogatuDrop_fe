@@ -471,12 +471,12 @@ export default function Orders() {
                           </TableCell>
                           <TableCell className="text-xs whitespace-nowrap">
                             {order.payment_deadline ? (
-                              <span className={DEADLINE_CLASSES[getDeadlineUrgency(order, isArchivedTab)] || 'text-gray-500 dark:text-[var(--dark-muted)]'}>
+                              <span className={DEADLINE_CLASSES[getDeadlineUrgency(order, isArchivedTab)] || 'text-gray-600 dark:text-[var(--dark-muted)]'}>
                                 {formatDateTime(order.payment_deadline)}
                               </span>
                             ) : '—'}
                           </TableCell>
-                          <TableCell className="text-xs whitespace-nowrap text-gray-500 dark:text-[var(--dark-muted)]">{formatDate(order.created_at)}</TableCell>
+                          <TableCell className="text-xs whitespace-nowrap text-gray-600 dark:text-[var(--dark-muted)]">{formatDate(order.created_at)}</TableCell>
                           <TableCell onClick={(e) => e.stopPropagation()}>
                             <Button size="xs" color="light" onClick={() => openDetail(order)}>
                               <HiOutlineEye className="w-3.5 h-3.5" />
@@ -506,7 +506,7 @@ export default function Orders() {
               Order Details
             </span>
             {selectedOrder && (
-              <span className="text-sm font-medium text-gray-500 mt-1 dark:text-gray-400 font-mono tracking-wide">
+              <span className="text-sm font-medium text-gray-600 mt-1 dark:text-gray-400 font-mono tracking-wide">
                 {selectedOrder.order_number}
               </span>
             )}
@@ -523,7 +523,7 @@ export default function Orders() {
               {/* Order Info Summary Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5 whitespace-nowrap">
+                  <p className="text-xs font-bold text-gray-600 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5 whitespace-nowrap">
                     <HiOutlineUser className="w-3.5 h-3.5" />
                     {selectedOrder.is_public ? 'Customer' : 'Stockist'}
                   </p>
@@ -543,7 +543,7 @@ export default function Orders() {
                   )}
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5 whitespace-nowrap">
+                  <p className="text-xs font-bold text-gray-600 dark:text-gray-400 tracking-wider uppercase mb-1.5 flex items-center gap-1.5 whitespace-nowrap">
                     <HiOutlineCalendar className="w-3.5 h-3.5" /> Date Ordered
                   </p>
                   <p className="font-bold text-gray-900 dark:text-white text-sm line-clamp-2">
@@ -551,7 +551,7 @@ export default function Orders() {
                   </p>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 whitespace-nowrap">
+                  <p className="text-xs font-bold text-gray-600 dark:text-gray-400 tracking-wider uppercase mb-1.5 whitespace-nowrap">
                     Order Status
                   </p>
                   <div className="mt-1">
@@ -559,7 +559,7 @@ export default function Orders() {
                   </div>
                 </div>
                 <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5 whitespace-nowrap">
+                  <p className="text-xs font-bold text-gray-600 dark:text-gray-400 tracking-wider uppercase mb-1.5 whitespace-nowrap">
                     Payment Status
                   </p>
                   <div className="mt-1">
@@ -576,37 +576,37 @@ export default function Orders() {
                   </p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-sm">
                     <div>
-                      <span className="text-xs text-gray-500 dark:text-gray-400">Name</span>
+                      <span className="text-xs text-gray-600 dark:text-gray-400">Name</span>
                       <p className="font-semibold text-gray-900 dark:text-white">{selectedOrder.customer_name || '—'}</p>
                     </div>
                     {selectedOrder.customer_phone && (
                       <div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">Phone</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Phone</span>
                         <p className="font-semibold text-gray-900 dark:text-white">{selectedOrder.customer_phone}</p>
                       </div>
                     )}
                     {selectedOrder.customer_email && (
                       <div>
-                        <span className="text-xs text-gray-500 dark:text-gray-400">Email</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Email</span>
                         <p className="font-semibold text-gray-900 dark:text-white">{selectedOrder.customer_email}</p>
                       </div>
                     )}
                     {selectedOrder.customer_address && (
                       <div className="sm:col-span-2">
-                        <span className="text-xs text-gray-500 dark:text-gray-400">Delivery Address</span>
+                        <span className="text-xs text-gray-600 dark:text-gray-400">Delivery Address</span>
                         <p className="font-semibold text-gray-900 dark:text-white">{selectedOrder.customer_address}</p>
                       </div>
                     )}
                   </div>
                   {selectedOrder.partner_name && (
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1 pt-2 border-t border-orange-100 dark:border-orange-800/50">
+                    <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 pt-2 border-t border-orange-100 dark:border-orange-800/50">
                       Fulfilled by Stockist: <span className="font-medium text-gray-600 dark:text-gray-300">{selectedOrder.partner_name}</span>
                     </p>
                   )}
                 </div>
               ) : (
                 <div className="bg-gray-50 dark:bg-gray-800/80 p-4 rounded-xl border border-gray-100 dark:border-gray-700 shadow-sm">
-                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 tracking-wider uppercase mb-1.5">
+                  <p className="text-xs font-bold text-gray-600 dark:text-gray-400 tracking-wider uppercase mb-1.5">
                     Placed By
                   </p>
                   <p className="font-bold text-gray-900 dark:text-white text-sm">
@@ -626,7 +626,7 @@ export default function Orders() {
                 </div>
                 <div className="overflow-x-auto">
                   <table className="w-full text-left text-sm tracking-wide">
-                    <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs text-gray-500 dark:text-gray-400 uppercase font-semibold">
+                    <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs text-gray-600 dark:text-gray-400 uppercase font-semibold">
                       <tr>
                         <th className="px-5 py-3 rounded-bl-none">Product</th>
                         <th className="px-5 py-3 text-center">Qty</th>
@@ -694,7 +694,7 @@ export default function Orders() {
                 {selectedOrder.payment_deadline && selectedStatusKey !== 'cancelled' && selectedStatusKey !== 'rejected' && selectedPaymentStatusKey === 'unpaid' && (
                   <div className="bg-amber-50/50 dark:bg-amber-900/10 border border-amber-100 dark:border-amber-800 p-4 rounded-xl flex items-center gap-3 shadow-sm">
                     <div className="p-2 bg-amber-100 dark:bg-amber-800/50 rounded-lg">
-                      <HiOutlineClock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                      <HiOutlineClock className="w-5 h-5 text-amber-700 dark:text-amber-400" />
                     </div>
                     <div>
                       <p className="text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider mb-0.5">Deadline</p>
@@ -749,7 +749,7 @@ export default function Orders() {
               {selectedOrder.cancellation_reason && (
                 <div className="bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 p-4 rounded-xl shadow-sm flex gap-3">
                   <div className="mt-0.5">
-                    <HiOutlineXCircle className="w-5 h-5 text-red-500 dark:text-red-400" />
+                    <HiOutlineXCircle className="w-5 h-5 text-red-600 dark:text-red-400" />
                   </div>
                   <div>
                     <h4 className="text-sm font-bold text-red-800 dark:text-red-300 uppercase tracking-wide mb-1">

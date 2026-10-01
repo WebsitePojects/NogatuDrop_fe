@@ -88,7 +88,7 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
           <p className="text-sm font-bold text-red-700 dark:text-red-400">
             {isRejected ? 'Order Rejected' : 'Order Cancelled'}
           </p>
-          <p className="text-xs text-red-500 dark:text-red-400">
+          <p className="text-xs text-red-600 dark:text-red-400">
             {isRejected
               ? 'This order was rejected. Reserved stock has been released.'
               : 'This order was cancelled. Reserved stock has been released.'}
@@ -158,7 +158,7 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
                   className={[
                     'mt-2 text-center text-[11px] font-semibold leading-tight transition-colors duration-300',
                     isDone    ? 'text-amber-500'  : '',
-                    isCurrent ? 'text-amber-600'  : '',
+                    isCurrent ? 'text-amber-700 dark:text-amber-500'  : '',
                     isFuture  ? 'text-gray-300 dark:text-[var(--dark-muted)]' : '',
                   ].join(' ')}
                 >
@@ -224,14 +224,14 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
                   className={[
                     'text-sm font-semibold leading-tight transition-colors duration-300',
                     isDone    ? 'text-amber-500'  : '',
-                    isCurrent ? 'text-amber-600'  : '',
+                    isCurrent ? 'text-amber-700 dark:text-amber-500'  : '',
                     isFuture  ? 'text-gray-300 dark:text-[var(--dark-muted)]' : '',
                   ].join(' ')}
                 >
                   {step.label}
                 </span>
                 {isCurrent && (
-                  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-600 dark:bg-amber-900/30 dark:text-amber-300">
+                  <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
                     Current
                   </span>
                 )}

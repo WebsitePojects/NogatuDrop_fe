@@ -131,6 +131,7 @@ export const GRN = {
   CREATE:   '/grn',
   BY_ID:    (id) => `/grn/${id}`,
   COMPLETE: (id) => `/grn/${id}/complete`,
+  QUICK_RECEIVE: '/grn/quick-receive',
 };
 
 export const BANK_ACCOUNTS = {
@@ -177,6 +178,7 @@ export const REPORTS = {
   PRODUCTS:  '/reports/products',
   MOVEMENTS: '/reports/movements',
   INFLUENCERS: '/reports/influencers',
+  INFLUENCERS_EXPORT: '/reports/influencers/export',
 };
 
 export const DASHBOARD = {

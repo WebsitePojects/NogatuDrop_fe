@@ -15,10 +15,14 @@ test('public checkout keeps retries idempotent and influencer orders fixed to on
   assert.match(shop, /payment_provider: paymentProvider/);
 });
 
-test('influencer report renders the backend aggregate field names exactly', () => {
-  assert.match(reports, /row\.orders/);
-  assert.match(reports, /row\.paid_orders/);
-  assert.match(reports, /row\.delivered_orders/);
-  assert.match(reports, /row\.delivered_revenue/);
-  assert.doesNotMatch(reports, /row\.paid_count|row\.delivered_count/);
+test('influencer report renders the pinned API field names and exports through the authenticated client', () => {
+  [
+    'row.order_number', 'row.created_at', 'row.payment_provider', 'row.fulfillment_center',
+    'row.customer_location', 'row.total_amount', 'row.status',
+    'summary.order_count', 'summary.gross_sales', 'summary.by_provider', 'summary.by_center',
+  ].forEach((field) => assert.ok(reports.includes(field), `report page must render ${field}`));
+  assert.match(reports, /REPORTS\.INFLUENCERS_EXPORT/);
+  assert.match(reports, /responseType: 'blob'/);
+  assert.match(reports, /if \(exportingRef\.current/);
+  assert.doesNotMatch(reports, /window\.open/);
 });

@@ -12,6 +12,7 @@ import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
 import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
+import { QuickStockModal } from '@/pages/stockist/Inventory';
 
 const STOCK_STATUS_COLOR = {
   in_stock: 'bg-green-100 text-green-800',
@@ -39,6 +40,7 @@ export default function Inventory() {
   const [warehouses, setWarehouses] = useState([]);
   const [products, setProducts] = useState([]);
 
+  const [showQuickStock, setShowQuickStock] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showAdjustModal, setShowAdjustModal] = useState(false);
@@ -77,6 +79,11 @@ export default function Inventory() {
       if (pRes.status === 'fulfilled') setProducts(pRes.value.data.data || []);
     });
   }, []);
+
+  const handleStockSaved = (message) => {
+    showToast(message, 'success');
+    fetchItems();
+  };
 
   const openAdd = () => { setForm(EMPTY_FORM); setShowAddModal(true); };
   const openEdit = (item) => {
@@ -215,7 +222,10 @@ export default function Inventory() {
       <PageHeader
         title="Inventory"
         subtitle="Manage stock levels across all warehouses"
-        actions={[{ label: 'Add Inventory', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: openAdd }]}
+        actions={[
+          { label: 'Add Stock', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: () => setShowQuickStock(true) },
+          { label: 'Add Inventory', variant: 'outline', onClick: openAdd },
+        ]}
       />
 
       <Card>
@@ -279,8 +289,8 @@ export default function Inventory() {
                       icon={HiOutlineAdjustments}
                       title="No inventory records"
                       description="Add inventory items to get started"
-                      actionLabel="Add Inventory"
-                      onAction={openAdd}
+                      actionLabel="Add Stock"
+                      onAction={() => setShowQuickStock(true)}
                     />
                   </TableCell>
                 </TableRow>
@@ -335,6 +345,15 @@ export default function Inventory() {
           )}
         </div>
       </Card>
+
+      <QuickStockModal
+        show={showQuickStock}
+        onClose={() => setShowQuickStock(false)}
+        products={products}
+        warehouses={warehouses}
+        warehouseRequired
+        onSaved={handleStockSaved}
+      />
 
       {/* Add Modal */}
       <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">

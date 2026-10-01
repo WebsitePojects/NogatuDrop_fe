@@ -128,7 +128,7 @@ export default function LocationPicker({ value, onChange }) {
         </MapContainer>
       </div>
 
-      <div className="mt-2 flex items-start gap-2 text-[11px] text-gray-500 dark:text-[var(--dark-muted)]">
+      <div className="mt-2 flex items-start gap-2 text-[11px] text-gray-600 dark:text-[var(--dark-muted)]">
         <FiMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
         {value && Number.isFinite(value.lat) ? (
           <span>{place || `Pinned at ${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}`} — tap the map to adjust.</span>
@@ -142,7 +142,7 @@ export default function LocationPicker({ value, onChange }) {
           We only deliver within the Philippines. Tap inside the country to adjust your pin.
         </p>
       )}
-      {error && <p className="mt-1 text-[11px] text-red-500 dark:text-red-400">{error}</p>}
+      {error && <p className="mt-1 text-[11px] text-red-600 dark:text-red-400">{error}</p>}
     </div>
   );
 }

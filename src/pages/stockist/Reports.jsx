@@ -275,8 +275,8 @@ export default function StockistReports() {
                         <tr key={i} className="border-t border-gray-50 hover:bg-amber-50/30">
                           <td className="px-4 py-2.5 font-medium text-strong">{row.product_name}</td>
                           <td className="px-4 py-2.5 font-semibold">{row.current_stock || 0}</td>
-                          <td className="px-4 py-2.5 text-amber-600">{row.reserved_stock || 0}</td>
-                          <td className={`px-4 py-2.5 font-semibold ${avail <= 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                          <td className="px-4 py-2.5 text-amber-700 dark:text-amber-500">{row.reserved_stock || 0}</td>
+                          <td className={`px-4 py-2.5 font-semibold ${avail <= 0 ? 'text-red-600' : 'text-emerald-700 dark:text-emerald-400'}`}>
                             {avail}
                           </td>
                           <td className="px-4 py-2.5 capitalize text-muted text-xs">{row.status || 'in_stock'}</td>

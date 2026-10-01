@@ -22,6 +22,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import { PERMISSIONS, can, normalizeRoleSlug } from '@/utils/permissions';
+import { isCenterStaff, centerStaffLabel } from '@/utils/partnerLevel';
 import NotificationDrawer from '@/components/NotificationDrawer';
 import FloatingCartButton from '@/components/FloatingCartButton';
 
@@ -30,13 +31,14 @@ const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 // Nav structure for Stockist portal
 // Each group has: label, items[]
 // Each item: path, label, icon, roles (if undefined = all stockist roles can see)
-function buildNavGroups(role) {
+function buildNavGroups(role, centerStaff) {
   const normalizedRole = normalizeRoleSlug(role);
   const isAdmin = role === 'admin'; // legacy — treat same as city
   const isCity = normalizedRole === 'city_stockist' || isAdmin;
   const isProvincial = normalizedRole === 'provincial_stockist';
   const isManager = isProvincial || isCity; // can manage things
-  const canUseCart = can(normalizedRole, PERMISSIONS.CART_USE);
+  // Center staff fulfil orders; they never shop for stock or manage a team.
+  const canUseCart = !centerStaff && can(normalizedRole, PERMISSIONS.CART_USE);
 
   // Lean stockist navigation (Wave 3 §1/§2.5). Hidden modules (live map, cycle
   // counts, stock transfers, purchase orders, warehouses, settlements) keep their
@@ -54,7 +56,7 @@ function buildNavGroups(role) {
       label: 'Orders',
       items: [
         ...(canUseCart ? [{ path: '/stockist/catalog', label: 'Order Products', icon: HiOutlineViewGrid }] : []),
-        { path: '/stockist/orders', label: 'My Orders', icon: HiOutlineClipboardList },
+        { path: '/stockist/orders', label: centerStaff ? 'Center Orders' : 'My Orders', icon: HiOutlineClipboardList },
       ],
     },
 
@@ -77,9 +79,9 @@ function buildNavGroups(role) {
     {
       label: 'My Team',
       items: [
-        ...(isManager ? [{ path: '/stockist/users', label: 'Users', icon: HiOutlineCog }] : []),
+        ...(!centerStaff && isManager ? [{ path: '/stockist/users', label: 'Users', icon: HiOutlineCog }] : []),
         // Same permission as the route guard in App.jsx so a visible link never 403s.
-        ...(can(normalizedRole, PERMISSIONS.MOBILE_STOCKISTS_MANAGE)
+        ...(!centerStaff && can(normalizedRole, PERMISSIONS.MOBILE_STOCKISTS_MANAGE)
           ? [{ path: '/stockist/mobile-stockists', label: 'Mobile Stockists', icon: HiOutlineUsers }]
           : []),
       ],
@@ -97,7 +99,8 @@ export default function StockistLayout() {
   const [notifOpen, setNotifOpen] = useState(false);
 
   const role = normalizeRoleSlug(user?.role_slug || 'city_stockist');
-  const navGroups = buildNavGroups(role);
+  const centerStaff = isCenterStaff(user);
+  const navGroups = buildNavGroups(role, centerStaff);
 
   const handleLogout = async () => {
     await logout();
@@ -108,12 +111,14 @@ export default function StockistLayout() {
     ? user.name.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase()
     : 'S';
 
-  const roleLabel = {
-    provincial_stockist: 'Provincial Stockist',
-    city_stockist:       'City Stockist',
-    staff:               'Staff',
-    admin:               'Stockist',
-  }[role] || 'Stockist';
+  const roleLabel = centerStaff
+    ? centerStaffLabel(user)
+    : {
+        provincial_stockist: 'Provincial Stockist',
+        city_stockist:       'City Stockist',
+        staff:               'Staff',
+        admin:               'Stockist',
+      }[role] || 'Stockist';
 
   /* Forest dark palette — complements green #0A2E0A sidebar */
   const darkVars = dark ? {
@@ -163,7 +168,7 @@ export default function StockistLayout() {
           />
           <div className="overflow-hidden">
             <p className="text-white text-sm font-bold leading-none">NCDMS</p>
-            <p className="text-white/40 text-xs mt-0.5">Stockist Portal</p>
+            <p className="text-white/65 text-xs mt-0.5">Stockist Portal</p>
           </div>
         </div>
 
@@ -203,7 +208,7 @@ export default function StockistLayout() {
             </div>
             <div className="overflow-hidden flex-1">
               <p className="text-white text-xs font-semibold truncate">{user?.name || 'Stockist'}</p>
-              <p className="text-white/40 text-xs">{roleLabel}</p>
+              <p className="text-white/65 text-xs">{roleLabel}</p>
             </div>
           </div>
           <button onClick={handleLogout} className="sidebar-item w-full text-left">
@@ -238,7 +243,7 @@ export default function StockistLayout() {
 
           {/* Breadcrumb hint */}
           <div className="flex-1 pl-2 hidden sm:block">
-            <span className="text-sm text-gray-500 dark:text-gray-400">
+            <span className="text-sm text-gray-600 dark:text-gray-400">
               {navGroups.flatMap(g => g.items).find(i => location.pathname.startsWith(i.path))?.label
                 || (location.pathname.startsWith('/stockist/cart') ? 'Shopping Cart' : '')}
             </span>
@@ -279,7 +284,7 @@ export default function StockistLayout() {
                     <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 leading-tight">{user?.name || 'Stockist'}</p>
                     <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)] leading-tight">{roleLabel}</p>
                   </div>
-                  <HiChevronDown className="w-3.5 h-3.5 text-gray-500 dark:text-[var(--dark-muted)] hidden md:block" />
+                  <HiChevronDown className="w-3.5 h-3.5 text-gray-600 dark:text-[var(--dark-muted)] hidden md:block" />
                 </div>
               }
               inline
@@ -287,7 +292,7 @@ export default function StockistLayout() {
             >
               <div className="px-4 py-2 border-b border-gray-100">
                 <p className="text-sm font-medium text-gray-900">{user?.name}</p>
-                <p className="text-xs text-gray-400">{user?.email}</p>
+                <p className="text-xs text-gray-600">{user?.email}</p>
               </div>
             </Dropdown>
           </div>

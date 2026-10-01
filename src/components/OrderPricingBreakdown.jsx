@@ -34,7 +34,7 @@ export default function OrderPricingBreakdown({ breakdown, fallbackTotal = 0 }) 
         </span>
         <div>
           <h3 className="text-sm font-extrabold text-gray-950 dark:text-white">How this total was calculated</h3>
-          <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Locked checkout prices and fees</p>
+          <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">Locked checkout prices and fees</p>
         </div>
       </div>
       <div className="space-y-2 px-4 py-4">

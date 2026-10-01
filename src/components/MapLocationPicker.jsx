@@ -92,7 +92,7 @@ export default function MapLocationPicker({ lat, lng, onChange, label = 'Pin Loc
         </MapContainer>
       </div>
 
-      <div className="mt-2 flex items-start gap-1.5 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
+      <div className="mt-2 flex items-start gap-1.5 text-xs text-gray-600 dark:text-[var(--dark-muted)]">
         <FiMapPin className="mt-0.5 h-3.5 w-3.5 shrink-0 text-blue-500" />
         {!hasPin && <span>Scroll/zoom the map and tap to set the location (Philippines only).</span>}
         {hasPin && loadingPlace && <span>Finding place name…</span>}

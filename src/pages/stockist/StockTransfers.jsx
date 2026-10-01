@@ -359,7 +359,7 @@ export default function StockistStockTransfers() {
                   onChange={(e) => updateItem(i, 'quantity', e.target.value)}
                 />
                 {form.items.length > 1 && (
-                  <button onClick={() => removeItem(i)} className="text-red-400 hover:text-red-600 px-2">×</button>
+                  <button onClick={() => removeItem(i)} className="text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 px-2">×</button>
                 )}
               </div>
             ))}

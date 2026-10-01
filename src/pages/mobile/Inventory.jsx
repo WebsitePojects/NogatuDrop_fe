@@ -110,7 +110,7 @@ export default function MobileInventory() {
               <h2 className="mt-4 min-h-12 text-base font-extrabold text-slate-950 dark:text-white">{item.product_name}</h2>
               <div className="mt-3 flex items-end justify-between">
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-[var(--dark-muted)]">On hand</p>
+                  <p className="text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-[var(--dark-muted)]">On hand</p>
                   <p className="text-3xl font-black tabular-nums text-slate-950 dark:text-white">{Number(item.current_stock || 0)}</p>
                 </div>
               </div>
@@ -132,7 +132,7 @@ export default function MobileInventory() {
         <ModalBody className="space-y-4">
           <div className="rounded-2xl bg-slate-50 p-4 dark:bg-[var(--dark-card2)]">
             <p className="font-extrabold text-slate-950 dark:text-white">{selected?.product_name}</p>
-            <p className="text-sm text-slate-500 dark:text-[var(--dark-muted)]">Current stock: {selected?.current_stock || 0}</p>
+            <p className="text-sm text-slate-600 dark:text-[var(--dark-muted)]">Current stock: {selected?.current_stock || 0}</p>
           </div>
           <label className="block text-sm font-bold text-slate-700 dark:text-slate-200">
             Quantity

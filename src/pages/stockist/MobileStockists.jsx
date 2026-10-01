@@ -125,7 +125,7 @@ export default function StockistMobileStockists() {
       <div className="flex items-center justify-between mb-5">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)]">Mobile Stockists</h1>
-          <p className="text-sm text-gray-500 dark:text-[var(--dark-muted)] mt-0.5">Manage Mobile Stockists under your territory</p>
+          <p className="text-sm text-gray-600 dark:text-[var(--dark-muted)] mt-0.5">Manage Mobile Stockists under your territory</p>
         </div>
         <Button color="warning" onClick={openAdd}>
           <HiPlus className="mr-2 w-4 h-4" />
@@ -154,10 +154,12 @@ export default function StockistMobileStockists() {
         ) : items.length === 0 ? (
           <div className="flex flex-col items-center py-16 text-muted">
             <FiUser size={40} className="mb-3 opacity-30" />
-            <p className="text-sm">No mobile stockists found</p>
-            <button onClick={openAdd} className="mt-3 text-amber-600 text-sm hover:underline">
-              Add one now
-            </button>
+            <p className="text-sm">{search ? 'No Mobile Stockists match your search.' : 'No Mobile Stockists yet. Add one so they can order from you.'}</p>
+            {!search && (
+              <button type="button" onClick={openAdd} className="brand-btn brand-btn--primary mt-3">
+                Add Mobile Stockist
+              </button>
+            )}
           </div>
         ) : (
           <>
@@ -166,7 +168,7 @@ export default function StockistMobileStockists() {
                 <thead className="bg-gray-50 dark:bg-[var(--dark-card)] border-b border-gray-100 dark:border-[var(--dark-border)]">
                   <tr>
                     {['Name', 'Email', 'Phone', 'Region', 'Status', 'Joined', ''].map(h => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide">
+                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-600 dark:text-[var(--dark-muted)] uppercase tracking-wide">
                         {h}
                       </th>
                     ))}
@@ -184,7 +186,7 @@ export default function StockistMobileStockists() {
                       <td className="px-4 py-3">
                         <StatusBadge status={item.status || 'active'} />
                       </td>
-                      <td className="px-4 py-3 text-xs text-gray-400 dark:text-[var(--dark-muted)]">{formatDate(item.created_at)}</td>
+                      <td className="px-4 py-3 text-xs text-gray-600 dark:text-[var(--dark-muted)]">{formatDate(item.created_at)}</td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-2">
                           <button

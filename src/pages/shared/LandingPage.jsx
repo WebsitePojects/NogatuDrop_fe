@@ -74,7 +74,8 @@ const MLM_PACKAGES = [
     price: 2500,
     color: 'from-[#b87333]/20 to-[#8b5c2a]/30',
     border: 'border-[#b87333]/40',
-    // Darker + fully opaque vs. the other tiers' /80: at #b87333/80 the white
+    // Every tier badge is opaque and >=4.5:1 against its white label (translucent
+    // fills measured 2.05-4.29:1 over the card gradient). Bronze: at #b87333/80 the white
     // badge label measured 3.79:1 against the card's warm gradient backdrop.
     badge: 'bg-[#7a4a1f]',
     tagline: 'Start your wellness journey today.',
@@ -84,7 +85,7 @@ const MLM_PACKAGES = [
     price: 5000,
     color: 'from-[#8c8c8c]/20 to-[#5a5a5a]/30',
     border: 'border-[#aaaaaa]/40',
-    badge: 'bg-[#7a7a7a]/80',
+    badge: 'bg-[#6b6b6b]',
     tagline: 'Grow your network and earnings.',
   },
   {
@@ -92,7 +93,7 @@ const MLM_PACKAGES = [
     price: 10000,
     color: 'from-[#d4a72c]/20 to-[#a07820]/30',
     border: 'border-[#d4a72c]/50',
-    badge: 'bg-[#c49b22]/80',
+    badge: 'bg-[#8a6a0f]',
     tagline: 'Unlock premium distributor rewards.',
   },
   {
@@ -100,7 +101,7 @@ const MLM_PACKAGES = [
     price: 25000,
     color: 'from-[#6ab0c7]/20 to-[#3d7e96]/30',
     border: 'border-[#6ab0c7]/40',
-    badge: 'bg-[#4e9ab5]/80',
+    badge: 'bg-[#2f7894]',
     tagline: 'Elite status with expanded territories.',
   },
   {
@@ -108,7 +109,7 @@ const MLM_PACKAGES = [
     price: 50000,
     color: 'from-[#9b2335]/20 to-[#6e1825]/30',
     border: 'border-[#9b2335]/50',
-    badge: 'bg-[#8b1e2f]/80',
+    badge: 'bg-[#8b1e2f]',
     tagline: 'Lead your region with full support.',
   },
   {
@@ -116,7 +117,7 @@ const MLM_PACKAGES = [
     price: 150000,
     color: 'from-[#b9f2ff]/20 to-[#7cd4e8]/30',
     border: 'border-[#a0e8fc]/50',
-    badge: 'bg-[#4ec4dc]/80',
+    badge: 'bg-[#0e7490]',
     tagline: 'National top-tier partnership status.',
   },
 ];
@@ -869,7 +870,7 @@ const LandingPage = () => {
                     href={CERTIFICATIONS_PDF}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex items-center justify-center gap-2 self-start rounded-full bg-[#d4a72c] px-5 py-3 text-sm font-semibold text-white transition hover:brightness-105 sm:self-auto"
+                    className="inline-flex items-center justify-center gap-2 self-start rounded-full bg-[#d4a72c] px-5 py-3 text-sm font-semibold text-[#2c1a0e] transition hover:brightness-105 sm:self-auto"
                   >
                     Open PDF
                     <FiArrowRight />

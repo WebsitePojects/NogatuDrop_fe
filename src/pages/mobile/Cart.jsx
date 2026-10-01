@@ -95,7 +95,7 @@ export default function MobileCart() {
 
       <div className="px-4 py-4 space-y-3">
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-20 text-gray-400 dark:text-[var(--dark-muted)]">
+          <div className="flex flex-col items-center justify-center py-20 text-gray-600 dark:text-[var(--dark-muted)]">
             <FiShoppingBag size={40} className="mb-3 opacity-30" />
             <p className="text-sm">Your cart is empty</p>
             <Button color="warning" size="sm" className="mt-4" onClick={() => navigate('/mobile/catalog')}>
@@ -123,8 +123,8 @@ export default function MobileCart() {
 
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-semibold text-gray-800 line-clamp-2">{item.product_name || item.name}</p>
-                      <p className="text-xs text-gray-400 mt-0.5 dark:text-[var(--dark-muted)]">{formatCurrency(unitPrice)} / unit</p>
-                      <p className="text-sm font-bold text-orange-500 mt-1">{formatCurrency(subtotal)}</p>
+                      <p className="text-xs text-gray-600 mt-0.5 dark:text-[var(--dark-muted)]">{formatCurrency(unitPrice)} / unit</p>
+                      <p className="text-sm font-bold text-orange-700 dark:text-orange-400 mt-1">{formatCurrency(subtotal)}</p>
                     </div>
                   </div>
 
@@ -149,7 +149,7 @@ export default function MobileCart() {
 
                     <button
                       onClick={() => handleRemove(item.id, item.product_name || item.name || 'Item')}
-                      className="inline-flex items-center gap-1 text-xs font-medium text-red-500 dark:text-red-400"
+                      className="inline-flex items-center gap-1 text-xs font-medium text-red-600 dark:text-red-400"
                     >
                       <HiTrash className="w-3.5 h-3.5" />
                       Remove
@@ -175,13 +175,13 @@ export default function MobileCart() {
 
               <div className="mt-3 flex items-center justify-between">
                 <span className="text-sm font-semibold text-gray-700">Total</span>
-                <span className="text-lg font-bold text-orange-500">{formatCurrency(cartTotal)}</span>
+                <span className="text-lg font-bold text-orange-700 dark:text-orange-400">{formatCurrency(cartTotal)}</span>
               </div>
 
               <button
                 onClick={handleCheckout}
                 disabled={checkingOut || items.length === 0}
-                className="mt-3 w-full rounded-xl bg-orange-500 py-2.5 text-sm font-semibold text-white hover:bg-orange-600 disabled:opacity-60"
+                className="mt-3 w-full rounded-xl bg-orange-500 py-2.5 text-sm font-semibold text-orange-950 hover:bg-orange-400 disabled:opacity-60"
               >
                 {checkingOut ? (
                   <span className="inline-flex items-center gap-2">

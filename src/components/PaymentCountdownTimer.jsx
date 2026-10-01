@@ -128,11 +128,11 @@ const PaymentCountdownTimer = ({
     <div className={`rounded-xl border p-4 space-y-3 ${isUrgent ? 'border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-950/30' : 'border-amber-200 bg-amber-50 dark:border-amber-900/40 dark:bg-amber-950/30'}`}>
       {/* Countdown */}
       <div className="flex items-center gap-2">
-        <FiClock size={16} className={isUrgent ? 'text-red-500 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'} />
+        <FiClock size={16} className={isUrgent ? 'text-red-600 dark:text-red-400' : 'text-amber-700 dark:text-amber-400'} />
         <span className={`text-sm font-semibold ${isUrgent ? 'text-red-700 dark:text-red-400' : 'text-amber-700 dark:text-amber-400'}`}>
           Payment due in:
         </span>
-        <span className={`font-mono text-lg font-bold tabular-nums ${isUrgent ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>
+        <span className={`font-mono text-lg font-bold tabular-nums ${isUrgent ? 'text-red-600 dark:text-red-400' : 'text-amber-700 dark:text-amber-400'}`}>
           {timeLeft ? `${String(timeLeft.h).padStart(2, '0')}:${String(timeLeft.m).padStart(2, '0')}:${String(timeLeft.s).padStart(2, '0')}` : '—'}
         </span>
       </div>
@@ -140,21 +140,21 @@ const PaymentCountdownTimer = ({
       {/* Bank details */}
       {bankAccount && (
         <div className="bg-white/60 rounded-lg p-3 text-sm dark:bg-black/20">
-          <div className="flex items-center gap-1.5 text-gray-500 dark:text-[var(--dark-muted)] text-xs font-medium mb-2">
+          <div className="flex items-center gap-1.5 text-gray-600 dark:text-[var(--dark-muted)] text-xs font-medium mb-2">
             <FiCreditCard size={13} />
             PAYMENT DETAILS
           </div>
           <div className="space-y-1">
             <div className="flex justify-between">
-              <span className="text-gray-500 dark:text-[var(--dark-muted)]">Bank</span>
+              <span className="text-gray-600 dark:text-[var(--dark-muted)]">Bank</span>
               <span className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{bankAccount.bank_name}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500 dark:text-[var(--dark-muted)]">Account Name</span>
+              <span className="text-gray-600 dark:text-[var(--dark-muted)]">Account Name</span>
               <span className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{bankAccount.account_name}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500 dark:text-[var(--dark-muted)]">Account Number</span>
+              <span className="text-gray-600 dark:text-[var(--dark-muted)]">Account Number</span>
               <span className="font-mono font-bold text-gray-900 dark:text-[var(--dark-text)]">{bankAccount.account_number}</span>
             </div>
           </div>
@@ -169,7 +169,7 @@ const PaymentCountdownTimer = ({
             <button
               type="button"
               onClick={handleClearPreview}
-              className="text-gray-400 hover:text-gray-700 p-0.5 rounded dark:text-[var(--dark-muted)] dark:hover:text-[var(--dark-text)]"
+              className="text-gray-600 hover:text-gray-700 p-0.5 rounded dark:text-[var(--dark-muted)] dark:hover:text-[var(--dark-text)]"
               title="Remove selected file"
             >
               <FiX size={14} />
@@ -182,7 +182,7 @@ const PaymentCountdownTimer = ({
               className="w-full max-h-48 object-contain rounded border border-gray-100 dark:border-[var(--dark-border)]"
             />
           ) : (
-            <p className="text-xs text-gray-500 italic dark:text-[var(--dark-muted)]">{previewFile.file.name}</p>
+            <p className="text-xs text-gray-600 italic dark:text-[var(--dark-muted)]">{previewFile.file.name}</p>
           )}
           <button
             type="button"
@@ -196,7 +196,7 @@ const PaymentCountdownTimer = ({
       )}
 
       {uploading && (
-        <div className="flex items-center justify-center gap-2 py-2 text-sm font-semibold text-gray-500 dark:text-[var(--dark-muted)]">
+        <div className="flex items-center justify-center gap-2 py-2 text-sm font-semibold text-gray-600 dark:text-[var(--dark-muted)]">
           <svg className="animate-spin h-4 w-4 text-amber-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />

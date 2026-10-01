@@ -971,17 +971,21 @@ textarea {
   color: var(--dark-muted) !important;
 }
 
-/* Heading/body text inside the modal surface: same single-color simplification
-   the old forced-light rule used (one strong color for h1-label rather than a
-   separate muted tier), just repointed to the dark token instead of #111827. */
-.dark .ng-modal-force-light h1,
-.dark .ng-modal-force-light h2,
-.dark .ng-modal-force-light h3,
-.dark .ng-modal-force-light h4,
-.dark .ng-modal-force-light p,
-.dark .ng-modal-force-light span,
-.dark .ng-modal-force-light label {
-  color: var(--dark-text) !important;
+/* Text inside the dark modal surface.
+   Default text already inherits --dark-text from .ng-modal-force-light above, so
+   only text a component pinned to a near-black LIGHT-theme grey needs remapping
+   (near-black on a dark card is invisible). Deliberately NOT !important and NOT
+   a blanket p/span/label rule: it skips any element that carries its own dark:
+   colour or its own background, and never touches red errors, green
+   confirmations, badges or white-on-colour labels - they keep their own colour.
+   (The old blanket !important repainted those and forced a <div> workaround.)
+   Mid greys keep a muted tier (--dark-muted); p/span variants are also covered
+   by the ".dark p.text-gray-500" rules further down. */
+.dark .ng-modal-force-light :is(h1, h2, h3, h4, p, span, label):is(.text-gray-900, .text-gray-800, .text-gray-700, .text-slate-900, .text-black):not([class*="dark:text-"]):not([class*="bg-"]) {
+  color: var(--dark-text);
+}
+.dark .ng-modal-force-light :is(h1, h2, h3, h4, p, span, label):is(.text-gray-500, .text-gray-600, .text-slate-500, .text-slate-600):not([class*="dark:text-"]):not([class*="bg-"]) {
+  color: var(--dark-muted);
 }
 
 /* ─── Flowbite select/input text fix ─────────────────────────────────────────── */
@@ -1023,6 +1027,24 @@ textarea {
 }
 .dark table tbody tr:hover td {
   background-color: var(--dark-card) !important;
+}
+
+/* ─── Map zoom buttons (Leaflet) ───────────────────────────────────────────────
+   Leaflet paints the +/- buttons white; in dark mode the inherited text colour
+   was near-white on that white (measured 1.17:1). Give them a real surface in
+   each theme so label and background always travel together. */
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  background-color: #ffffff;
+  color: var(--ink-strong);
+}
+.dark .leaflet-bar a {
+  background-color: var(--dark-card2);
+  color: var(--dark-text);
+  border-color: var(--dark-border);
+}
+.dark .leaflet-bar a:hover {
+  background-color: var(--dark-card);
 }
 
 /* ─── Dark mode: containers ─────────────────────────────────────────────────── */

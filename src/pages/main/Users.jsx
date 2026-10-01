@@ -318,7 +318,7 @@ export default function Users() {
                     <TableCell className="text-xs">{u.partner_name || '—'}</TableCell>
                     <TableCell className="text-xs">{u.warehouse_name || '—'}</TableCell>
                     <TableCell><StatusBadge status={u.status || (u.is_active ? 'active' : 'inactive')} /></TableCell>
-                    <TableCell className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">{u.last_login_at ? formatDate(u.last_login_at) : 'Never'}</TableCell>
+                    <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{u.last_login_at ? formatDate(u.last_login_at) : 'Never'}</TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
                       <div className="flex gap-1">
                         <Button size="xs" color="light" onClick={() => openEdit(u)}>
@@ -368,13 +368,13 @@ export default function Users() {
         <ModalBody>
           {selected && (
             <div className="grid grid-cols-2 gap-3 text-sm">
-              <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Email</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.email}</p></div>
-              <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Phone</p><p className="dark:text-[var(--dark-text)]">{selected.phone || '—'}</p></div>
-              <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Role</p>{roleBadge(selected.role_slug)}</div>
-              <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Status</p><StatusBadge status={selected.status || (selected.is_active ? 'active' : 'inactive')} /></div>
-              <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Stockist</p><p className="dark:text-[var(--dark-text)]">{selected.partner_name || '—'}</p></div>
-              <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Warehouse</p><p className="dark:text-[var(--dark-text)]">{selected.warehouse_name || '—'}</p></div>
-              <div><p className="text-gray-500 dark:text-[var(--dark-muted)] text-xs">Last Login</p><p className="dark:text-[var(--dark-text)]">{selected.last_login_at ? formatDate(selected.last_login_at) : 'Never'}</p></div>
+              <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Email</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.email}</p></div>
+              <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Phone</p><p className="dark:text-[var(--dark-text)]">{selected.phone || '—'}</p></div>
+              <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Role</p>{roleBadge(selected.role_slug)}</div>
+              <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Status</p><StatusBadge status={selected.status || (selected.is_active ? 'active' : 'inactive')} /></div>
+              <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Stockist</p><p className="dark:text-[var(--dark-text)]">{selected.partner_name || '—'}</p></div>
+              <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Warehouse</p><p className="dark:text-[var(--dark-text)]">{selected.warehouse_name || '—'}</p></div>
+              <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Last Login</p><p className="dark:text-[var(--dark-text)]">{selected.last_login_at ? formatDate(selected.last_login_at) : 'Never'}</p></div>
             </div>
           )}
         </ModalBody>
