@@ -1,4 +1,4 @@
-import { useState, Fragment, useEffect } from 'react';
+import { useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Dropdown } from 'flowbite-react';
 import {
@@ -11,6 +11,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import NotificationDrawer from '@/components/NotificationDrawer';
+import useNotificationDrawer from '@/hooks/useNotificationDrawer';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
@@ -29,7 +30,7 @@ export default function MobileLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useNotificationDrawer();
 
   const handleLogout = async () => {
     await logout();
@@ -52,16 +53,6 @@ export default function MobileLayout() {
     '--dark-text':   '#e8eef8',
     '--dark-muted':  '#7a90b0',
   } : {};
-
-  useEffect(() => {
-    if (sessionStorage.getItem('nogatu_show_notifications') !== '1') return undefined;
-
-    setNotifOpen(true);
-    sessionStorage.removeItem('nogatu_show_notifications');
-
-    const timer = setTimeout(() => setNotifOpen(false), 5000);
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <div

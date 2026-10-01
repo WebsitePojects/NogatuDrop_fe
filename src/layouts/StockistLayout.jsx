@@ -1,4 +1,4 @@
-import { useState, Fragment, useEffect } from 'react';
+import { useState, Fragment } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Dropdown } from 'flowbite-react';
 import {
@@ -25,6 +25,7 @@ import { PERMISSIONS, can, normalizeRoleSlug } from '@/utils/permissions';
 import { isCenterStaff, centerStaffLabel } from '@/utils/partnerLevel';
 import NotificationDrawer from '@/components/NotificationDrawer';
 import FloatingCartButton from '@/components/FloatingCartButton';
+import useNotificationDrawer from '@/hooks/useNotificationDrawer';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
@@ -96,7 +97,7 @@ export default function StockistLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [notifOpen, setNotifOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useNotificationDrawer();
 
   const role = normalizeRoleSlug(user?.role_slug || 'city_stockist');
   const centerStaff = isCenterStaff(user);
@@ -130,16 +131,6 @@ export default function StockistLayout() {
     '--dark-text':   '#e8f5e8',
     '--dark-muted':  '#7aaa7a',
   } : {};
-
-  useEffect(() => {
-    if (sessionStorage.getItem('nogatu_show_notifications') !== '1') return undefined;
-
-    setNotifOpen(true);
-    sessionStorage.removeItem('nogatu_show_notifications');
-
-    const timer = setTimeout(() => setNotifOpen(false), 5000);
-    return () => clearTimeout(timer);
-  }, []);
 
   return (
     <div
