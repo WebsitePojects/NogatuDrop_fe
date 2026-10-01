@@ -192,15 +192,17 @@ export default function StockMovements() {
         <div className="overflow-x-auto">
           <Table striped>
             <TableHead>
-              <TableHeadCell>Date</TableHeadCell>
-              <TableHeadCell>Product</TableHeadCell>
-              <TableHeadCell>Warehouse</TableHeadCell>
-              <TableHeadCell>Type</TableHeadCell>
-              <TableHeadCell>Qty</TableHeadCell>
-              <TableHeadCell>Before</TableHeadCell>
-              <TableHeadCell>After</TableHeadCell>
-              <TableHeadCell>Reference</TableHeadCell>
-              <TableHeadCell>Notes</TableHeadCell>
+              <TableRow>
+                <TableHeadCell>Date</TableHeadCell>
+                <TableHeadCell>Product</TableHeadCell>
+                <TableHeadCell>Warehouse</TableHeadCell>
+                <TableHeadCell>Type</TableHeadCell>
+                <TableHeadCell>Qty</TableHeadCell>
+                <TableHeadCell>Before</TableHeadCell>
+                <TableHeadCell>After</TableHeadCell>
+                <TableHeadCell>Reference</TableHeadCell>
+                <TableHeadCell>Notes</TableHeadCell>
+              </TableRow>
             </TableHead>
             <TableBody className="divide-y">
               {loading ? (

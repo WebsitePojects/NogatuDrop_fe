@@ -87,10 +87,12 @@ function FulfillmentCentersCard({ centers, onSelect }) {
       <div className="overflow-x-auto">
         <Table>
           <TableHead>
-            <TableHeadCell>Center</TableHeadCell>
-            <TableHeadCell>Region</TableHeadCell>
-            <TableHeadCell>Phone</TableHeadCell>
-            <TableHeadCell>Status</TableHeadCell>
+            <TableRow>
+              <TableHeadCell>Center</TableHeadCell>
+              <TableHeadCell>Region</TableHeadCell>
+              <TableHeadCell>Phone</TableHeadCell>
+              <TableHeadCell>Status</TableHeadCell>
+            </TableRow>
           </TableHead>
           <TableBody className="divide-y">
             {centers.map((center) => (
@@ -252,14 +254,16 @@ export default function Partners() {
         <div className="overflow-x-auto">
           <Table striped>
             <TableHead>
-              <TableHeadCell>Business Name</TableHeadCell>
-              <TableHeadCell>Email</TableHeadCell>
-              <TableHeadCell>Phone</TableHeadCell>
-              <TableHeadCell>Region</TableHeadCell>
-              <TableHeadCell>Level</TableHeadCell>
-              <TableHeadCell>Discount %</TableHeadCell>
-              <TableHeadCell>Status</TableHeadCell>
-              <TableHeadCell>Actions</TableHeadCell>
+              <TableRow>
+                <TableHeadCell>Business Name</TableHeadCell>
+                <TableHeadCell>Email</TableHeadCell>
+                <TableHeadCell>Phone</TableHeadCell>
+                <TableHeadCell>Region</TableHeadCell>
+                <TableHeadCell>Level</TableHeadCell>
+                <TableHeadCell>Discount %</TableHeadCell>
+                <TableHeadCell>Status</TableHeadCell>
+                <TableHeadCell>Actions</TableHeadCell>
+              </TableRow>
             </TableHead>
             <TableBody className="divide-y">
               {loading ? (

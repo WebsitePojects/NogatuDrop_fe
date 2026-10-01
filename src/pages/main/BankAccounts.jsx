@@ -182,13 +182,15 @@ export default function BankAccounts() {
           <div className="overflow-x-auto">
             <Table striped>
               <TableHead>
-                <TableHeadCell>Bank Name</TableHeadCell>
-                <TableHeadCell>Account Name</TableHeadCell>
-                <TableHeadCell>Account Number</TableHeadCell>
-                <TableHeadCell>Warehouse</TableHeadCell>
-                <TableHeadCell>Default</TableHeadCell>
-                <TableHeadCell>Status</TableHeadCell>
-                <TableHeadCell>Actions</TableHeadCell>
+                <TableRow>
+                  <TableHeadCell>Bank Name</TableHeadCell>
+                  <TableHeadCell>Account Name</TableHeadCell>
+                  <TableHeadCell>Account Number</TableHeadCell>
+                  <TableHeadCell>Warehouse</TableHeadCell>
+                  <TableHeadCell>Default</TableHeadCell>
+                  <TableHeadCell>Status</TableHeadCell>
+                  <TableHeadCell>Actions</TableHeadCell>
+                </TableRow>
               </TableHead>
               <TableBody className="divide-y">
                 {accounts.length === 0 ? (

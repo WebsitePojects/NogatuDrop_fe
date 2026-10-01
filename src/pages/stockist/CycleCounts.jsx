@@ -187,12 +187,14 @@ export default function StockistCycleCounts() {
           <div className="overflow-x-auto">
             <Table striped>
               <TableHead>
-                <TableHeadCell>Count No</TableHeadCell>
-                <TableHeadCell>Warehouse</TableHeadCell>
-                <TableHeadCell>Status</TableHeadCell>
-                <TableHeadCell>Created</TableHeadCell>
-                <TableHeadCell>Notes</TableHeadCell>
-                <TableHeadCell />
+                <TableRow>
+                  <TableHeadCell>Count No</TableHeadCell>
+                  <TableHeadCell>Warehouse</TableHeadCell>
+                  <TableHeadCell>Status</TableHeadCell>
+                  <TableHeadCell>Created</TableHeadCell>
+                  <TableHeadCell>Notes</TableHeadCell>
+                  <TableHeadCell />
+                </TableRow>
               </TableHead>
               <TableBody className="divide-y">
                 {rows.map((row) => (
@@ -277,12 +279,14 @@ export default function StockistCycleCounts() {
               <div className="overflow-x-auto">
                 <Table striped>
                   <TableHead>
-                    <TableHeadCell>Product</TableHeadCell>
-                    <TableHeadCell>SKU</TableHeadCell>
-                    <TableHeadCell>System Qty</TableHeadCell>
-                    <TableHeadCell>Counted Qty</TableHeadCell>
-                    <TableHeadCell>Variance</TableHeadCell>
-                    <TableHeadCell>Notes</TableHeadCell>
+                    <TableRow>
+                      <TableHeadCell>Product</TableHeadCell>
+                      <TableHeadCell>SKU</TableHeadCell>
+                      <TableHeadCell>System Qty</TableHeadCell>
+                      <TableHeadCell>Counted Qty</TableHeadCell>
+                      <TableHeadCell>Variance</TableHeadCell>
+                      <TableHeadCell>Notes</TableHeadCell>
+                    </TableRow>
                   </TableHead>
                   <TableBody className="divide-y">
                     {detail.items.map((item) => (

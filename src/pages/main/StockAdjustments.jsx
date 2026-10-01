@@ -128,15 +128,17 @@ export default function StockAdjustments() {
               <div className="overflow-x-auto">
                 <Table striped>
                   <TableHead>
-                    <TableHeadCell>Date</TableHeadCell>
-                    <TableHeadCell>Product</TableHeadCell>
-                    <TableHeadCell>Warehouse</TableHeadCell>
-                    <TableHeadCell>Type</TableHeadCell>
-                    <TableHeadCell>Quantity</TableHeadCell>
-                    <TableHeadCell>Reason</TableHeadCell>
-                    <TableHeadCell>Requested By</TableHeadCell>
-                    <TableHeadCell>Status</TableHeadCell>
-                    <TableHeadCell>Actions</TableHeadCell>
+                    <TableRow>
+                      <TableHeadCell>Date</TableHeadCell>
+                      <TableHeadCell>Product</TableHeadCell>
+                      <TableHeadCell>Warehouse</TableHeadCell>
+                      <TableHeadCell>Type</TableHeadCell>
+                      <TableHeadCell>Quantity</TableHeadCell>
+                      <TableHeadCell>Reason</TableHeadCell>
+                      <TableHeadCell>Requested By</TableHeadCell>
+                      <TableHeadCell>Status</TableHeadCell>
+                      <TableHeadCell>Actions</TableHeadCell>
+                    </TableRow>
                   </TableHead>
                   <TableBody className="divide-y">
                     {loading ? (

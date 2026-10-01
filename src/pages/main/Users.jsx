@@ -283,15 +283,17 @@ export default function Users() {
         <div className="overflow-x-auto">
           <Table striped>
             <TableHead>
-              <TableHeadCell>Name</TableHeadCell>
-              <TableHeadCell>Email</TableHeadCell>
-              <TableHeadCell>Phone</TableHeadCell>
-              <TableHeadCell>Role</TableHeadCell>
-              <TableHeadCell>Stockist</TableHeadCell>
-              <TableHeadCell>Warehouse</TableHeadCell>
-              <TableHeadCell>Status</TableHeadCell>
-              <TableHeadCell>Last Login</TableHeadCell>
-              <TableHeadCell>Actions</TableHeadCell>
+              <TableRow>
+                <TableHeadCell>Name</TableHeadCell>
+                <TableHeadCell>Email</TableHeadCell>
+                <TableHeadCell>Phone</TableHeadCell>
+                <TableHeadCell>Role</TableHeadCell>
+                <TableHeadCell>Stockist</TableHeadCell>
+                <TableHeadCell>Warehouse</TableHeadCell>
+                <TableHeadCell>Status</TableHeadCell>
+                <TableHeadCell>Last Login</TableHeadCell>
+                <TableHeadCell>Actions</TableHeadCell>
+              </TableRow>
             </TableHead>
             <TableBody className="divide-y">
               {loading ? (
