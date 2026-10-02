@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Dropdown } from 'flowbite-react';
 import {
@@ -12,6 +11,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import NotificationDrawer from '@/components/NotificationDrawer';
 import useNotificationDrawer from '@/hooks/useNotificationDrawer';
+import useResponsiveSidebar from '@/hooks/useResponsiveSidebar';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
@@ -29,7 +29,7 @@ export default function MobileLayout() {
   const { count } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useResponsiveSidebar();
   const [notifOpen, setNotifOpen] = useNotificationDrawer();
 
   const handleLogout = async () => {

@@ -172,6 +172,14 @@ body {
 
 .portal-main.full-width { margin-left: 0; }
 
+/* min-width: 0 lets the flex item shrink to the screen, so a wide table scrolls inside its own box
+   instead of stretching the whole page. Below lg the sidebar is an overlay drawer, so the page
+   never reserves room for it. */
+.portal-main { min-width: 0; }
+@media (max-width: 1023.98px) {
+  .portal-main { margin-left: 0; }
+}
+
 .portal-topbar {
   position: sticky;
   top: 0;

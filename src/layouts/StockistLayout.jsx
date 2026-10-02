@@ -1,4 +1,4 @@
-import { useState, Fragment } from 'react';
+import { Fragment } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Dropdown } from 'flowbite-react';
 import {
@@ -26,6 +26,7 @@ import { isCenterStaff, centerStaffLabel } from '@/utils/partnerLevel';
 import NotificationDrawer from '@/components/NotificationDrawer';
 import FloatingCartButton from '@/components/FloatingCartButton';
 import useNotificationDrawer from '@/hooks/useNotificationDrawer';
+import useResponsiveSidebar from '@/hooks/useResponsiveSidebar';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
@@ -96,7 +97,7 @@ export default function StockistLayout() {
   const { count } = useNotifications();
   const navigate = useNavigate();
   const location = useLocation();
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useResponsiveSidebar();
   const [notifOpen, setNotifOpen] = useNotificationDrawer();
 
   const role = normalizeRoleSlug(user?.role_slug || 'city_stockist');

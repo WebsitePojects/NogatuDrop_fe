@@ -1,4 +1,4 @@
-import { useState, Fragment } from 'react';
+import { Fragment } from 'react';
 import { Outlet, NavLink, useNavigate, useLocation } from 'react-router-dom';
 import { Dropdown } from 'flowbite-react';
 import {
@@ -15,6 +15,7 @@ import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import useNotificationDrawer from '@/hooks/useNotificationDrawer';
+import useResponsiveSidebar from '@/hooks/useResponsiveSidebar';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
@@ -80,7 +81,7 @@ const NAV_GROUPS = [
 ];
 
 export default function MainLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useResponsiveSidebar();
   const [notifOpen, setNotifOpen] = useNotificationDrawer();
   const { count } = useNotifications();
   const { user, logout } = useAuth();
