@@ -17,6 +17,10 @@ const api = axios.create({
   },
 });
 
+// Fired when the server says the session is over (7-day limit, a day idle, signed out elsewhere,
+// or ended by an admin). AuthContext listens and returns the person to the sign-in page.
+export const SESSION_ENDED_EVENT = 'auth:session-ended';
+
 let isRefreshing = false;
 let failedQueue = [];
 
@@ -89,6 +93,9 @@ api.interceptors.response.use(
       } catch (refreshError) {
         processQueue(refreshError, null);
         localStorage.removeItem('access_token');
+        if (refreshError.response?.status === 401) {
+          window.dispatchEvent(new CustomEvent(SESSION_ENDED_EVENT));
+        }
         return Promise.reject(refreshError);
       } finally {
         isRefreshing = false;

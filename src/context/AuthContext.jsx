@@ -1,8 +1,11 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import api from '@/services/api';
+import api, { SESSION_ENDED_EVENT } from '@/services/api';
 import { AUTH } from '@/services/endpoints';
 
 const AuthContext = createContext(null);
+
+// Set when a session ends on its own, so the sign-in page can explain why the person is there.
+export const SESSION_ENDED_FLAG = 'nogatu_session_ended';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
@@ -32,14 +35,44 @@ export const AuthProvider = ({ children }) => {
     restoreSession();
   }, [restoreSession]);
 
+  useEffect(() => {
+    const onSessionEnded = () => {
+      try { sessionStorage.setItem(SESSION_ENDED_FLAG, '1'); } catch { /* storage blocked: no notice */ }
+      localStorage.removeItem('access_token');
+      setToken(null);
+      setUser(null);
+    };
+    window.addEventListener(SESSION_ENDED_EVENT, onSessionEnded);
+    return () => window.removeEventListener(SESSION_ENDED_EVENT, onSessionEnded);
+  }, []);
+
+  const completeSignIn = (data) => {
+    localStorage.setItem('access_token', data.access_token);
+    setToken(data.access_token);
+    setUser(data.user);
+    return data.user;
+  };
+
+  /**
+   * Resolves to { user } when signed in, or to { codeRequired: true, challengeId, emailHint } when the
+   * server flagged the sign-in and emailed a code; finish that with verifyLoginCode.
+   */
   const login = async (email, password) => {
     const { data } = await api.post(AUTH.LOGIN, { email, password });
-    const accessToken = data.data.access_token;
-    const userData = data.data.user;
-    localStorage.setItem('access_token', accessToken);
-    setToken(accessToken);
-    setUser(userData);
-    return userData;
+    if (data.data.code_required) {
+      return {
+        codeRequired: true,
+        challengeId: data.data.challenge_id,
+        emailHint: data.data.email_hint,
+        expiresInSeconds: data.data.expires_in_seconds,
+      };
+    }
+    return { user: completeSignIn(data.data) };
+  };
+
+  const verifyLoginCode = async (challengeId, code) => {
+    const { data } = await api.post(AUTH.LOGIN_VERIFY, { challenge_id: challengeId, code });
+    return completeSignIn(data.data);
   };
 
   const logout = async () => {
@@ -74,6 +107,7 @@ export const AuthProvider = ({ children }) => {
         token,
         loading,
         login,
+        verifyLoginCode,
         logout,
         refresh,
         isAuthenticated: !!user,
