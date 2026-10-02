@@ -12,6 +12,7 @@ import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
 import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
+import useSubmitGuard from '@/hooks/useSubmitGuard';
 
 const ROLES = [
   { value: 'super_admin', label: 'Super Admin' },
@@ -24,7 +25,7 @@ const ROLES = [
 const FORM_ROLES = ROLES.filter((role) => role.value !== 'mobile_stockist');
 
 const EMPTY_FORM = {
-  name: '', email: '', phone: '', role_slug: '', partner_id: '', warehouse_id: '', status: 'active', password: '',
+  name: '', email: '', username: '', phone: '', role_slug: '', partner_id: '', warehouse_id: '', status: 'active', password: '',
 };
 
 const roleBadge = (role) => {
@@ -57,6 +58,20 @@ function UserFormFields({ form, fld, formRoles, partners, warehouses, onWarehous
           Email<RequiredMark />
         </Label>
         <TextInput id="usr_email" type="email" value={form.email} onChange={fld('email')} placeholder="juan@example.com" required />
+      </div>
+      <div>
+        <Label htmlFor="usr_username" className="mb-1">Username</Label>
+        <TextInput
+          id="usr_username"
+          value={form.username}
+          onChange={fld('username')}
+          placeholder="e.g. jdelacruz"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          aria-describedby="usr_username_help"
+        />
+        <p id="usr_username_help" className="mt-1 text-xs text-muted">Optional. Lets this person sign in without typing their email.</p>
       </div>
       <div>
         <Label htmlFor="usr_phone" className="mb-1">Phone</Label>
@@ -137,7 +152,7 @@ export default function Users() {
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [selected, setSelected] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
-  const [submitting, setSubmitting] = useState(false);
+  const { submitting, run } = useSubmitGuard();
 
   const fetchUsers = useCallback(async () => {
     setLoading(true);
@@ -168,7 +183,7 @@ export default function Users() {
   const openAdd = () => { setForm(EMPTY_FORM); setShowAddModal(true); };
   const openEdit = (u) => {
     setSelected(u);
-    setForm({ name: u.name, email: u.email, phone: u.phone || '', role_slug: u.role_slug, partner_id: u.partner_id || '', warehouse_id: u.warehouse_id || '', status: u.status || 'active', password: '' });
+    setForm({ name: u.name, email: u.email, username: u.username || '', phone: u.phone || '', role_slug: u.role_slug, partner_id: u.partner_id || '', warehouse_id: u.warehouse_id || '', status: u.status || 'active', password: '' });
     setShowEditModal(true);
   };
   const openDetail = (u) => { setSelected(u); setShowDetailModal(true); };
@@ -181,40 +196,37 @@ export default function Users() {
     return true;
   };
 
-  const handleAdd = async () => {
+  const handleAdd = () => {
     if (!validateForm()) return;
-    setSubmitting(true);
-    try {
-      await api.post(USERS.CREATE, form);
-      showToast('User created', 'success');
-      setShowAddModal(false);
-      fetchUsers();
-    } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to create user', 'error');
-    } finally {
-      setSubmitting(false);
-    }
+    run(async () => {
+      try {
+        await api.post(USERS.CREATE, form);
+        showToast('User created', 'success');
+        setShowAddModal(false);
+        fetchUsers();
+      } catch (err) {
+        showToast(err.response?.data?.message || 'Failed to create user', 'error');
+      }
+    });
   };
 
-  const handleEdit = async () => {
+  const handleEdit = () => {
     if (!validateForm()) return;
-    setSubmitting(true);
-    try {
-      const payload = { ...form };
-      if (!payload.password) delete payload.password;
-      await api.put(USERS.UPDATE(selected.id), payload);
-      showToast('User updated', 'success');
-      setShowEditModal(false);
-      fetchUsers();
-    } catch (err) {
-      showToast(err.response?.data?.message || 'Update failed', 'error');
-    } finally {
-      setSubmitting(false);
-    }
+    run(async () => {
+      try {
+        const payload = { ...form };
+        if (!payload.password) delete payload.password;
+        await api.put(USERS.UPDATE(selected.id), payload);
+        showToast('User updated', 'success');
+        setShowEditModal(false);
+        fetchUsers();
+      } catch (err) {
+        showToast(err.response?.data?.message || 'Update failed', 'error');
+      }
+    });
   };
 
-  const handleDelete = async () => {
-    setSubmitting(true);
+  const handleDelete = () => run(async () => {
     try {
       await api.delete(USERS.DELETE(deleteTarget.id));
       showToast('User removed', 'info');
@@ -222,19 +234,17 @@ export default function Users() {
       fetchUsers();
     } catch (err) {
       showToast(err.response?.data?.message || 'Delete failed', 'error');
-    } finally {
-      setSubmitting(false);
     }
-  };
+  });
 
-  const handleResetPassword = async (u) => {
+  const handleResetPassword = (u) => run(async () => {
     try {
       await api.post(`/users/${u.id}/reset-password`);
       showToast('Password reset email sent', 'success');
     } catch (err) {
       showToast(err.response?.data?.message || 'Reset failed', 'error');
     }
-  };
+  });
 
   const fld = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
 
@@ -314,7 +324,10 @@ export default function Users() {
                 users.map((u) => (
                   <TableRow key={u.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(u)}>
                     <TableCell className="font-medium text-gray-900 dark:text-[var(--dark-text)]">{u.name}</TableCell>
-                    <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{u.email}</TableCell>
+                    <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">
+                      {u.email}
+                      {u.username && <span className="block font-mono text-[11px] text-gray-500 dark:text-[var(--dark-muted)]">@{u.username}</span>}
+                    </TableCell>
                     <TableCell className="text-xs">{u.phone || '—'}</TableCell>
                     <TableCell>{roleBadge(u.role_slug)}</TableCell>
                     <TableCell className="text-xs">{u.partner_name || '—'}</TableCell>
@@ -371,6 +384,7 @@ export default function Users() {
           {selected && (
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Email</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.email}</p></div>
+              <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Username</p><p className="font-semibold font-mono dark:text-[var(--dark-text)]">{selected.username || '—'}</p></div>
               <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Phone</p><p className="dark:text-[var(--dark-text)]">{selected.phone || '—'}</p></div>
               <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Role</p>{roleBadge(selected.role_slug)}</div>
               <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Status</p><StatusBadge status={selected.status || (selected.is_active ? 'active' : 'inactive')} /></div>
@@ -382,7 +396,7 @@ export default function Users() {
         </ModalBody>
         <ModalFooter>
           <Button color="warning" size="sm" onClick={() => { setShowDetailModal(false); openEdit(selected); }}>Edit</Button>
-          <Button color="light" size="sm" onClick={() => { setShowDetailModal(false); handleResetPassword(selected); }}>Reset Password</Button>
+          <Button color="light" size="sm" disabled={submitting} onClick={() => { setShowDetailModal(false); handleResetPassword(selected); }}>Reset Password</Button>
           <Button color="failure" size="sm" outline onClick={() => { setShowDetailModal(false); setDeleteTarget(selected); }}>Delete</Button>
           <Button color="gray" size="sm" onClick={() => setShowDetailModal(false)}>Close</Button>
         </ModalFooter>

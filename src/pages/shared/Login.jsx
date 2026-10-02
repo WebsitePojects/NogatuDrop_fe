@@ -102,20 +102,22 @@ export default function Login() {
             {/* Email Input */}
             <div className="space-y-1.5">
               <label htmlFor="login-email" className="block text-[11px] font-bold uppercase tracking-wider text-amber-500/80">
-                Email Address
+                Email or username
               </label>
+              {/* type="text": center staff sign in with usernames like "rbere", which type="email" rejects. */}
               <input
                 id="login-email"
                 name="email"
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
+                placeholder="you@example.com or username"
                 required
                 autoCapitalize="none"
                 autoCorrect="off"
+                spellCheck={false}
                 inputMode="email"
-                autoComplete="email"
+                autoComplete="username"
                 className="w-full border-0 border-b border-white/20 bg-transparent px-0 py-3 text-white placeholder:text-[#d4bca4]/45 focus:border-amber-400 focus:ring-0 focus:outline-none"
               />
             </div>

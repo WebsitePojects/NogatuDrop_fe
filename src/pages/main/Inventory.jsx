@@ -1,5 +1,5 @@
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import {
   Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Card, TextInput, Select, Label, Pagination } from 'flowbite-react';
 import { HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineAdjustments } from 'react-icons/hi';
@@ -10,6 +10,7 @@ import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import { ToastContainer, useToast } from '@/components/Toast';
 import QuickStockModal from '@/components/QuickStockModal';
+import useSubmitGuard from '@/hooks/useSubmitGuard';
 
 const STOCK_STATUS_COLOR = {
   in_stock: 'bg-green-100 text-green-800',
@@ -46,9 +47,7 @@ export default function Inventory() {
   const [adjustQty, setAdjustQty] = useState('');
   const [adjustType, setAdjustType] = useState('add');
   const [adjustNote, setAdjustNote] = useState('');
-  const [submitting, setSubmitting] = useState(false);
-  // `disabled` alone loses to a fast double-click or Enter key repeat; the ref blocks re-entry.
-  const inFlightRef = useRef(false);
+  const { submitting, run } = useSubmitGuard();
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -105,10 +104,7 @@ export default function Inventory() {
   };
   const openDetail = (item) => { setSelected(item); setShowDetailModal(true); };
 
-  const handleEdit = async () => {
-    if (inFlightRef.current) return;
-    inFlightRef.current = true;
-    setSubmitting(true);
+  const handleEdit = () => run(async () => {
     try {
       await api.put(INVENTORY.UPDATE(selected.id), form);
       showToast('Inventory updated', 'success');
@@ -116,36 +112,29 @@ export default function Inventory() {
       fetchItems();
     } catch (err) {
       showToast(err.response?.data?.message || 'Update failed', 'error');
-    } finally {
-      inFlightRef.current = false;
-      setSubmitting(false);
     }
-  };
+  });
 
-  const handleAdjust = async () => {
+  const handleAdjust = () => {
     if (!adjustQty || isNaN(Number(adjustQty))) {
       showToast('Enter a valid quantity', 'warning');
       return;
     }
-    if (inFlightRef.current) return;
-    inFlightRef.current = true;
-    setSubmitting(true);
-    try {
-      await api.post('/stock-adjustments', {
-        inventory_id: selected.id,
-        type: adjustType,
-        quantity: Number(adjustQty),
-        reason: adjustNote,
-      });
-      showToast('Adjustment submitted for approval', 'success');
-      setShowAdjustModal(false);
-      fetchItems();
-    } catch (err) {
-      showToast(err.response?.data?.message || 'Adjustment failed', 'error');
-    } finally {
-      inFlightRef.current = false;
-      setSubmitting(false);
-    }
+    run(async () => {
+      try {
+        await api.post('/stock-adjustments', {
+          inventory_id: selected.id,
+          type: adjustType,
+          quantity: Number(adjustQty),
+          reason: adjustNote,
+        });
+        showToast('Adjustment submitted for approval', 'success');
+        setShowAdjustModal(false);
+        fetchItems();
+      } catch (err) {
+        showToast(err.response?.data?.message || 'Adjustment failed', 'error');
+      }
+    });
   };
 
   const exportExcel = async () => {
