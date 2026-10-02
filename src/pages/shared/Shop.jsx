@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, useMemo } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import {
   HiShoppingCart, HiSearch, HiX, HiPlus, HiMinus,
   HiChevronRight, HiCheckCircle,
 } from 'react-icons/hi';
-import { FiPackage, FiUser, FiPhone, FiMail, FiMapPin, FiCreditCard, FiLock, FiChevronLeft } from 'react-icons/fi';
+import { FiPackage, FiUser, FiPhone, FiMail, FiCreditCard, FiLock, FiChevronLeft } from 'react-icons/fi';
 import { Spinner } from 'flowbite-react';
 import api from '@/services/api';
 import { ORDERS, PRODUCTS } from '@/services/endpoints';
@@ -15,6 +15,11 @@ import { getProductImageSrc, attachProductImageFallback } from '@/utils/productI
 import { getPublicOrderPricingTotals } from '@/utils/publicCheckoutPricing';
 import { extractUploadErrorMessage } from '@/utils/uploadError';
 import LocationPicker from '@/components/LocationPicker';
+import PhAddressFields from '@/components/PhAddressFields';
+import {
+  EMPTY_NAME, EMPTY_ADDRESS, NAME_SUFFIX_OPTIONS,
+  nameProblems, addressProblems, toOrderCustomerFields, geocodeQueries,
+} from '@/utils/publicCustomer';
 import { normalizePaymentProviders } from './paymentProviders.js';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
@@ -177,7 +182,11 @@ export default function Shop() {
   }); // browse | checkout | success
   const [orderNumber, setOrderNumber] = useState('');
   const [paymentContext, setPaymentContext] = useState(null);
-  const [customer, setCustomer] = useState({ name: '', phone: '', email: '', address: '' });
+  const [customer, setCustomer] = useState({ phone: '', email: '' });
+  const [customerName, setCustomerName] = useState(EMPTY_NAME);
+  const [deliveryAddress, setDeliveryAddress] = useState(EMPTY_ADDRESS);
+  const [deliveryPlace, setDeliveryPlace] = useState(null);
+  const deliverySearch = useMemo(() => geocodeQueries(deliveryPlace), [deliveryPlace]);
   const [memberUsername, setMemberUsername] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
@@ -344,20 +353,20 @@ export default function Shop() {
     e.preventDefault();
     if (submittingRef.current) return;
     setFormError('');
-    if (!customer.name.trim() || !customer.phone.trim() || !customer.address.trim()) {
-      setFormError('Please fill in all required fields.');
-      return;
-    }
+    if (nameProblems(customerName).length > 0) { setFormError('Please enter your first and last name (letters only).'); return; }
+    if (!customer.phone.trim()) { setFormError('Please enter your phone number.'); return; }
+    const badAddress = addressProblems(deliveryAddress);
+    if (badAddress.includes('barangay')) { setFormError('Please choose your region, province, city and barangay.'); return; }
+    if (badAddress.length > 0) { setFormError('Please add your house no. and street, and check the postal code.'); return; }
     if (cart.length === 0) { setFormError('Your cart is empty.'); return; }
     if (!paymentProvider) { setFormError('Please select an available payment provider.'); return; }
     submittingRef.current = true;
     setSubmitting(true);
     try {
       const payload = {
-        customer_name: customer.name,
+        ...toOrderCustomerFields(customerName, deliveryAddress),
         customer_phone: customer.phone,
-        customer_email: customer.email,
-        customer_address: customer.address,
+        customer_email: customer.email.trim() || undefined,
         customer_lat: pinnedLocation?.lat ?? null,
         customer_lng: pinnedLocation?.lng ?? null,
         payment_method: 'bank_transfer',
@@ -510,7 +519,9 @@ export default function Shop() {
                 setCart([]);
                 checkoutIntentRef.current = createCheckoutIntent();
                 setStep('browse');
-                setCustomer({ name: '', phone: '', email: '', address: '' });
+                setCustomer({ phone: '', email: '' });
+                setCustomerName(EMPTY_NAME);
+                setDeliveryAddress(EMPTY_ADDRESS);
                 setOrderNumber('');
                 setPaymentContext(null);
                 setProofFile(null);
@@ -546,8 +557,10 @@ export default function Shop() {
             <Link to="/track" className="text-xs text-gray-500 hover:text-gray-700 hidden sm:block">
               Track Order
             </Link>
-              <button
-                onClick={() => setCartOpen(true)}
+            <button
+              type="button"
+              onClick={() => setCartOpen(true)}
+              aria-label={`Open cart${cartCount > 0 ? ` (${cartCount} items)` : ''}`}
               className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors"
             >
               <HiShoppingCart className="w-5 h-5 text-gray-700" />
@@ -721,22 +734,25 @@ export default function Shop() {
                   )}
 
                   <form onSubmit={handlePlaceOrder} className="space-y-4">
-                    <div>
-                      <label htmlFor="customerName" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                        Full Name *
-                      </label>
-                      <div className="relative">
-                        <FiUser className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-                        <input
-                          id="customerName"
-                          type="text"
-                          required
-                          disabled={submitting}
-                          value={customer.name}
-                          onChange={e => setCustomer(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="Juan Dela Cruz"
-                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-500"
-                        />
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="col-span-2 sm:col-span-1">
+                        <label htmlFor="customerFirstName" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">First Name *</label>
+                        <input id="customerFirstName" type="text" required autoComplete="given-name" maxLength={80} disabled={submitting} value={customerName.first} onChange={e => setCustomerName(prev => ({ ...prev, first: e.target.value }))} placeholder="Juan" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-500" />
+                      </div>
+                      <div className="col-span-2 sm:col-span-1">
+                        <label htmlFor="customerMiddleName" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Middle Name</label>
+                        <input id="customerMiddleName" type="text" autoComplete="additional-name" maxLength={80} disabled={submitting} value={customerName.middle} onChange={e => setCustomerName(prev => ({ ...prev, middle: e.target.value }))} placeholder="Optional" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-500" />
+                      </div>
+                      <div>
+                        <label htmlFor="customerLastName" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Last Name *</label>
+                        <input id="customerLastName" type="text" required autoComplete="family-name" maxLength={80} disabled={submitting} value={customerName.last} onChange={e => setCustomerName(prev => ({ ...prev, last: e.target.value }))} placeholder="Dela Cruz" className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-500" />
+                      </div>
+                      <div>
+                        <label htmlFor="customerSuffix" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Suffix</label>
+                        <select id="customerSuffix" autoComplete="honorific-suffix" disabled={submitting} value={customerName.suffix} onChange={e => setCustomerName(prev => ({ ...prev, suffix: e.target.value }))} className="w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-500 bg-white">
+                          <option value="">None</option>
+                          {NAME_SUFFIX_OPTIONS.map((suffix) => <option key={suffix} value={suffix}>{suffix}</option>)}
+                        </select>
                       </div>
                     </div>
 
@@ -796,26 +812,16 @@ export default function Shop() {
                       <p className="mt-1 text-[11px] text-gray-500">Verified at checkout. The discount applies only to active members.</p>
                     </div>
 
-                    <div>
-                      <label htmlFor="customerAddress" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                        Delivery Address *
-                      </label>
-                      <div className="relative">
-                        <FiMapPin className="absolute left-3.5 top-3 text-gray-500 w-4 h-4" />
-                        <textarea
-                          id="customerAddress"
-                          required
-                          rows={3}
-                          disabled={submitting}
-                          value={customer.address}
-                          onChange={e => setCustomer(prev => ({ ...prev, address: e.target.value }))}
-                          placeholder="Street name, Barangay, City, Province, Postal Code"
-                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-500"
-                        />
-                      </div>
-                    </div>
+                    <PhAddressFields
+                      value={deliveryAddress}
+                      onChange={setDeliveryAddress}
+                      onPlaceChange={setDeliveryPlace}
+                      disabled={submitting}
+                      classes={{ field: '', label: 'block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1', input: 'w-full px-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-500 bg-white disabled:bg-gray-50', hint: 'mt-1 text-[11px] text-red-600' }}
+                      idPrefix="shopAddress"
+                    />
 
-                    <LocationPicker value={pinnedLocation} onChange={setPinnedLocation} />
+                    <LocationPicker value={pinnedLocation} onChange={setPinnedLocation} searchQueries={deliverySearch} />
 
                     <div className="pt-2">
                       <div className="mb-4">

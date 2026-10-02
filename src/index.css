@@ -1587,3 +1587,6 @@ textarea {
     height: 680px;
   }
 }
+
+/* Delivery map pin (components/LocationPicker.jsx): the divIcon carries its own SVG. */
+.nogatu-map-pin { background: none; border: 0; }

@@ -6,6 +6,7 @@ import path from 'node:path';
 const root = path.join(process.cwd(), 'src');
 const shop = fs.readFileSync(path.join(root, 'pages/shared/Shop.jsx'), 'utf8');
 const influencerCheckout = fs.readFileSync(path.join(root, 'pages/shared/InfluencerCheckout.jsx'), 'utf8');
+const influencerPaymentStep = fs.readFileSync(path.join(root, 'pages/shared/InfluencerPaymentStep.jsx'), 'utf8');
 const reports = fs.readFileSync(path.join(root, 'pages/main/InfluencerReports.jsx'), 'utf8');
 
 test('public shop checkout keeps retries idempotent', () => {
@@ -21,7 +22,8 @@ test('influencer checkout posts one product with the chosen quantity, once per i
   assert.match(influencerCheckout, /ORDERS\.PUBLIC_INFLUENCER\(slug\)/);
   assert.match(influencerCheckout, /items: \[\{ product_id: product\.id, quantity \}\]/);
   assert.doesNotMatch(influencerCheckout, /member_username/, 'no member field on influencer links');
-  assert.match(influencerCheckout, /uploading\.run\(/, 'proof upload is guarded too');
+  assert.match(influencerPaymentStep, /uploading\.run\(/, 'proof upload is guarded too');
+  assert.match(influencerPaymentStep, /if \(proofSent\) return;/, 'a sent proof cannot be sent again from the same page');
 });
 
 test('influencer report renders the pinned API field names and exports through the authenticated client', () => {

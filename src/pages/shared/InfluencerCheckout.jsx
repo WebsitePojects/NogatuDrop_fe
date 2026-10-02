@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { Link } from 'react-router-dom';
 import { Spinner } from 'flowbite-react';
-import { FiMinus, FiPlus, FiLock, FiTruck, FiShield, FiCheck, FiCopy, FiUploadCloud, FiArrowRight } from 'react-icons/fi';
+import { FiMinus, FiPlus, FiLock, FiTruck, FiShield, FiArrowRight } from 'react-icons/fi';
 import api from '@/services/api';
 import { ORDERS, PRODUCTS } from '@/services/endpoints';
 import { createCheckoutIntent, createIntentHeaders, getCheckoutIntent } from '@/utils/checkoutIntent';
@@ -9,23 +8,22 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { getPublicCatalogPrice } from '@/utils/publicCatalogPrice';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
 import { getPublicOrderPricingTotals } from '@/utils/publicCheckoutPricing';
-import { extractUploadErrorMessage } from '@/utils/uploadError';
 import { NOGATU_PRODUCT_CATALOG } from '@/utils/nogatuCatalog';
 import { maxOrderableQuantity, clampQuantity } from '@/utils/publicOrderLimits';
+import {
+  EMPTY_NAME, EMPTY_ADDRESS, NAME_SUFFIX_OPTIONS,
+  nameProblems, addressProblems, toOrderCustomerFields, formatPersonName, geocodeQueries,
+} from '@/utils/publicCustomer';
 import useSubmitGuard from '@/hooks/useSubmitGuard';
 import LocationPicker from '@/components/LocationPicker';
+import PhAddressFields from '@/components/PhAddressFields';
 import { normalizePaymentProviders } from './paymentProviders.js';
+import { CheckoutHeader, CheckoutFooter } from './InfluencerCheckoutChrome';
+import InfluencerPaymentStep from './InfluencerPaymentStep';
 import './influencerCheckout.css';
 
-const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
-const EMPTY_CUSTOMER = { name: '', phone: '', email: '', address: '' };
-const REQUIRED_FIELDS = ['name', 'phone', 'address'];
-
-const PAYMENT_STEPS = [
-  { title: 'Pay', detail: 'Send the total to the account we show after you place the order.' },
-  { title: 'Upload proof', detail: 'Attach a screenshot or photo of your receipt.' },
-  { title: 'We confirm', detail: 'We check your payment and prepare your order.' },
-];
+const PHONE_PATTERN = /^(\+?63|0)9\d{9}$/;
+const ADDRESS_CLASSES = { field: '', label: 'ck-field-label', input: 'ck-input', hint: 'ck-field-hint text-[var(--ck-danger)]' };
 
 function productDescription(product) {
   const entry = NOGATU_PRODUCT_CATALOG.find((item) => item.name.toLowerCase() === String(product?.name || '').toLowerCase());
@@ -33,12 +31,24 @@ function productDescription(product) {
 }
 
 // Hoisted to module scope so inputs keep focus between keystrokes.
-function Field({ id, label, required, children, hint }) {
+function Field({ id, label, required, children, hint, className = '' }) {
   return (
-    <div className="ck-field">
-      <label htmlFor={id} className="ck-label">{label}{required && <span aria-hidden="true"> *</span>}</label>
+    <div className={className}>
+      <label htmlFor={id} className="ck-field-label">{label}{required && <span aria-hidden="true"> *</span>}</label>
       {children}
-      {hint && <p className="mt-1.5 text-[length:var(--ck-text-small)] ck-muted">{hint}</p>}
+      {hint && <p className="ck-field-hint">{hint}</p>}
+    </div>
+  );
+}
+
+function StepHeading({ number, id, title, detail }) {
+  return (
+    <div className="flex items-start gap-3">
+      <span className="ck-step-badge mt-0.5 shrink-0" aria-hidden="true">{number}</span>
+      <div>
+        <h3 id={id} className="ck-heading text-[length:var(--ck-text-title)]">{title}</h3>
+        {detail && <p className="mt-0.5 text-[length:var(--ck-text-small)] ck-muted">{detail}</p>}
+      </div>
     </div>
   );
 }
@@ -79,7 +89,7 @@ function PaymentChoices({ options, selected, onSelect, disabled, loadError, onRe
     return <p className="ck-muted">Payment accounts are not available right now. Please check back shortly.</p>;
   }
   return (
-    <fieldset disabled={disabled} className="grid gap-3 sm:grid-cols-3">
+    <fieldset disabled={disabled} className="grid gap-2.5 sm:grid-cols-3">
       <legend className="sr-only">Pay with</legend>
       {options.map((option) => {
         const isSelected = option.provider === selected;
@@ -102,7 +112,7 @@ function PaymentChoices({ options, selected, onSelect, disabled, loadError, onRe
 
 function SummaryLines({ totals }) {
   return (
-    <dl className="space-y-2.5 text-[length:var(--ck-text-small)]">
+    <dl className="space-y-2 text-[length:var(--ck-text-small)]">
       <div className="flex justify-between"><dt className="ck-muted">Subtotal</dt><dd className="font-medium">{formatCurrency(totals.merchandiseSubtotal)}</dd></div>
       <div className="flex justify-between"><dt className="ck-muted">VAT &amp; system fee (12%)</dt><dd className="font-medium">{formatCurrency(totals.systemFee)}</dd></div>
       <div className="flex justify-between"><dt className="ck-muted">Shipping</dt><dd className="font-medium">{formatCurrency(totals.shippingFee)}</dd></div>
@@ -110,42 +120,11 @@ function SummaryLines({ totals }) {
   );
 }
 
-function CheckoutHeader({ slugLabel }) {
-  return (
-    <header className="ck-header">
-      <div className="ck-wrap flex h-16 items-center justify-between">
-        <Link to="/" className="flex items-center gap-3" aria-label="Nogatu home">
-          <img src={BRAND_LOGO} alt="" className="h-9 w-9 rounded-full" />
-          <span className="leading-tight">
-            <span className="ck-display block text-xl">Nogatu</span>
-            <span className="ck-label hidden text-[0.6rem] sm:block">Official store · {slugLabel}</span>
-          </span>
-        </Link>
-        <nav className="flex items-center gap-5 text-[length:var(--ck-text-small)]">
-          <Link to="/track" className="whitespace-nowrap font-medium hover:underline">Track order</Link>
-          <span className="hidden items-center gap-1.5 ck-muted sm:inline-flex"><FiLock aria-hidden="true" /> Secure checkout</span>
-        </nav>
-      </div>
-    </header>
-  );
-}
-
-function CheckoutFooter() {
-  return (
-    <footer className="ck-footer">
-      <div className="ck-wrap flex flex-col gap-3 py-10 text-[length:var(--ck-text-small)] sm:flex-row sm:items-center sm:justify-between">
-        <p><span className="ck-display text-lg text-white">Nogatu</span> · Shipped from our fulfillment centers in Caloocan and Pasig.</p>
-        <p><Link to="/track">Track an order</Link></p>
-      </div>
-    </footer>
-  );
-}
-
 /**
  * Checkout for an influencer link such as /kawoodee: one product, the buyer picks the quantity
- * (1 to the public cap, never more than is in stock), then pays by bank transfer or e-wallet and
- * uploads proof. Orders go to POST /orders/public/influencer/:slug, which re-validates the product,
- * the quantity and the price on the server and attributes the sale to the link.
+ * (1 to the public cap, never more than is in stock), gives their name and a PSGC address in parts,
+ * then pays by bank transfer or e-wallet and uploads proof. Orders go to
+ * POST /orders/public/influencer/:slug, which re-validates everything and attributes the sale.
  */
 export default function InfluencerCheckout({ influencer }) {
   const { slug, product } = influencer;
@@ -155,27 +134,25 @@ export default function InfluencerCheckout({ influencer }) {
 
   const [availableQty, setAvailableQty] = useState(null);
   const [quantity, setQuantity] = useState(1);
-  const [customer, setCustomer] = useState(EMPTY_CUSTOMER);
+  const [name, setName] = useState(EMPTY_NAME);
+  const [contact, setContact] = useState({ phone: '', email: '' });
+  const [address, setAddress] = useState(EMPTY_ADDRESS);
+  const [place, setPlace] = useState(null);
   const [touched, setTouched] = useState(false);
   const [pinnedLocation, setPinnedLocation] = useState(null);
   const [paymentProviders, setPaymentProviders] = useState([]);
   const [paymentProvider, setPaymentProvider] = useState('');
   const [paymentOptionsError, setPaymentOptionsError] = useState('');
   const [formError, setFormError] = useState('');
-  const [order, setOrder] = useState(null); // { number, payment } once placed
-  const [proofFile, setProofFile] = useState(null);
-  const [proofMessage, setProofMessage] = useState('');
-  const [proofError, setProofError] = useState('');
-  const [copied, setCopied] = useState('');
+  const [order, setOrder] = useState(null);
 
   const checkoutIntentRef = useRef(createCheckoutIntent());
-  const proofIntentRef = useRef(createCheckoutIntent());
   const placing = useSubmitGuard();
-  const uploading = useSubmitGuard();
 
   const maxQty = maxOrderableQuantity(availableQty);
   const soldOut = availableQty !== null && maxQty === 0;
   const totals = useMemo(() => getPublicOrderPricingTotals(unitPrice * quantity), [unitPrice, quantity]);
+  const searchQueries = useMemo(() => geocodeQueries(place), [place]);
 
   useEffect(() => {
     let active = true;
@@ -210,26 +187,47 @@ export default function InfluencerCheckout({ influencer }) {
   useEffect(() => { loadPaymentOptions(); }, [loadPaymentOptions]);
 
   const setQty = (value) => setQuantity(clampQuantity(value, maxQty));
-  const setField = (key) => (e) => setCustomer((c) => ({ ...c, [key]: e.target.value }));
-  const fieldInvalid = (key) => touched && REQUIRED_FIELDS.includes(key) && !customer[key].trim();
+  const setNamePart = (key) => (e) => setName((n) => ({ ...n, [key]: e.target.value }));
+  const setContactPart = (key) => (e) => setContact((c) => ({ ...c, [key]: e.target.value }));
+
+  const phoneValid = PHONE_PATTERN.test(contact.phone.replace(/[\s-]/g, ''));
+  const badName = touched ? nameProblems(name) : [];
+  const badAddress = touched ? addressProblems(address) : [];
+  const invalidAddress = Object.fromEntries(badAddress.map((key) => [key, true]));
+
+  // Shows the message and takes the buyer to the field to fix; on a phone it is far above the button.
+  const fail = (message, fieldId) => {
+    setFormError(message);
+    const field = fieldId && document.getElementById(fieldId);
+    if (field) {
+      field.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      field.focus({ preventScroll: true });
+    }
+  };
 
   const handlePlaceOrder = (e) => {
     e.preventDefault();
     setTouched(true);
     setFormError('');
-    if (REQUIRED_FIELDS.some((key) => !customer[key].trim())) {
-      setFormError('Please fill in your name, mobile number and delivery address.');
+    const badNameNow = nameProblems(name);
+    if (badNameNow.length > 0) { fail('Please enter your first and last name (letters only).', `ck-${badNameNow[0]}`); return; }
+    if (!phoneValid) { fail('Please enter a valid mobile number, e.g. 0917 123 4567.', 'ck-phone'); return; }
+    const missingAddress = addressProblems(address);
+    if (missingAddress.includes('barangay')) {
+      const firstEmpty = ['regionCode', 'provinceKey', 'cityCode'].find((key) => !address[key]);
+      const ids = { regionCode: 'ck-addr-region', provinceKey: 'ck-addr-province', cityCode: 'ck-addr-city' };
+      fail('Please choose your region, province, city and barangay.', ids[firstEmpty] || 'ck-addr-barangay');
       return;
     }
-    if (!paymentProvider) { setFormError('Please choose how you will pay.'); return; }
-    if (soldOut || quantity < 1) { setFormError('This product is out of stock right now.'); return; }
+    if (missingAddress.length > 0) { fail('Please add your house no. and street, and check the postal code.', missingAddress[0] === 'line' ? 'ck-addr-line' : 'ck-addr-postal'); return; }
+    if (!paymentProvider) { fail('Please choose how you will pay.'); return; }
+    if (soldOut || quantity < 1) { fail('This product is out of stock right now.'); return; }
 
     placing.run(async () => {
       const payload = {
-        customer_name: customer.name.trim(),
-        customer_phone: customer.phone.trim(),
-        customer_email: customer.email.trim() || undefined,
-        customer_address: customer.address.trim(),
+        ...toOrderCustomerFields(name, address),
+        customer_phone: contact.phone.replace(/[\s-]/g, ''),
+        customer_email: contact.email.trim() || undefined,
         customer_lat: pinnedLocation?.lat ?? null,
         customer_lng: pinnedLocation?.lng ?? null,
         payment_method: 'bank_transfer',
@@ -242,8 +240,15 @@ export default function InfluencerCheckout({ influencer }) {
         const res = await api.post(ORDERS.PUBLIC_INFLUENCER(slug), payload, {
           headers: createIntentHeaders(checkoutIntentRef.current),
         });
-        proofIntentRef.current = createCheckoutIntent();
-        setOrder({ number: res.data.data?.order_number || 'N/A', payment: res.data.data?.payment || null });
+        const placeLine = [address.line.trim(), place?.barangay, place?.city, place?.province || place?.region, address.postalCode.trim()]
+          .filter(Boolean).join(', ');
+        setOrder({
+          number: res.data.data?.order_number || 'N/A',
+          payment: res.data.data?.payment || null,
+          provider: paymentProvider,
+          quantity,
+          deliverTo: { name: formatPersonName(name), phone: payload.customer_phone, address: placeLine },
+        });
         window.scrollTo({ top: 0 });
       } catch (err) {
         setFormError(err?.response?.data?.message || 'We could not place your order. Please try again.');
@@ -251,245 +256,150 @@ export default function InfluencerCheckout({ influencer }) {
     });
   };
 
-  const handleUploadProof = () => {
-    if (!proofFile) { setProofError('Please choose your payment screenshot or photo first.'); return; }
-    uploading.run(async () => {
-      setProofError('');
-      setProofMessage('');
-      try {
-        const formData = new FormData();
-        formData.append('order_number', order.number);
-        formData.append('customer_phone', customer.phone.trim());
-        formData.append('proof', proofFile);
-        await api.post(ORDERS.PUBLIC_PAYMENT_PROOF, formData, {
-          headers: { 'Content-Type': 'multipart/form-data', ...createIntentHeaders(proofIntentRef.current) },
-        });
-        setProofMessage('Payment proof received. We will verify your payment shortly.');
-        setProofFile(null);
-      } catch (err) {
-        setProofError(extractUploadErrorMessage(err));
-      }
-    });
-  };
-
-  const copy = async (value, label) => {
-    try {
-      await navigator.clipboard.writeText(value);
-      setCopied(label);
-    } catch {
-      setCopied('');
-    }
-  };
-
   if (order) {
-    const account = order.payment?.bank_account || null;
-    const totalDue = order.payment?.total_amount ?? totals.totalDue;
-    return (
-      <div className="ck">
-        <CheckoutHeader slugLabel={slugLabel} />
-        <main className="ck-wrap" style={{ paddingBlock: 'var(--ck-section)' }}>
-          <div className="mx-auto max-w-3xl">
-            <div className="ck-rise flex items-center gap-3">
-              <span className="grid h-11 w-11 place-items-center rounded-full bg-[var(--ck-brand)] text-white"><FiCheck aria-hidden="true" /></span>
-              <p className="ck-label">Order placed</p>
-            </div>
-            <h1 className="ck-display ck-rise ck-rise-2 mt-5 text-[length:var(--ck-text-display)]">Almost done. Send your payment.</h1>
-            <p className="ck-rise ck-rise-3 mt-4 max-w-xl ck-muted">
-              Order <strong className="font-mono text-[var(--ck-ink)]">#{order.number}</strong> is reserved for you. Transfer the total
-              below, then upload a photo or screenshot of your receipt so we can confirm it.
-            </p>
-
-            <div className="mt-10 grid gap-10 border-y ck-hairline py-10 md:grid-cols-2">
-              <div>
-                <p className="ck-label">Total due</p>
-                <p className="ck-display mt-2 text-[length:var(--ck-text-price)]">{formatCurrency(totalDue)}</p>
-                <p className="mt-1 text-[length:var(--ck-text-small)] ck-muted">
-                  {quantity} × {product.name} · VAT, system fee and shipping included
-                </p>
-              </div>
-              <div>
-                <p className="ck-label">Pay to</p>
-                {account ? (
-                  <dl className="mt-3 space-y-3">
-                    <div><dt className="text-[length:var(--ck-text-small)] ck-muted">{account.bank_name}</dt><dd className="font-semibold">{account.account_name}</dd></div>
-                    <div className="flex items-center justify-between gap-3">
-                      <dd className="font-mono text-xl font-semibold tracking-wide">{account.account_number}</dd>
-                      <button type="button" className="ck-btn ck-btn-ghost min-h-[2.5rem] px-4 text-sm" onClick={() => copy(account.account_number, 'account')}>
-                        <FiCopy aria-hidden="true" /> {copied === 'account' ? 'Copied' : 'Copy'}
-                      </button>
-                    </div>
-                  </dl>
-                ) : (
-                  <p className="mt-3 ck-muted">The payment account will be confirmed by our team. Keep your order number.</p>
-                )}
-              </div>
-            </div>
-
-            <section className="py-10" aria-labelledby="proof-title">
-              <h2 id="proof-title" className="ck-display text-[length:var(--ck-text-title)]">Upload your payment proof</h2>
-              <label className="ck-drop mt-5" htmlFor="ck-proof">
-                <FiUploadCloud className="text-2xl text-[var(--ck-accent-ink)]" aria-hidden="true" />
-                <span className="font-semibold">{proofFile ? proofFile.name : 'Choose a photo, screenshot or PDF'}</span>
-                <span className="text-[length:var(--ck-text-small)] ck-muted">JPG, PNG, HEIC or PDF</span>
-                <input
-                  id="ck-proof"
-                  type="file"
-                  accept="image/*,.pdf"
-                  className="sr-only"
-                  disabled={uploading.submitting}
-                  onChange={(e) => { setProofFile(e.target.files?.[0] || null); setProofError(''); }}
-                />
-              </label>
-              {proofMessage && <p className="ck-alert ck-alert-success mt-4" role="status">{proofMessage}</p>}
-              {proofError && <p className="ck-alert ck-alert-error mt-4" role="alert">{proofError}</p>}
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <button type="button" className="ck-btn ck-btn-primary" onClick={handleUploadProof} disabled={uploading.submitting}>
-                  {uploading.submitting ? <><Spinner size="sm" light /> Uploading…</> : 'Submit payment proof'}
-                </button>
-                <Link to={`/track/${order.number}`} className="ck-btn ck-btn-ghost">Track my order <FiArrowRight aria-hidden="true" /></Link>
-              </div>
-            </section>
-          </div>
-        </main>
-        <CheckoutFooter />
-      </div>
-    );
+    return <InfluencerPaymentStep slugLabel={slugLabel} product={product} order={order} fallbackTotal={totals.totalDue} />;
   }
+
+  const placeDisabled = placing.submitting || soldOut || paymentProviders.length === 0;
 
   return (
     <div className="ck ck-has-bar">
       <CheckoutHeader slugLabel={slugLabel} />
 
       <main>
-        {/* Product */}
-        <section className="ck-hero" aria-labelledby="ck-product-name">
-          <div className="ck-wrap grid items-center gap-10 py-[var(--ck-section)] lg:grid-cols-2 lg:gap-16">
-            <div className="ck-product-stage ck-rise rounded-[2rem]">
-              <img src={productImage} alt={product.name} onError={(e) => attachProductImageFallback(e, product)} />
-            </div>
-            <div>
-              <p className="ck-label ck-rise">Shared by {slugLabel}</p>
-              <h1 id="ck-product-name" className="ck-display ck-rise ck-rise-2 mt-4 text-[length:var(--ck-text-display)]">{product.name}</h1>
-              <p className="ck-rise ck-rise-3 mt-5 max-w-lg leading-snug ck-muted" style={{ fontSize: 'clamp(1.05rem, 0.95rem + 0.5vw, 1.3rem)' }}>
-                {productDescription(product)}
-              </p>
-              <div className="mt-8 flex items-baseline gap-3">
-                <span className="ck-display text-[length:var(--ck-text-price)]">{formatCurrency(unitPrice)}</span>
-                <span className="ck-muted">per box</span>
-              </div>
-              <p className="mt-2 inline-flex items-center gap-2 text-[length:var(--ck-text-small)]">
-                <span className={`h-2 w-2 rounded-full ${soldOut ? 'bg-[var(--ck-danger)]' : 'bg-[var(--ck-success)]'}`} aria-hidden="true" />
-                {soldOut ? 'Out of stock right now' : 'In stock · ships from Caloocan or Pasig'}
-              </p>
-              <div className="mt-8 flex flex-wrap items-center gap-4">
-                <QuantityStepper value={quantity} max={maxQty} onChange={setQty} disabled={soldOut} idPrefix="hero" />
-                <a href="#checkout" className="ck-btn ck-btn-primary" aria-disabled={soldOut}>
-                  Buy now · {formatCurrency(totals.totalDue)} <FiArrowRight aria-hidden="true" />
-                </a>
-              </div>
-              <ul className="mt-10 grid gap-4 border-t ck-hairline pt-6 text-[length:var(--ck-text-small)] sm:grid-cols-3">
-                <li className="flex items-center gap-2"><FiShield className="text-[var(--ck-accent-ink)]" aria-hidden="true" /> Official Nogatu product</li>
-                <li className="flex items-center gap-2"><FiLock className="text-[var(--ck-accent-ink)]" aria-hidden="true" /> GCash, BDO or PSBank</li>
-                <li className="flex items-center gap-2"><FiTruck className="text-[var(--ck-accent-ink)]" aria-hidden="true" /> Track your order online</li>
-              </ul>
-            </div>
+        {/* Brand photo band + product sheet */}
+        <section className="ck-media ck-media-band">
+          <div className="ck-wrap pt-6 sm:pt-10">
+            <p className="ck-label ck-rise">Shared by {slugLabel}</p>
+            <p className="ck-rise ck-rise-2 mt-2 max-w-md text-[length:var(--ck-text-small)] text-white/90">Nogatu Global Wellness Collection — shipped from our centers in Caloocan and Pasig.</p>
           </div>
         </section>
 
-        {/* Checkout */}
-        <section id="checkout" className="border-t ck-hairline bg-[var(--ck-paper-2)]" style={{ scrollMarginTop: '5rem' }} aria-labelledby="ck-checkout-title">
-          <form onSubmit={handlePlaceOrder} noValidate className="ck-wrap grid gap-12 py-[var(--ck-section)] lg:grid-cols-[1.4fr_1fr] lg:gap-16">
-            <div>
-              <h2 id="ck-checkout-title" className="ck-display text-[length:var(--ck-text-display)]" style={{ fontSize: 'clamp(2rem, 1.6rem + 2vw, 3.25rem)' }}>Checkout</h2>
-              <p className="mt-3 ck-muted">No account needed. We only use these details to deliver your order.</p>
-
-              <div className="mt-8">
-                <section className="ck-step grid gap-6 py-8 sm:grid-cols-[3.5rem_1fr]" aria-labelledby="ck-step-contact">
-                  <span className="ck-step-num" aria-hidden="true">01</span>
-                  <div>
-                    <h3 id="ck-step-contact" className="text-[length:var(--ck-text-title)] font-semibold">Contact</h3>
-                    <div className="mt-5 grid gap-5 sm:grid-cols-2">
-                      <div className="sm:col-span-2">
-                        <Field id="ck-name" label="Full name" required>
-                          <input id="ck-name" className="ck-input" autoComplete="name" value={customer.name} onChange={setField('name')} aria-invalid={fieldInvalid('name')} placeholder="Juan Dela Cruz" />
-                        </Field>
-                      </div>
-                      <Field id="ck-phone" label="Mobile number" required hint="Needed to upload your payment proof.">
-                        <input id="ck-phone" className="ck-input" type="tel" autoComplete="tel" inputMode="tel" value={customer.phone} onChange={setField('phone')} aria-invalid={fieldInvalid('phone')} placeholder="0917 123 4567" />
-                      </Field>
-                      <Field id="ck-email" label="Email" hint="Optional, for order updates.">
-                        <input id="ck-email" className="ck-input" type="email" autoComplete="email" value={customer.email} onChange={setField('email')} placeholder="juan@example.com" />
-                      </Field>
-                    </div>
-                  </div>
-                </section>
-
-                <section className="ck-step grid gap-6 py-8 sm:grid-cols-[3.5rem_1fr]" aria-labelledby="ck-step-delivery">
-                  <span className="ck-step-num" aria-hidden="true">02</span>
-                  <div>
-                    <h3 id="ck-step-delivery" className="text-[length:var(--ck-text-title)] font-semibold">Delivery</h3>
-                    <div className="mt-5 grid gap-5">
-                      <Field id="ck-address" label="Delivery address" required>
-                        <textarea id="ck-address" className="ck-input min-h-[6rem]" autoComplete="street-address" value={customer.address} onChange={setField('address')} aria-invalid={fieldInvalid('address')} placeholder="House no., street, barangay, city, province, postal code" />
-                      </Field>
-                      <LocationPicker value={pinnedLocation} onChange={setPinnedLocation} />
-                    </div>
-                  </div>
-                </section>
-
-                <section className="ck-step grid gap-6 py-8 sm:grid-cols-[3.5rem_1fr]" aria-labelledby="ck-step-payment">
-                  <span className="ck-step-num" aria-hidden="true">03</span>
-                  <div>
-                    <h3 id="ck-step-payment" className="text-[length:var(--ck-text-title)] font-semibold">Payment</h3>
-                    <p className="mt-1 ck-muted text-[length:var(--ck-text-small)]">Bank transfer or e-wallet. The account details appear after you place the order.</p>
-                    <div className="mt-5">
-                      <PaymentChoices
-                        options={paymentProviders}
-                        selected={paymentProvider}
-                        onSelect={setPaymentProvider}
-                        disabled={placing.submitting}
-                        loadError={paymentOptionsError}
-                        onRetry={loadPaymentOptions}
-                      />
-                    </div>
-                    <ol className="mt-6 grid gap-4 sm:grid-cols-3">
-                      {PAYMENT_STEPS.map((step, i) => (
-                        <li key={step.title} className="text-[length:var(--ck-text-small)]">
-                          <span className="ck-display text-lg text-[var(--ck-accent-ink)]">{i + 1}.</span>{' '}
-                          <span className="font-semibold">{step.title}</span>
-                          <span className="block ck-muted">{step.detail}</span>
-                        </li>
-                      ))}
-                    </ol>
-                  </div>
-                </section>
+        <div className="ck-wrap">
+          <section className="ck-sheet ck-rise p-4 sm:p-7" aria-labelledby="ck-product-name">
+            <div className="grid gap-5 sm:grid-cols-[minmax(0,15rem)_1fr] sm:gap-8 lg:grid-cols-[minmax(0,20rem)_1fr]">
+              <div className="ck-product-thumb h-56 w-full sm:aspect-square sm:h-auto">
+                <img src={productImage} alt={product.name} onError={(e) => attachProductImageFallback(e, product)} />
               </div>
+              <div className="flex flex-col">
+                <h1 id="ck-product-name" className="ck-heading text-[length:var(--ck-text-hero)]">{product.name}</h1>
+                <p className="mt-2 text-[length:var(--ck-text-small)] ck-muted sm:text-[length:var(--ck-text-body)]">{productDescription(product)}</p>
+                <div className="mt-4 flex items-baseline gap-2">
+                  <span className="ck-price text-[length:var(--ck-text-price)]">{formatCurrency(unitPrice)}</span>
+                  <span className="text-[length:var(--ck-text-small)] ck-muted">per box</span>
+                </div>
+                <p className="mt-1 inline-flex items-center gap-2 text-[length:var(--ck-text-small)]">
+                  <span className={`h-2 w-2 rounded-full ${soldOut ? 'bg-[var(--ck-danger)]' : 'bg-[var(--ck-success)]'}`} aria-hidden="true" />
+                  {soldOut ? 'Out of stock right now' : 'In stock'}
+                </p>
+                <div className="mt-5 flex flex-wrap items-center gap-3">
+                  <QuantityStepper value={quantity} max={maxQty} onChange={setQty} disabled={soldOut} idPrefix="hero" />
+                  <a href="#checkout" className="ck-btn ck-btn-primary flex-1 sm:flex-none" aria-disabled={soldOut}>
+                    Buy now<span className="hidden sm:inline"> · {formatCurrency(totals.totalDue)}</span> <FiArrowRight aria-hidden="true" />
+                  </a>
+                </div>
+                <ul className="mt-5 grid gap-2 border-t ck-hairline pt-4 text-[length:var(--ck-text-small)] sm:grid-cols-3">
+                  <li className="flex items-center gap-2"><FiShield className="text-[var(--ck-accent-ink)]" aria-hidden="true" /> Official Nogatu product</li>
+                  <li className="flex items-center gap-2"><FiLock className="text-[var(--ck-accent-ink)]" aria-hidden="true" /> GCash, BDO or PSBank</li>
+                  <li className="flex items-center gap-2"><FiTruck className="text-[var(--ck-accent-ink)]" aria-hidden="true" /> Track your order online</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+        </div>
+
+        {/* Checkout */}
+        <section id="checkout" style={{ scrollMarginTop: '4.5rem' }} aria-labelledby="ck-checkout-title">
+          <form onSubmit={handlePlaceOrder} noValidate className="ck-wrap grid gap-8 py-8 sm:py-12 lg:grid-cols-[1.45fr_1fr] lg:gap-12">
+            <div>
+              <h2 id="ck-checkout-title" className="ck-heading text-[length:var(--ck-text-hero)]">Checkout</h2>
+              <p className="mt-1 text-[length:var(--ck-text-small)] ck-muted">No account needed. We only use these details to deliver your order.</p>
+
+              <section className="ck-step" aria-labelledby="ck-step-contact">
+                <StepHeading number={1} id="ck-step-contact" title="Your details" />
+                <div className="mt-5 grid grid-cols-2 gap-4 sm:grid-cols-6">
+                  <Field id="ck-first" label="First name" required className="col-span-2 sm:col-span-3">
+                    <input id="ck-first" className="ck-input" autoComplete="given-name" value={name.first} onChange={setNamePart('first')} aria-invalid={badName.includes('first') || undefined} maxLength={80} placeholder="Juan" />
+                  </Field>
+                  <Field id="ck-middle" label="Middle name" className="col-span-2 sm:col-span-3">
+                    <input id="ck-middle" className="ck-input" autoComplete="additional-name" value={name.middle} onChange={setNamePart('middle')} aria-invalid={badName.includes('middle') || undefined} maxLength={80} placeholder="Optional" />
+                  </Field>
+                  <Field id="ck-last" label="Last name" required className="col-span-2 sm:col-span-4">
+                    <input id="ck-last" className="ck-input" autoComplete="family-name" value={name.last} onChange={setNamePart('last')} aria-invalid={badName.includes('last') || undefined} maxLength={80} placeholder="Dela Cruz" />
+                  </Field>
+                  <Field id="ck-suffix" label="Suffix" className="col-span-2 sm:col-span-2">
+                    <select id="ck-suffix" className="ck-input" autoComplete="honorific-suffix" value={name.suffix} onChange={setNamePart('suffix')}>
+                      <option value="">None</option>
+                      {NAME_SUFFIX_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </Field>
+                  <Field id="ck-phone" label="Mobile number" required hint="We text delivery updates here. You also need it to upload your receipt." className="col-span-2 sm:col-span-3">
+                    <input id="ck-phone" className="ck-input" type="tel" autoComplete="tel" inputMode="tel" value={contact.phone} onChange={setContactPart('phone')} aria-invalid={(touched && !phoneValid) || undefined} placeholder="0917 123 4567" />
+                  </Field>
+                  <Field id="ck-email" label="Email" hint="Optional, for order updates." className="col-span-2 sm:col-span-3">
+                    <input id="ck-email" className="ck-input" type="email" autoComplete="email" inputMode="email" value={contact.email} onChange={setContactPart('email')} placeholder="juan@example.com" />
+                  </Field>
+                </div>
+              </section>
+
+              <section className="ck-step" aria-labelledby="ck-step-delivery">
+                <StepHeading number={2} id="ck-step-delivery" title="Delivery address" detail="Pick your barangay and the map drops a pin there." />
+                <div className="mt-5 grid gap-5">
+                  <PhAddressFields
+                    value={address}
+                    onChange={setAddress}
+                    onPlaceChange={setPlace}
+                    invalid={invalidAddress}
+                    disabled={placing.submitting}
+                    classes={ADDRESS_CLASSES}
+                    idPrefix="ck-addr"
+                  />
+                  <LocationPicker value={pinnedLocation} onChange={setPinnedLocation} searchQueries={searchQueries} />
+                </div>
+              </section>
+
+              <section className="ck-step" aria-labelledby="ck-step-payment">
+                <StepHeading number={3} id="ck-step-payment" title="Payment" detail="Bank transfer or e-wallet. The account appears right after you place the order." />
+                <div className="mt-5">
+                  <PaymentChoices
+                    options={paymentProviders}
+                    selected={paymentProvider}
+                    onSelect={setPaymentProvider}
+                    disabled={placing.submitting}
+                    loadError={paymentOptionsError}
+                    onRetry={loadPaymentOptions}
+                  />
+                </div>
+              </section>
+              {formError && <p className="ck-alert ck-alert-error lg:hidden" role="alert">{formError}</p>}
             </div>
 
             <aside aria-labelledby="ck-summary-title">
-              <div className="ck-summary p-6 sm:p-8">
+              <div className="ck-summary p-5 sm:p-6">
                 <h2 id="ck-summary-title" className="ck-label">Order summary</h2>
-                <div className="mt-5 flex items-center gap-4 border-b ck-hairline pb-5">
-                  <img src={productImage} alt="" className="h-20 w-20 rounded-2xl bg-[var(--ck-paper)] object-contain p-2" onError={(e) => attachProductImageFallback(e, product)} />
+                <div className="mt-4 flex items-center gap-3 border-b ck-hairline pb-4">
+                  <span className="ck-product-thumb h-16 w-16 shrink-0">
+                    <img src={productImage} alt="" onError={(e) => attachProductImageFallback(e, product)} />
+                  </span>
                   <div className="min-w-0 flex-1">
                     <p className="font-semibold">{product.name}</p>
                     <p className="text-[length:var(--ck-text-small)] ck-muted">{formatCurrency(unitPrice)} each</p>
                   </div>
                 </div>
-                <div className="flex items-center justify-between gap-3 border-b ck-hairline py-5">
-                  <span className="ck-label">Quantity</span>
+                <div className="flex items-center justify-between gap-3 border-b ck-hairline py-4">
+                  <span className="text-[length:var(--ck-text-small)] font-semibold">Quantity</span>
                   <QuantityStepper value={quantity} max={maxQty} onChange={setQty} disabled={soldOut || placing.submitting} idPrefix="summary" />
                 </div>
-                <div className="border-b ck-hairline py-5"><SummaryLines totals={totals} /></div>
-                <div className="flex items-baseline justify-between py-5">
+                <div className="border-b ck-hairline py-4"><SummaryLines totals={totals} /></div>
+                <div className="flex items-baseline justify-between py-4">
                   <span className="font-semibold">Total</span>
-                  <span className="ck-display text-[length:var(--ck-text-price)]">{formatCurrency(totals.totalDue)}</span>
+                  <span className="ck-price text-[length:var(--ck-text-price)]">{formatCurrency(totals.totalDue)}</span>
                 </div>
-                {formError && <p className="ck-alert ck-alert-error mb-4" role="alert">{formError}</p>}
-                <button type="submit" className="ck-btn ck-btn-primary w-full" disabled={placing.submitting || soldOut || paymentProviders.length === 0}>
+                {formError && <p className="ck-alert ck-alert-error mb-4 hidden lg:block" role="alert">{formError}</p>}
+                <button type="submit" className="ck-btn ck-btn-primary hidden w-full lg:inline-flex" disabled={placeDisabled}>
                   {placing.submitting ? <><Spinner size="sm" light /> Placing order…</> : `Place order · ${formatCurrency(totals.totalDue)}`}
                 </button>
-                <p className="mt-4 flex items-center justify-center gap-1.5 text-[length:var(--ck-text-small)] ck-muted">
+                <p className="mt-3 flex items-center justify-center gap-1.5 text-[length:var(--ck-text-small)] ck-muted">
                   <FiLock aria-hidden="true" /> Your details are only used for this order.
                 </p>
               </div>
@@ -497,11 +407,11 @@ export default function InfluencerCheckout({ influencer }) {
 
             <div className="ck-mobile-bar" role="region" aria-label="Order total">
               <div className="min-w-0">
-                <p className="ck-label text-[0.6rem]">Total · {quantity} {quantity === 1 ? 'box' : 'boxes'}</p>
-                <p className="ck-display text-2xl leading-none">{formatCurrency(totals.totalDue)}</p>
+                <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] ck-muted">Total · {quantity} {quantity === 1 ? 'box' : 'boxes'}</p>
+                <p className="ck-price text-xl leading-tight">{formatCurrency(totals.totalDue)}</p>
               </div>
-              <button type="submit" className="ck-btn ck-btn-primary shrink-0" disabled={placing.submitting || soldOut || paymentProviders.length === 0}>
-                {placing.submitting ? <Spinner size="sm" light /> : 'Place order'}
+              <button type="submit" className="ck-btn ck-btn-primary shrink-0" disabled={placeDisabled}>
+                {placing.submitting ? <><Spinner size="sm" light /> Placing…</> : 'Place order'}
               </button>
             </div>
           </form>

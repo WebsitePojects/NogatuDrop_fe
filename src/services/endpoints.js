@@ -96,6 +96,14 @@ export const ORDERS = {
   UNARCHIVE:     (id) => `/orders/${id}/unarchive`,
 };
 
+// Philippine address pickers (PSGC). Public, cached for a day by the server.
+export const LOCATIONS = {
+  REGIONS: '/locations/regions',
+  PROVINCES: '/locations/provinces',
+  CITIES: '/locations/cities',
+  BARANGAYS: '/locations/barangays',
+};
+
 export const CART = {
   LIST:     '/cart',
   ADD:      '/cart',
