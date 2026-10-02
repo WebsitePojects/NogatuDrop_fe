@@ -9,6 +9,7 @@ import PageHeader from '@/components/PageHeader';
 import KpiCard from '@/components/KpiCard';
 import EmptyState from '@/components/EmptyState';
 import StatusBadge from '@/components/StatusBadge';
+import SalesChannelComparison from '@/components/SalesChannelComparison';
 
 const EMPTY_SUMMARY = { order_count: 0, gross_sales: 0, by_provider: [], by_center: [] };
 
@@ -124,8 +125,8 @@ export default function InfluencerReports() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Influencer Sales"
-        subtitle="Orders that came in through influencer links, month by month. Export the list to open it in Excel."
+        title="Sales Channels"
+        subtitle="Standard store vs influencer links, month by month. Export the influencer order list to open it in Excel."
       >
         <Button color="warning" onClick={handleExport} disabled={exporting || loading || !month}>
           {exporting ? <Spinner size="sm" className="mr-2" /> : <HiOutlineDownload className="mr-2 h-4 w-4" />}
@@ -144,6 +145,10 @@ export default function InfluencerReports() {
         </div>
         <Button type="submit" color="light" size="sm">Apply</Button>
       </form>
+
+      <SalesChannelComparison month={month} />
+
+      <h2 className="pt-2 text-lg font-semibold text-gray-900 dark:text-[var(--dark-text)]">Influencer orders</h2>
 
       {exportError && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{exportError}</p>}
       {error && <p role="alert" className="rounded-lg bg-red-50 p-3 text-sm text-red-700">{error}</p>}

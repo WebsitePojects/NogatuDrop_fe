@@ -67,7 +67,7 @@ const NAV_GROUPS = [
     label: 'Reports',
     items: [
       { path: '/main/reports',       label: 'Reports',       icon: HiOutlineChartBar },
-      { path: '/main/influencer-reports', label: 'Influencer Reports', icon: HiOutlineDocumentReport },
+      { path: '/main/influencer-reports', label: 'Sales Channels', icon: HiOutlineDocumentReport },
     ],
   },
   {

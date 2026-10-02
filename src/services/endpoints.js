@@ -179,6 +179,7 @@ export const REPORTS = {
   MOVEMENTS: '/reports/movements',
   INFLUENCERS: '/reports/influencers',
   INFLUENCERS_EXPORT: '/reports/influencers/export',
+  SALES_CHANNELS: '/reports/sales-channels',
 };
 
 export const DASHBOARD = {
