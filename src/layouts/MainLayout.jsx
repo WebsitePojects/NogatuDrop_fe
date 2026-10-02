@@ -6,7 +6,7 @@ import {
   HiOutlineAdjustments, HiOutlineOfficeBuilding, HiOutlineTag,
   HiOutlineSwitchHorizontal, HiOutlineClipboardList, HiOutlineUserGroup,
   HiOutlineClipboardCheck, HiOutlineCurrencyDollar, HiOutlineTruck,
-  HiOutlineChartBar, HiOutlineUsers, HiOutlineBell, HiOutlineLogout,
+  HiOutlineChartBar, HiOutlineUsers, HiOutlineShieldCheck, HiOutlineBell, HiOutlineLogout,
   HiOutlineMenuAlt2, HiOutlineX, HiOutlineSun, HiOutlineMoon,
   HiChevronDown, HiOutlineDocumentReport,
 } from 'react-icons/hi';
@@ -71,6 +71,7 @@ const NAV_GROUPS = [
     items: [
       { path: '/main/partners',      label: 'Stockists',     icon: HiOutlineUserGroup },
       { path: '/main/users',         label: 'Users',         icon: HiOutlineUsers },
+      { path: '/main/sign-in-activity', label: 'Sign-in Activity', icon: HiOutlineShieldCheck },
     ],
   },
   {

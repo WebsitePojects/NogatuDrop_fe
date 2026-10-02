@@ -1,38 +1,84 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Spinner } from 'flowbite-react';
 import { HiOutlineEye, HiOutlineEyeOff } from 'react-icons/hi';
 import { FiArrowLeft, FiArrowUpRight } from 'react-icons/fi';
-import { useAuth } from '@/context/AuthContext';
+import { useAuth, SESSION_ENDED_FLAG } from '@/context/AuthContext';
+import useSubmitGuard from '@/hooks/useSubmitGuard';
 
 const POSTER = '/assets/nogatuPoster_login.png';
 const LOGO = '/assets/dropshipping_nogatu_logo.png';
 
+// The "your session ended" marker AuthContext leaves when the server ends a session. Read here and
+// cleared in an effect: StrictMode calls state initializers twice, so clearing inside the
+// initializer would make the second call see no marker.
+function hasSessionEndedNotice() {
+  try {
+    return sessionStorage.getItem(SESSION_ENDED_FLAG) === '1';
+  } catch {
+    return false;
+  }
+}
+
 export default function Login() {
   const navigate = useNavigate();
-  const { login } = useAuth();
+  const { login, verifyLoginCode } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPw, setShowPw] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [sessionEnded] = useState(hasSessionEndedNotice);
+  useEffect(() => {
+    try { sessionStorage.removeItem(SESSION_ENDED_FLAG); } catch { /* storage blocked */ }
+  }, []);
+  // Set when the server flagged this sign-in and emailed a code: { challengeId, emailHint }.
+  const [challenge, setChallenge] = useState(null);
+  const [code, setCode] = useState('');
+  const { submitting: loading, run } = useSubmitGuard();
 
-  const handleSubmit = async (e) => {
+  const goToPortal = (userData) => {
+    sessionStorage.setItem('nogatu_show_notifications', '1');
+    const role = userData?.role_slug;
+    if (role === 'super_admin') navigate('/main/dashboard');
+    else if (role === 'mobile_stockist') navigate('/mobile/inventory');
+    else navigate('/stockist/dashboard');
+  };
+
+  const handleSubmit = (e) => {
     e.preventDefault();
     setError('');
-    setLoading(true);
-    try {
-      const userData = await login(email, password);
-      sessionStorage.setItem('nogatu_show_notifications', '1');
-      const role = userData?.role_slug;
-      if (role === 'super_admin') navigate('/main/dashboard');
-      else if (role === 'mobile_stockist') navigate('/mobile/inventory');
-      else navigate('/stockist/dashboard');
-    } catch (err) {
-      setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+    run(async () => {
+      try {
+        const result = await login(email, password);
+        if (result.codeRequired) {
+          setChallenge({ challengeId: result.challengeId, emailHint: result.emailHint });
+          setCode('');
+          return;
+        }
+        goToPortal(result.user);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Invalid credentials. Please try again.');
+      }
+    });
+  };
+
+  const handleVerify = (e) => {
+    e.preventDefault();
+    setError('');
+    run(async () => {
+      try {
+        goToPortal(await verifyLoginCode(challenge.challengeId, code));
+      } catch (err) {
+        setError(err.response?.data?.message || 'That code did not work. Please try again.');
+      }
+    });
+  };
+
+  const startOver = () => {
+    setChallenge(null);
+    setCode('');
+    setPassword('');
+    setError('');
   };
 
   return (
@@ -91,6 +137,12 @@ export default function Login() {
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">Welcome Back</h1>
           </div>
 
+          {sessionEnded && !error && (
+            <div className="mb-6 rounded-2xl border border-amber-400/25 bg-amber-950/40 px-4 py-3 text-sm text-amber-100">
+              Your session ended. Please sign in again.
+            </div>
+          )}
+
           {error && (
             <div className="mb-6 flex items-start gap-3 rounded-2xl border border-red-500/20 bg-red-950/40 px-4 py-3 text-sm text-red-200 shadow-inner">
               <span className="shrink-0 text-red-500 mt-0.5">⚠️</span>
@@ -98,6 +150,54 @@ export default function Login() {
             </div>
           )}
 
+          {challenge ? (
+            <form onSubmit={handleVerify} className="space-y-5">
+              <p className="text-sm leading-relaxed text-[#f3dcc4]">
+                This sign-in needs a quick check. We emailed a 6-digit code to{' '}
+                <strong className="text-white">{challenge.emailHint}</strong>. It expires in 10 minutes.
+              </p>
+              <div className="space-y-1.5">
+                <label htmlFor="login-code" className="block text-[11px] font-bold uppercase tracking-wider text-amber-500/80">
+                  Sign-in code
+                </label>
+                <input
+                  id="login-code"
+                  name="code"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  required
+                  autoFocus
+                  className="w-full border-0 border-b border-white/20 bg-transparent px-0 py-3 text-2xl tracking-[0.5em] text-white focus:border-amber-400 focus:ring-0 focus:outline-none"
+                />
+              </div>
+              <button
+                type="submit"
+                disabled={loading || code.length !== 6}
+                className="mt-6 w-full flex justify-center gap-2 items-center rounded-xl bg-gray-900 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-black disabled:opacity-60"
+              >
+                {loading ? (
+                  <>
+                    <Spinner size="sm" light={true} />
+                    <span>Verifying...</span>
+                  </>
+                ) : (
+                  'Verify and sign in'
+                )}
+              </button>
+              <button
+                type="button"
+                onClick={startOver}
+                disabled={loading}
+                className="w-full text-center text-xs font-medium text-amber-400 hover:text-amber-300"
+              >
+                Start over
+              </button>
+            </form>
+          ) : (
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email Input */}
             <div className="space-y-1.5">
@@ -173,6 +273,7 @@ export default function Login() {
               )}
             </button>
           </form>
+          )}
 
           {/* Footer Link */}
           <div className="mt-8 text-center pt-6 border-t border-white/5">

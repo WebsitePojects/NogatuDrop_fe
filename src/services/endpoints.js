@@ -1,10 +1,17 @@
 export const AUTH = {
   LOGIN:           '/auth/login',
+  LOGIN_VERIFY:    '/auth/login/verify',
   LOGOUT:          '/auth/logout',
   REFRESH:         '/auth/refresh',
   ME:              '/auth/me',
   FORGOT_PASSWORD: '/auth/forgot-password',
   RESET_PASSWORD:  '/auth/reset-password',
+};
+
+export const SECURITY = {
+  LOGIN_EVENTS:    '/security/login-events',
+  SESSIONS:        '/security/sessions',
+  REVOKE_SESSION:  (id) => `/security/sessions/${id}/revoke`,
 };
 
 export const USERS = {
