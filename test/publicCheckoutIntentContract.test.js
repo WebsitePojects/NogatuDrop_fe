@@ -5,14 +5,23 @@ import path from 'node:path';
 
 const root = path.join(process.cwd(), 'src');
 const shop = fs.readFileSync(path.join(root, 'pages/shared/Shop.jsx'), 'utf8');
+const influencerCheckout = fs.readFileSync(path.join(root, 'pages/shared/InfluencerCheckout.jsx'), 'utf8');
 const reports = fs.readFileSync(path.join(root, 'pages/main/InfluencerReports.jsx'), 'utf8');
 
-test('public checkout keeps retries idempotent and influencer orders fixed to one item', () => {
+test('public shop checkout keeps retries idempotent', () => {
   assert.match(shop, /if \(submittingRef\.current\) return/);
   assert.match(shop, /getCheckoutIntent\(checkoutIntentRef\.current, payload\)/);
-  assert.match(shop, /PUBLIC_INFLUENCER\(influencerSlug\)/);
-  assert.match(shop, /quantity: 1/);
   assert.match(shop, /payment_provider: paymentProvider/);
+});
+
+test('influencer checkout posts one product with the chosen quantity, once per intent', () => {
+  assert.match(influencerCheckout, /placing\.run\(/, 'order submit goes through the shared submit guard');
+  assert.match(influencerCheckout, /getCheckoutIntent\(checkoutIntentRef\.current, payload\)/);
+  assert.match(influencerCheckout, /createIntentHeaders\(checkoutIntentRef\.current\)/);
+  assert.match(influencerCheckout, /ORDERS\.PUBLIC_INFLUENCER\(slug\)/);
+  assert.match(influencerCheckout, /items: \[\{ product_id: product\.id, quantity \}\]/);
+  assert.doesNotMatch(influencerCheckout, /member_username/, 'no member field on influencer links');
+  assert.match(influencerCheckout, /uploading\.run\(/, 'proof upload is guarded too');
 });
 
 test('influencer report renders the pinned API field names and exports through the authenticated client', () => {

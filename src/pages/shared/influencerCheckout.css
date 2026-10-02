@@ -1,0 +1,192 @@
+/*
+ * Influencer checkout (/kawoodee and future links). Always light: it is a public storefront page,
+ * and ThemeContext keeps dark mode to the portals. Follows the atelier system (paper/ink grounds,
+ * one accent, fluid clamp() scale, pill buttons, 0.3em micro labels, three easing curves) adapted to
+ * the Nogatu brand espresso. Every text pair below is measured (WCAG ratio in the comment).
+ * All selectors are scoped under .ck so nothing leaks into the rest of the app.
+ */
+.ck {
+  --ck-paper: #f7f1e8;      /* main ground */
+  --ck-paper-2: #fcf9f4;    /* raised ground: form fields, summary */
+  --ck-line: #e6dccd;       /* hairlines */
+  --ck-ink: #1f1712;        /* text: 15.7:1 on paper, 16.8:1 on paper-2 */
+  --ck-muted: #6b5e53;      /* secondary text: 5.6:1 on paper, 6.0:1 on paper-2 */
+  --ck-accent-ink: #7a5830; /* accent text, labels: 5.7:1 on paper, 6.1:1 on paper-2 */
+  --ck-brand: #3d1800;      /* Nogatu espresso: buttons (white text 15.8:1), selected states */
+  --ck-champagne: #d4b483;  /* ornament and fills only; 9.2:1 on night */
+  --ck-night: #1b1511;      /* footer ground */
+  --ck-mist: #b9ada0;       /* text on night: 8.2:1 */
+  --ck-danger: #a33a1f;     /* errors: 6.3:1 on paper-2 */
+  --ck-success: #2f6b3a;    /* confirmations: 6.1:1 on paper-2 */
+
+  --ck-text-micro: clamp(0.6875rem, 0.6696rem + 0.0893vw, 0.75rem);
+  --ck-text-small: clamp(0.8125rem, 0.7857rem + 0.1339vw, 0.9062rem);
+  --ck-text-body: clamp(0.9375rem, 0.9196rem + 0.0893vw, 1rem);
+  --ck-text-title: clamp(1.25rem, 1.1071rem + 0.7143vw, 1.75rem);
+  --ck-text-display: clamp(2.25rem, 1.55rem + 3.5vw, 4.25rem);
+  --ck-text-price: clamp(1.75rem, 1.4rem + 1.6vw, 2.75rem);
+  --ck-gutter: clamp(1.125rem, 0.5893rem + 2.6786vw, 3rem);
+  --ck-section: clamp(3rem, 2rem + 5vw, 6.5rem);
+
+  --ck-ease-ui: cubic-bezier(0.4, 0, 0.2, 1);
+  --ck-ease-reveal: cubic-bezier(0.16, 1, 0.3, 1);
+
+  color-scheme: light;
+  min-height: 100vh;
+  background: var(--ck-paper);
+  color: var(--ck-ink);
+  font-family: var(--font-body);
+  font-size: var(--ck-text-body);
+  line-height: 1.7;
+}
+
+.ck-wrap { width: 100%; max-width: 76rem; margin: 0 auto; padding-inline: var(--ck-gutter); }
+.ck-display { font-family: var(--font-display); font-weight: 400; letter-spacing: -0.01em; line-height: 1.04; }
+.ck-label {
+  font-size: var(--ck-text-micro);
+  font-weight: 600;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--ck-accent-ink);
+}
+.ck-muted { color: var(--ck-muted); }
+.ck-hairline { border-color: var(--ck-line); }
+
+/* Header */
+.ck-header {
+  position: sticky; top: 0; z-index: 30;
+  background: color-mix(in srgb, var(--ck-paper) 88%, transparent);
+  backdrop-filter: saturate(1.4) blur(10px);
+  border-bottom: 1px solid var(--ck-line);
+}
+
+/* Product hero: a soft champagne glow behind the product, no card */
+.ck-hero { position: relative; overflow: hidden; }
+.ck-hero::before {
+  content: '';
+  position: absolute; inset: -20% -10% auto auto;
+  width: min(70vw, 52rem); aspect-ratio: 1;
+  background: radial-gradient(closest-side, rgba(212, 180, 131, 0.42), rgba(212, 180, 131, 0) 70%);
+  pointer-events: none;
+}
+.ck-product-stage {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  display: grid; place-items: center;
+  background:
+    radial-gradient(60% 55% at 50% 58%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 70%),
+    radial-gradient(90% 80% at 50% 100%, rgba(212, 180, 131, 0.35), rgba(212, 180, 131, 0) 70%);
+}
+.ck-product-stage img { width: 78%; height: 78%; object-fit: contain; filter: drop-shadow(0 30px 40px rgba(61, 24, 0, 0.18)); }
+
+/* Buttons: pills, 3rem tall, press scale */
+.ck-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
+  min-height: 3rem; padding: 0 1.75rem;
+  border-radius: 9999px;
+  font-weight: 600; font-size: var(--ck-text-body);
+  transition: transform 150ms var(--ck-ease-ui), background-color 200ms var(--ck-ease-ui), box-shadow 200ms var(--ck-ease-ui);
+}
+.ck-btn:active:not(:disabled) { transform: scale(0.97); }
+.ck-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+.ck-btn-primary { background: var(--ck-brand); color: #fff; box-shadow: 0 10px 24px -14px rgba(61, 24, 0, 0.8); }
+.ck-btn-primary:hover:not(:disabled) { background: #2a1000; }
+.ck-btn-ghost { border: 1px solid var(--ck-line); color: var(--ck-ink); background: transparent; }
+.ck-btn-ghost:hover:not(:disabled) { border-color: var(--ck-champagne); background: var(--ck-paper-2); }
+
+.ck :focus-visible { outline: 2px solid var(--ck-champagne); outline-offset: 3px; }
+
+/* Quantity stepper */
+.ck-stepper { display: inline-flex; align-items: center; border: 1px solid var(--ck-line); border-radius: 9999px; background: var(--ck-paper-2); }
+.ck-stepper button {
+  width: 2.75rem; height: 2.75rem; display: grid; place-items: center; border-radius: 9999px;
+  color: var(--ck-ink); transition: background-color 150ms var(--ck-ease-ui);
+}
+.ck-stepper button:hover:not(:disabled) { background: var(--ck-paper); }
+.ck-stepper button:disabled { color: var(--ck-line); cursor: not-allowed; }
+.ck-stepper input {
+  width: 3.25rem; text-align: center; border: 0; background: transparent; font-weight: 600; color: var(--ck-ink);
+  -moz-appearance: textfield;
+}
+.ck-stepper input::-webkit-outer-spin-button,
+.ck-stepper input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.ck-stepper input:focus { outline: none; box-shadow: none; }
+
+/* Form fields: full-width, quiet, generous */
+.ck-field label { display: block; margin-bottom: 0.4rem; }
+.ck-input {
+  width: 100%;
+  border: 1px solid var(--ck-line);
+  border-radius: 0.875rem;
+  background: var(--ck-paper-2);
+  padding: 0.85rem 1rem;
+  font-size: var(--ck-text-body);
+  color: var(--ck-ink);
+  transition: border-color 200ms var(--ck-ease-ui), box-shadow 200ms var(--ck-ease-ui);
+}
+.ck-input::placeholder { color: var(--ck-muted); opacity: 0.85; }
+.ck-input:focus { outline: none; border-color: var(--ck-brand); box-shadow: 0 0 0 4px rgba(212, 180, 131, 0.35); }
+.ck-input[aria-invalid='true'] { border-color: var(--ck-danger); }
+
+/* Numbered checkout sections separated by hairlines (no boxes) */
+.ck-step + .ck-step { border-top: 1px solid var(--ck-line); }
+.ck-step-num {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 1.5rem + 1vw, 2.5rem);
+  line-height: 1;
+  color: var(--ck-champagne);
+}
+
+/* Payment choices: radio rows, the selected one in espresso */
+.ck-pay {
+  display: flex; align-items: center; gap: 0.75rem;
+  border: 1px solid var(--ck-line); border-radius: 1rem;
+  background: var(--ck-paper-2);
+  padding: 0.95rem 1.1rem; cursor: pointer;
+  transition: border-color 200ms var(--ck-ease-ui), background-color 200ms var(--ck-ease-ui), color 200ms var(--ck-ease-ui);
+}
+.ck-pay:hover { border-color: var(--ck-champagne); }
+.ck-pay[data-selected='true'] { background: var(--ck-brand); border-color: var(--ck-brand); color: #fff; }
+.ck-pay input { accent-color: var(--ck-champagne); width: 1.05rem; height: 1.05rem; }
+
+/* Summary column: one raised surface, sticky on wide screens */
+.ck-summary { background: var(--ck-paper-2); border: 1px solid var(--ck-line); border-radius: 1.5rem; }
+@media (min-width: 64rem) { .ck-summary { position: sticky; top: 6rem; } }
+
+.ck-alert { border-radius: 0.875rem; padding: 0.75rem 1rem; font-size: var(--ck-text-small); }
+.ck-alert-error { background: #fbeee9; color: var(--ck-danger); }
+.ck-alert-success { background: #ebf3ec; color: var(--ck-success); }
+
+/* Upload drop zone on the confirmation page */
+.ck-drop {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.35rem;
+  border: 1.5px dashed var(--ck-champagne); border-radius: 1.25rem; background: var(--ck-paper-2);
+  padding: 1.75rem 1rem; text-align: center; cursor: pointer;
+  transition: background-color 200ms var(--ck-ease-ui), border-color 200ms var(--ck-ease-ui);
+}
+.ck-drop:hover, .ck-drop:focus-within { background: #fffdf9; border-color: var(--ck-brand); }
+
+.ck-footer { background: var(--ck-night); color: var(--ck-mist); }
+.ck-footer a { color: var(--ck-champagne); }
+
+/* Entrance: rise 24px once; visible immediately when motion is reduced */
+@media (prefers-reduced-motion: no-preference) {
+  .ck-rise { animation: ck-rise 0.9s var(--ck-ease-reveal) both; }
+  .ck-rise-2 { animation-delay: 80ms; }
+  .ck-rise-3 { animation-delay: 160ms; }
+  @keyframes ck-rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+}
+
+/* Phones: the summary sits far below the form, so keep the total and Place order in reach. */
+.ck-mobile-bar { display: none; }
+@media (max-width: 63.99rem) { .ck-mobile-bar { display: flex; } }
+.ck-mobile-bar {
+  position: fixed; inset: auto 0 0 0; z-index: 40;
+  align-items: center; justify-content: space-between; gap: 1rem;
+  padding: 0.75rem var(--ck-gutter) calc(0.75rem + env(safe-area-inset-bottom));
+  background: color-mix(in srgb, var(--ck-paper-2) 94%, transparent);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--ck-line);
+  box-shadow: 0 -12px 30px -24px rgba(61, 24, 0, 0.5);
+}
+@media (max-width: 63.99rem) { .ck-has-bar { padding-bottom: 5.5rem; } }

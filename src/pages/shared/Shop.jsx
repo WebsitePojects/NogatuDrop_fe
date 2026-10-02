@@ -80,14 +80,6 @@ const normalizeIncomingPublicCart = (items, catalog) => {
   return Array.from(merged.values());
 };
 
-const buildInfluencerCartItem = (product) => ({
-  product_id: product.id,
-  name: product.name || 'Berry NAD+',
-  quantity: 1,
-  unit_price: getPublicCatalogPrice(product),
-  image_url: getProductImageSrc(product),
-});
-
 const CHECKOUT_STEPS = [
   { title: 'Pay', detail: 'Send the total by bank transfer or e-wallet.' },
   { title: 'Upload proof', detail: 'Attach a screenshot or photo of your receipt.' },
@@ -152,20 +144,17 @@ function PaymentProviderPicker({ options, selected, onSelect, disabled, loadErro
 }
 
 /**
- * Public storefront. With `influencer` ({ slug, product }, resolved by
- * InfluencerRoute) it becomes the fixed one-item influencer checkout.
+ * Public storefront: catalog, cart and checkout. Influencer links (/kawoodee) have their own page,
+ * InfluencerCheckout.jsx.
  */
-export default function Shop({ influencer = null }) {
+export default function Shop() {
   const location = useLocation();
-  const influencerSlug = influencer?.slug;
-  const isInfluencerCheckout = Boolean(influencer);
   const [search, setSearch] = useState('');
   const [products, setProducts] = useState([]);
   const [catalogProducts, setCatalogProducts] = useState([]);
   const [productsLoading, setProductsLoading] = useState(true);
   const [productsError, setProductsError] = useState('');
   const [cart, setCart] = useState(() => {
-    if (influencer) return [buildInfluencerCartItem(influencer.product)];
     if (location.state?.cart) {
       return location.state.cart.map(item => ({
         product_id: item.product_id ?? item.id ?? null,
@@ -181,7 +170,7 @@ export default function Shop({ influencer = null }) {
   }); // { product_id, name, quantity, unit_price, image_url }
   const [cartOpen, setCartOpen] = useState(false);
   const [step, setStep] = useState(() => {
-    if (influencer || location.state?.openCheckout) {
+    if (location.state?.openCheckout) {
       return 'checkout';
     }
     return 'browse';
@@ -291,11 +280,9 @@ export default function Shop({ influencer = null }) {
   useEffect(() => { loadPaymentOptions(); }, [loadPaymentOptions]);
 
   useEffect(() => {
-    // The influencer checkout has no catalog to browse.
-    if (isInfluencerCheckout) return undefined;
     const t = setTimeout(() => fetchProducts(), 400);
     return () => clearTimeout(t);
-  }, [fetchProducts, isInfluencerCheckout]);
+  }, [fetchProducts]);
 
   useEffect(() => {
     if (catalogProducts.length === 0) {
@@ -375,12 +362,12 @@ export default function Shop({ influencer = null }) {
         customer_lng: pinnedLocation?.lng ?? null,
         payment_method: 'bank_transfer',
         payment_provider: paymentProvider,
-        ...(isInfluencerCheckout ? {} : { member_username: memberUsername.trim() || undefined }),
-        items: isInfluencerCheckout ? [{ product_id: cart[0].product_id, quantity: 1 }] : cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
+        member_username: memberUsername.trim() || undefined,
+        items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
       };
       checkoutIntentRef.current = getCheckoutIntent(checkoutIntentRef.current, payload);
       const res = await api.post(
-        isInfluencerCheckout ? ORDERS.PUBLIC_INFLUENCER(influencerSlug) : ORDERS.PUBLIC,
+        ORDERS.PUBLIC,
         payload,
         { headers: createIntentHeaders(checkoutIntentRef.current) },
       );
@@ -520,10 +507,6 @@ export default function Shop({ influencer = null }) {
             </Link>
             <button
               onClick={() => {
-                if (isInfluencerCheckout) {
-                  window.location.reload();
-                  return;
-                }
                 setCart([]);
                 checkoutIntentRef.current = createCheckoutIntent();
                 setStep('browse');
@@ -536,7 +519,7 @@ export default function Shop({ influencer = null }) {
               }}
               className="w-full py-3 border border-gray-200 hover:bg-gray-50 text-gray-700 font-semibold rounded-xl text-sm transition-colors text-center"
             >
-              {isInfluencerCheckout ? 'Order Again' : 'Continue Shopping'}
+              Continue Shopping
             </button>
           </div>
         </div>
@@ -563,7 +546,7 @@ export default function Shop({ influencer = null }) {
             <Link to="/track" className="text-xs text-gray-500 hover:text-gray-700 hidden sm:block">
               Track Order
             </Link>
-              {!isInfluencerCheckout && <button
+              <button
                 onClick={() => setCartOpen(true)}
               className="relative p-2 rounded-xl hover:bg-gray-100 transition-colors"
             >
@@ -573,7 +556,7 @@ export default function Shop({ influencer = null }) {
                   {cartCount}
                 </span>
               )}
-            </button>}
+            </button>
           </div>
         </div>
       </header>
@@ -699,8 +682,7 @@ export default function Shop({ influencer = null }) {
               <p className="text-sm text-gray-500 mb-6">You need to add products to your cart before you can check out.</p>
               <button
                 type="button"
-                onClick={() => { if (!isInfluencerCheckout) setStep('browse'); }}
-                disabled={isInfluencerCheckout}
+                onClick={() => setStep('browse')}
                 className="inline-flex items-center gap-2 px-5 py-2.5 bg-amber-700 hover:bg-amber-800 text-white font-semibold rounded-xl text-sm transition-colors"
               >
                 <FiChevronLeft className="w-4 h-4" />
@@ -711,13 +693,13 @@ export default function Shop({ influencer = null }) {
             <div className="max-w-5xl mx-auto">
               {/* Breadcrumbs / Progress */}
               <div className="flex items-center gap-2 text-xs text-gray-500 mb-6 bg-white border border-gray-100 rounded-xl p-3 shadow-sm justify-between sm:justify-start">
-                {!isInfluencerCheckout && <button
+                <button
                   type="button"
                   onClick={() => setStep('browse')}
                   className="hover:text-amber-800 transition-colors font-medium flex items-center gap-1"
                 >
                   Shop
-                </button>}
+                </button>
                 <HiChevronRight className="w-3.5 h-3.5 text-gray-500" />
                 <span className="font-bold text-amber-700">Secure Checkout</span>
                 <HiChevronRight className="w-3.5 h-3.5 text-gray-500" />
@@ -795,7 +777,7 @@ export default function Shop({ influencer = null }) {
                       </div>
                     </div>
 
-                    {!isInfluencerCheckout && <div>
+                    <div>
                       <label htmlFor="memberUsername" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
                         Nogatu Member Username (Optional — 30% member discount)
                       </label>
@@ -812,7 +794,7 @@ export default function Shop({ influencer = null }) {
                         />
                       </div>
                       <p className="mt-1 text-[11px] text-gray-500">Verified at checkout. The discount applies only to active members.</p>
-                    </div>}
+                    </div>
 
                     <div>
                       <label htmlFor="customerAddress" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
@@ -846,7 +828,6 @@ export default function Shop({ influencer = null }) {
                           onRetry={loadPaymentOptions}
                         />
                       </div>
-                      {isInfluencerCheckout && <p className="mb-3 text-xs font-semibold text-amber-700">Berry NAD+ &bull; Quantity fixed at 1</p>}
                       <CheckoutSteps />
                       <p className="mt-2 text-xs text-gray-600">After you place your order we show the account to pay and the upload button.</p>
                     </div>
@@ -882,13 +863,13 @@ export default function Shop({ influencer = null }) {
                   <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
                     <div className="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
                       <h3 className="font-bold text-gray-900">Order Summary</h3>
-                      {!isInfluencerCheckout && <button
+                      <button
                         type="button"
                         onClick={() => setStep('browse')}
                         className="text-xs font-semibold text-amber-700 hover:text-amber-800 transition-colors"
                       >
                         Edit Items
-                      </button>}
+                      </button>
                     </div>
 
                     <div className="max-h-[220px] overflow-y-auto space-y-3 pr-1 scrollbar-thin mb-4">
