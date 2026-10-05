@@ -554,7 +554,7 @@ export default function Shop() {
             <Link to="/" className="text-xs text-gray-500 hover:text-gray-700 hidden sm:block">
               Home
             </Link>
-            <Link to="/track" className="text-xs text-gray-500 hover:text-gray-700 hidden sm:block">
+            <Link to="/track" className="whitespace-nowrap text-xs font-semibold text-gray-700 hover:text-gray-900">
               Track Order
             </Link>
             <button

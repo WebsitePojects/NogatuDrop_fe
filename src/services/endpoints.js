@@ -205,6 +205,8 @@ export const NOTIFICATIONS = {
 export const TRACKING = {
   BY_ORDER:    (orderId) => `/tracking/${orderId}`,
   PUBLIC:      (orderNumber) => `/tracking/public/${orderNumber}`,
+  // POST { customer_phone }: amount + account to pay, only for the buyer's phone.
+  PUBLIC_PAYMENT_DETAILS: (orderNumber) => `/tracking/public/${orderNumber}/payment-details`,
   ACTIVE:      '/tracking/active',
   PING:        (token) => `/tracking/ping/${token}`,
 };

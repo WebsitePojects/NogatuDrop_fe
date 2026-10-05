@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   FiArrowRight,
   FiCheck,
@@ -422,6 +422,9 @@ const LandingPage = () => {
             </nav>
 
             <div className="hidden items-center gap-3 md:flex">
+              <Link to="/track" className="nav-link text-sm font-medium">
+                Track order
+              </Link>
               <button
                 onClick={() => navigate('/login')}
                 className="nav-ghost-btn rounded-xl px-4 py-2 text-sm"
@@ -442,13 +445,19 @@ const LandingPage = () => {
               </button>
             </div>
 
-            <button
-              className="text-orange-50 md:hidden"
-              onClick={() => setMobileOpen((state) => !state)}
-              aria-label="Toggle menu"
-            >
-              {mobileOpen ? <FiX size={22} /> : <FiMenu size={22} />}
-            </button>
+            {/* Phones: Track order stays one tap away, outside the menu. */}
+            <div className="flex items-center gap-3 md:hidden">
+              <Link to="/track" className="nav-ghost-btn rounded-xl px-3 py-2 text-sm">
+                Track order
+              </Link>
+              <button
+                className="text-orange-50"
+                onClick={() => setMobileOpen((state) => !state)}
+                aria-label="Toggle menu"
+              >
+                {mobileOpen ? <FiX size={22} /> : <FiMenu size={22} />}
+              </button>
+            </div>
           </div>
 
           {mobileOpen && (

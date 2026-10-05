@@ -82,14 +82,17 @@ test('public shop now completes checkout with a bank-transfer payment wall and p
   assert.equal(shopSource.includes('normalizeIncomingPublicCart'), true);
 });
 
-test('public tracking can continue unpaid orders with payment instructions and proof upload', () => {
+// Management 2026-10-05: the amount and account appear only after the buyer enters the checkout phone.
+test('public tracking can continue unpaid orders, with payment details behind the buyer phone', () => {
   const trackingSource = readFileSync(new URL('../src/pages/shared/Tracking.jsx', import.meta.url), 'utf8');
+  const panelSource = readFileSync(new URL('../src/components/TrackingPaymentPanel.jsx', import.meta.url), 'utf8');
 
-  assert.equal(trackingSource.includes('Payment Instructions'), true);
-  assert.equal(trackingSource.includes('Phone number used at checkout'), true);
-  assert.equal(trackingSource.includes('ORDERS.PUBLIC_PAYMENT_PROOF'), true);
-  assert.equal(trackingSource.includes('Payment proof already uploaded'), true);
-  assert.equal(trackingSource.includes('Submit payment proof'), true);
+  assert.equal(trackingSource.includes('<TrackingPaymentPanel'), true);
+  assert.equal(trackingSource.includes('total_amount'), false, 'the page itself never reads money from public tracking');
+  assert.equal(panelSource.includes('TRACKING.PUBLIC_PAYMENT_DETAILS(orderNumber), { customer_phone: phone.trim() }'), true);
+  assert.equal(panelSource.includes('ORDERS.PUBLIC_PAYMENT_PROOF'), true);
+  assert.equal(panelSource.includes('if (proofSent) return;'), true, 'a receipt cannot be sent twice');
+  assert.equal(panelSource.includes('Submit payment proof'), true);
 });
 
 test('stockist orders split own and child queues while exposing child payment and delivery actions', () => {
