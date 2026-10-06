@@ -55,7 +55,11 @@ export default function Dashboard() {
           api.get('/inventory', { params: { status: 'low_stock', limit: 5 } }),
         ]);
         if (kpiRes.status === 'fulfilled') setKpis(kpiRes.value.data.data);
-        if (trendRes.status === 'fulfilled') setRevenueTrend(trendRes.value.data.data || []);
+        if (trendRes.status === 'fulfilled') {
+          // The revenue report returns an object; the chart needs its weekly series.
+          const weekly = trendRes.value.data.data?.weekly_trend || [];
+          setRevenueTrend(weekly.map((week) => ({ label: formatDate(week.week_start), revenue: Number(week.revenue) || 0 })));
+        }
         if (distRes.status === 'fulfilled') {
           const raw = distRes.value.data.data;
           const arr = Array.isArray(raw) ? raw : (raw?.products || []);
@@ -79,7 +83,7 @@ export default function Dashboard() {
     <div className="page-enter">
       <PageHeader
         title="Dashboard"
-        subtitle="A clearer command view across operations, payments, stock health, catalog movement, and logistics activity."
+        subtitle="Sales, pending orders and stock across every center at a glance."
         actions={[
           {
             label: 'Export PDF',
@@ -89,40 +93,6 @@ export default function Dashboard() {
           },
         ]}
       />
-
-      <div className="workspace-summary-band mb-6 grid gap-5 overflow-hidden p-5 sm:p-6 dark:bg-[linear-gradient(135deg,#271c18_0%,#221814_100%)] lg:grid-cols-[1.08fr_0.92fr]">
-        <div className="flex flex-col justify-between gap-4">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#9a5614] dark:text-orange-300/80">Operations Pulse</p>
-            <h2 className="font-heading mt-3 text-3xl text-[#3d1800] dark:text-[var(--dark-text)]">Professional oversight for orders, stockists, inventory, and delivery movement.</h2>
-            <p className="mt-3 max-w-2xl text-sm leading-7 text-[#7b5a43] dark:text-[var(--dark-muted)]">
-              The dashboard now groups business-critical information into cleaner, easier-to-scan surfaces so Super Admin can act faster without fighting the layout.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-            {[
-              { label: 'Operations', value: 'Live' },
-              { label: 'Payments', value: 'Tracked' },
-              { label: 'Stock Health', value: 'Monitored' },
-              { label: 'Logistics', value: 'Connected' },
-            ].map((item) => (
-              <div key={item.label} className="enterprise-soft-panel px-4 py-3 text-[#5b3315] dark:bg-white/[0.03] dark:text-[var(--dark-text)]">
-                <p className="text-lg font-bold">{item.value}</p>
-                <p className="text-[11px] uppercase tracking-[0.2em] text-[#946a49] dark:text-[var(--dark-muted)]">{item.label}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="overflow-hidden rounded-[1.4rem] border border-white/60 shadow-sm dark:border-[var(--dark-border)]">
-          <img
-            src="/assets/picture_banner.png"
-            alt="Nogatu picture banner"
-            className="h-full min-h-[240px] w-full object-cover"
-          />
-        </div>
-      </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
@@ -138,7 +108,7 @@ export default function Dashboard() {
             />
             <KpiCard
               title="Active Stockists"
-              value={kpis?.active_partners ?? 0}
+              value={kpis?.active_stockists ?? 0}
               icon={HiOutlineUserGroup}
               iconBg="bg-blue-100"
             />
@@ -150,7 +120,8 @@ export default function Dashboard() {
             />
             <KpiCard
               title="Inventory Value"
-              value={formatCurrency(kpis?.inventory_value || 0)}
+              // Whole pesos: centavos on a ₱13-billion stock value only push the number onto two lines.
+              value={`₱${Math.round(Number(kpis?.inventory_value) || 0).toLocaleString('en-PH')}`}
               icon={HiOutlineCube}
               iconBg="bg-green-100"
             />
@@ -161,9 +132,11 @@ export default function Dashboard() {
       {/* Charts Row */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div className="enterprise-panel p-5">
-          <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)]">Revenue Trend (7 Days)</h3>
+          <h3 className="mb-4 text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)]">Delivered Sales by Week</h3>
           {loading ? (
             <div className="skeleton h-56 w-full rounded-lg" />
+          ) : !revenueTrend.some((day) => Number(day.revenue) > 0) ? (
+            <div className="flex h-56 items-center justify-center text-sm text-muted">No delivered, paid orders yet</div>
           ) : (
             <ResponsiveContainer width="100%" height={220}>
               <LineChart data={revenueTrend} margin={{ top: 4, right: 8, left: -20, bottom: 0 }}>

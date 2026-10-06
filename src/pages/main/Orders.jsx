@@ -54,6 +54,11 @@ const roleLabel = (roleSlug) => {
   return normalized ? normalized.replace(/_/g, ' ') : 'Unknown';
 };
 
+// A pay-by date only matters while the order can still be paid; closed orders show a dash.
+function isAwaitingPayment(order) {
+  return ['pending', 'approved'].includes(order.status) && !['paid', 'verified'].includes(order.payment_status);
+}
+
 export default function Orders() {
   const { user } = useAuth();
   const { toasts, showToast, dismiss } = useToast();
@@ -423,7 +428,7 @@ export default function Orders() {
                   <TableHead>
                     <TableRow>
                       <TableHeadCell>Order #</TableHeadCell>
-                      <TableHeadCell>Stockist</TableHeadCell>
+                      <TableHeadCell>Buyer</TableHeadCell>
                       <TableHeadCell>Items</TableHeadCell>
                       <TableHeadCell>Total</TableHeadCell>
                       <TableHeadCell>Payment</TableHeadCell>
@@ -456,9 +461,11 @@ export default function Orders() {
                           </TableCell>
                           <TableCell className="text-xs">
                             {order.is_public ? (
-                              <span className="flex flex-col gap-0.5">
+                              <span className="flex min-w-[9rem] flex-col gap-0.5">
                                 <span className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{order.customer_name || 'Public Customer'}</span>
-                                <span className="text-[10px] bg-orange-100 text-orange-700 rounded px-1 py-0.5 w-fit font-semibold uppercase tracking-wide">Public Order</span>
+                                <span className="whitespace-nowrap text-[11px] text-orange-700 dark:text-orange-300">
+                                  Store order{order.partner_name ? ` · ${order.partner_name}` : ''}
+                                </span>
                               </span>
                             ) : (order.partner_name || order.business_name || 'N/A')}</TableCell>
                           <TableCell className="text-xs">{order.items_count ?? order.items?.length ?? '—'}</TableCell>
@@ -470,7 +477,7 @@ export default function Orders() {
                             <StatusBadge status={order.status} />
                           </TableCell>
                           <TableCell className="text-xs whitespace-nowrap">
-                            {order.payment_deadline ? (
+                            {order.payment_deadline && isAwaitingPayment(order) ? (
                               <span className={DEADLINE_CLASSES[getDeadlineUrgency(order, isArchivedTab)] || 'text-gray-600 dark:text-[var(--dark-muted)]'}>
                                 {formatDateTime(order.payment_deadline)}
                               </span>
@@ -600,7 +607,7 @@ export default function Orders() {
                   </div>
                   {selectedOrder.partner_name && (
                     <p className="text-xs text-gray-600 dark:text-gray-400 mt-1 pt-2 border-t border-orange-100 dark:border-orange-800/50">
-                      Fulfilled by Stockist: <span className="font-medium text-gray-600 dark:text-gray-300">{selectedOrder.partner_name}</span>
+                      Fulfilled by: <span className="font-medium text-gray-600 dark:text-gray-300">{selectedOrder.partner_name}</span>
                     </p>
                   )}
                 </div>
@@ -717,7 +724,7 @@ export default function Orders() {
                           <HiOutlineLink className="w-4 h-4" /> Delivery Magic Link
                         </p>
                         <p className="text-sm text-purple-700/80 dark:text-purple-400/80">
-                          Copy and send this link to the Stockist for tracking
+                          Send this to the rider (Viber, SMS or Messenger). They open it on their phone, share their location while driving, and upload a photo at the door to mark the order delivered. No login needed; the link stops working after delivery or 48 hours.
                         </p>
                       </div>
                       {deliveryLinkInfo.expiresAt && (

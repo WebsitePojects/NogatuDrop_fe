@@ -82,8 +82,8 @@ const NAV_GROUPS = [
 
 export default function MainLayout() {
   const [sidebarOpen, setSidebarOpen] = useResponsiveSidebar();
-  const [notifOpen, setNotifOpen] = useNotificationDrawer();
   const { count } = useNotifications();
+  const [notifOpen, setNotifOpen] = useNotificationDrawer(count);
   const { user, logout } = useAuth();
   const { dark, toggle: toggleTheme } = useTheme();
   const navigate = useNavigate();

@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { FiShield, FiX } from 'react-icons/fi';
 
 const STORAGE_KEY = 'nogatu_consent_v1';
@@ -23,7 +24,12 @@ export function hasLocationConsent() {
   return !!(c && c.location);
 }
 
+// Signed-in work screens and the rider link never use a buyer's location, so the banner only
+// belongs on the public store pages.
+const NO_BANNER_PREFIXES = ['/main', '/stockist', '/mobile', '/dashboard', '/login', '/forgot-password', '/deliver'];
+
 export default function CookieConsent() {
+  const { pathname } = useLocation();
   const [choice, setChoice] = useState(() => getConsent());
 
   // Re-check on mount in case another tab set it.
@@ -42,7 +48,7 @@ export default function CookieConsent() {
     setChoice(payload);
   };
 
-  if (choice) return null;
+  if (choice || NO_BANNER_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return null;
 
   return (
     <div className="fixed inset-x-0 bottom-0 z-[200] px-3 pb-3 sm:px-5 sm:pb-5">

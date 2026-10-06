@@ -98,7 +98,7 @@ export default function StockistLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useResponsiveSidebar();
-  const [notifOpen, setNotifOpen] = useNotificationDrawer();
+  const [notifOpen, setNotifOpen] = useNotificationDrawer(count);
 
   const role = normalizeRoleSlug(user?.role_slug || 'city_stockist');
   const centerStaff = isCenterStaff(user);

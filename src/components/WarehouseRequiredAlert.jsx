@@ -23,7 +23,8 @@ export default function WarehouseRequiredAlert() {
     let cancelled = false;
     setNeedsWarehouse(false);
     setDismissed(false);
-    if (!user) return undefined;
+    // Mobile Stockists keep a personal stock count, not a warehouse, and may not list warehouses.
+    if (!user || user.role_slug === 'mobile_stockist') return undefined;
 
     api
       .get(WAREHOUSES.LIST, { params: { limit: 1 } })

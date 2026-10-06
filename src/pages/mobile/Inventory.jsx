@@ -118,7 +118,8 @@ export default function MobileInventory() {
                 <button type="button" onClick={() => openAdjustment(item, 'increase')} className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-xs font-extrabold text-emerald-800 transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:border-emerald-500/20 dark:bg-emerald-500/10 dark:text-emerald-200">
                   <HiOutlinePlus className="h-4 w-4" /> Increase stock
                 </button>
-                <button type="button" onClick={() => openAdjustment(item, 'decrease')} className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-orange-700 px-3 py-2.5 text-xs font-extrabold text-white shadow-sm transition hover:bg-orange-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2">
+                {/* Nothing on hand means nothing to sell; the server refuses it too, so say so up front. */}
+                <button type="button" disabled={Number(item.current_stock || 0) <= 0} onClick={() => openAdjustment(item, 'decrease')} className="inline-flex items-center justify-center gap-1.5 rounded-xl bg-orange-700 px-3 py-2.5 text-xs font-extrabold text-white shadow-sm transition hover:bg-orange-800 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-600 disabled:shadow-none dark:disabled:bg-white/10 dark:disabled:text-slate-400">
                   <HiOutlineMinus className="h-4 w-4" /> Record direct sale
                 </button>
               </div>

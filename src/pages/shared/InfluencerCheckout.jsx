@@ -7,7 +7,7 @@ import { createCheckoutIntent, createIntentHeaders, getCheckoutIntent } from '@/
 import { formatCurrency } from '@/utils/formatCurrency';
 import { getPublicCatalogPrice } from '@/utils/publicCatalogPrice';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
-import { getPublicOrderPricingTotals } from '@/utils/publicCheckoutPricing';
+import { getPublicOrderPricingTotals, VAT_LABEL } from '@/utils/publicCheckoutPricing';
 import { NOGATU_PRODUCT_CATALOG } from '@/utils/nogatuCatalog';
 import { maxOrderableQuantity, clampQuantity } from '@/utils/publicOrderLimits';
 import {
@@ -114,7 +114,7 @@ function SummaryLines({ totals }) {
   return (
     <dl className="space-y-2 text-[length:var(--ck-text-small)]">
       <div className="flex justify-between"><dt className="ck-muted">Subtotal</dt><dd className="font-medium">{formatCurrency(totals.merchandiseSubtotal)}</dd></div>
-      <div className="flex justify-between"><dt className="ck-muted">VAT &amp; system fee (12%)</dt><dd className="font-medium">{formatCurrency(totals.systemFee)}</dd></div>
+      <div className="flex justify-between"><dt className="ck-muted">{VAT_LABEL}</dt><dd className="font-medium">{formatCurrency(totals.systemFee)}</dd></div>
       <div className="flex justify-between"><dt className="ck-muted">Shipping</dt><dd className="font-medium">{formatCurrency(totals.shippingFee)}</dd></div>
     </dl>
   );

@@ -218,7 +218,7 @@ export default function InfluencerPaymentStep({ slugLabel, product, order, fallb
               </span>
               <div className="min-w-0 flex-1">
                 <p className="font-semibold">{product.name}</p>
-                <p className="text-[length:var(--ck-text-small)] ck-muted">{order.quantity} {order.quantity === 1 ? 'box' : 'boxes'} · VAT, system fee and shipping included</p>
+                <p className="text-[length:var(--ck-text-small)] ck-muted">{order.quantity} {order.quantity === 1 ? 'box' : 'boxes'} · VAT and shipping included</p>
               </div>
               <p className="ck-price">{formatCurrency(totalDue)}</p>
             </div>

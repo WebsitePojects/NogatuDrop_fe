@@ -30,7 +30,7 @@ export default function MobileLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useResponsiveSidebar();
-  const [notifOpen, setNotifOpen] = useNotificationDrawer();
+  const [notifOpen, setNotifOpen] = useNotificationDrawer(count);
 
   const handleLogout = async () => {
     await logout();

@@ -31,6 +31,7 @@ import { PERMISSIONS, can } from '@/utils/permissions';
 import { isCenterStaff } from '@/utils/partnerLevel';
 import OrderPricingBreakdown from '@/components/OrderPricingBreakdown';
 import { extractUploadErrorMessage } from '@/utils/uploadError';
+import useSubmitGuard from '@/hooks/useSubmitGuard';
 
 const STATUS_STEPS = ['pending', 'approved', 'delivering', 'delivered'];
 const TAB_STATUSES = {
@@ -69,6 +70,13 @@ function isManagedChildOrder(order, viewerRole) {
 
 function isOwnScopedOrder(order, viewerRole) {
   return !isManagedChildOrder(order, viewerRole);
+}
+
+// Orders this viewer works as the fulfiller (approve, check payment, ship): a parent Stockist's
+// child orders, or — for center staff — the store orders routed to their center.
+function isFulfilledByViewer(order, viewerRole, centerStaff) {
+  if (centerStaff) return Boolean(Number(order?.is_public));
+  return isManagedChildOrder(order, viewerRole);
 }
 
 function getSectionTitles(viewerRole, centerStaff) {
@@ -285,6 +293,11 @@ export default function StockistOrders() {
   const centerStaff = isCenterStaff(user);
   const titles = getSectionTitles(viewerRole, centerStaff);
   const canPlaceOrders = !centerStaff && can(user?.role_slug, PERMISSIONS.CART_USE);
+  const canApprove = can(user?.role_slug, PERMISSIONS.ORDERS_APPROVE);
+  const canReject = can(user?.role_slug, PERMISSIONS.ORDERS_REJECT);
+  const canVerifyPayment = can(user?.role_slug, PERMISSIONS.ORDERS_VERIFY_PAYMENT);
+  // One order action at a time: the ref inside stops a double click before React re-renders.
+  const { run: runAction } = useSubmitGuard();
 
   const [orders, setOrders] = useState([]);
   const [searchParams, setSearchParams] = useSearchParams();
@@ -345,7 +358,7 @@ export default function StockistOrders() {
   }, [highlightId]);
 
   const hydrateDeliveryLinkForOrder = useCallback(async (orderLike) => {
-    if (!orderLike?.id || !isManagedChildOrder(orderLike, viewerRole)) {
+    if (!orderLike?.id || !isFulfilledByViewer(orderLike, viewerRole, centerStaff)) {
       setDeliveryLinkInfo(null);
       return;
     }
@@ -372,7 +385,7 @@ export default function StockistOrders() {
     } catch {
       setDeliveryLinkInfo(null);
     }
-  }, [viewerRole]);
+  }, [viewerRole, centerStaff]);
 
   const openDetail = async (order) => {
     setSelectedOrder(order);
@@ -425,7 +438,7 @@ export default function StockistOrders() {
     setCopiedOrderId(null);
   };
 
-  const handleCancel = async () => {
+  const handleCancel = () => runAction(async () => {
     if (!confirmCancel) return;
     setCancelling(true);
     try {
@@ -439,9 +452,9 @@ export default function StockistOrders() {
     } finally {
       setCancelling(false);
     }
-  };
+  });
 
-  const handleApprove = async () => {
+  const handleApprove = () => runAction(async () => {
     if (!confirmApprove) return;
     setApproving(true);
     try {
@@ -460,9 +473,9 @@ export default function StockistOrders() {
     } finally {
       setApproving(false);
     }
-  };
+  });
 
-  const handleReject = async () => {
+  const handleReject = () => runAction(async () => {
     if (!selectedOrder?.id) return;
     setRejecting(true);
     try {
@@ -477,9 +490,9 @@ export default function StockistOrders() {
     } finally {
       setRejecting(false);
     }
-  };
+  });
 
-  const handleUploadProof = async (file) => {
+  const handleUploadProof = (file) => runAction(async () => {
     if (!selectedOrder) return;
     setUploading(true);
     const formData = new FormData();
@@ -496,9 +509,9 @@ export default function StockistOrders() {
     } finally {
       setUploading(false);
     }
-  };
+  });
 
-  const handleVerifyPayment = async () => {
+  const handleVerifyPayment = () => runAction(async () => {
     if (!selectedOrder?.id) return;
     setVerifyingPayment(true);
     try {
@@ -533,9 +546,9 @@ export default function StockistOrders() {
     } finally {
       setVerifyingPayment(false);
     }
-  };
+  });
 
-  const handleGenerateDelivery = async () => {
+  const handleGenerateDelivery = () => runAction(async () => {
     if (!selectedOrder?.id) return;
     setVerifyingPayment(true);
     try {
@@ -556,7 +569,7 @@ export default function StockistOrders() {
     } finally {
       setVerifyingPayment(false);
     }
-  };
+  });
 
   const handleCopyDeliveryLink = async () => {
     const link = deliveryLinkInfo?.magicLink;
@@ -610,15 +623,17 @@ export default function StockistOrders() {
 
   const detail = selectedOrder;
   const placedByRole = toStatusKey(detail?.placed_by_role_slug);
-  const isChildManagedOrder = isManagedChildOrder(detail, viewerRole);
-  const isOwnOrder = detail ? isOwnScopedOrder(detail, viewerRole) : false;
+  const isChildManagedOrder = isFulfilledByViewer(detail, viewerRole, centerStaff);
+  // Center staff never place orders, so nothing they see is theirs to pay for or cancel.
+  const isOwnOrder = detail && !centerStaff ? isOwnScopedOrder(detail, viewerRole) : false;
   const selectedStatusKey = toStatusKey(detail?.status);
   const selectedPaymentKey = toStatusKey(detail?.payment_status);
   const isPaymentVerified = ['paid', 'verified'].includes(selectedPaymentKey);
   const isTerminalStatus = ['delivered', 'cancelled', 'rejected'].includes(selectedStatusKey);
   const canReviewPendingChildOrder = Boolean(detail?.status === 'pending' && isChildManagedOrder);
   const canVerifyChildPayment = Boolean(
-    detail?.status === 'approved'
+    canVerifyPayment
+    && detail?.status === 'approved'
     && !isPaymentVerified
     && isChildManagedOrder
     && detail?.payment_proof_url
@@ -732,14 +747,14 @@ export default function StockistOrders() {
             <>
               <OrderStatusTimeline status={detail.status} paymentStatus={detail.payment_status} />
 
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {/* The order number is already in the modal title; a second copy only got clipped on phones. */}
+              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                 {[
-                  { label: 'Order #', value: `#${detail.order_number || detail.id}` },
-                  { label: 'Date', value: formatDateTime(detail.created_at) },
+                  { label: 'Date', value: formatDateTime(detail.created_at), span: 'col-span-2 sm:col-span-1' },
                   { label: 'Status', value: <StatusBadge status={detail.status} /> },
                   { label: 'Payment', value: <StatusBadge status={detail.payment_status || 'unpaid'} /> },
-                ].map(({ label, value }) => (
-                  <div key={label} className="rounded-xl bg-gray-50 p-3 dark:bg-[var(--dark-card2)]">
+                ].map(({ label, value, span = '' }) => (
+                  <div key={label} className={`rounded-xl bg-gray-50 p-3 dark:bg-[var(--dark-card2)] ${span}`}>
                     <p className="mb-0.5 text-xs text-gray-600 dark:text-[var(--dark-muted)]">{label}</p>
                     <div className="text-sm font-semibold text-gray-900 dark:text-[var(--dark-text)]">{value}</div>
                   </div>
@@ -778,7 +793,7 @@ export default function StockistOrders() {
                   </div>
                   {detail.partner_name && (
                     <p className="text-xs text-gray-600 dark:text-gray-400 pt-2 border-t border-orange-100 dark:border-orange-800/30">
-                      Fulfilled by Stockist: <span className="font-medium text-gray-600 dark:text-gray-300">{detail.partner_name}</span>
+                      Fulfilled by: <span className="font-medium text-gray-600 dark:text-gray-300">{detail.partner_name}</span>
                     </p>
                   )}
                 </div>
@@ -894,7 +909,11 @@ export default function StockistOrders() {
                 </div>
               ) : detail.status === 'approved' && detail.payment_status !== 'paid' && isChildManagedOrder ? (
                 <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
-                  This order is waiting for you to verify payment. Review the uploaded proof, verify payment, and generate the delivery link once payment is confirmed.
+                  {!detail.payment_proof_url
+                    ? 'Waiting for the payment receipt. The order cancels itself if nothing is paid by the deadline.'
+                    : canVerifyPayment
+                      ? 'The receipt is in. Check it against your account, verify payment, then create the delivery link.'
+                      : 'The receipt is in. Nogatu is checking the payment; the delivery link button appears here once it is confirmed.'}
                 </div>
               ) : null}
 
@@ -905,7 +924,7 @@ export default function StockistOrders() {
                       Delivery Magic Link
                     </p>
                     <p className="text-sm text-purple-700/80 dark:text-purple-200/80">
-                      Copy this link and send it to the delivery team.
+                      Send this to the rider (Viber, SMS or Messenger). They open it on their phone, share their location while driving, and upload a photo at the door to mark the order delivered. No login needed; the link stops working after delivery or 48 hours.
                     </p>
                   </div>
                   <div className="flex flex-col gap-3 md:flex-row md:items-center">
@@ -951,17 +970,17 @@ export default function StockistOrders() {
           <ModalFooter>
             <div className="flex w-full flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap gap-2">
-                {canReviewPendingChildOrder && (
-                  <>
-                    <Button color="success" onClick={() => setConfirmApprove(detail.id)}>
-                      <HiCheckCircle className="mr-2 h-4 w-4" />
-                      Approve Order
-                    </Button>
-                    <Button color="failure" outline onClick={() => setShowRejectModal(true)}>
-                      <HiExclamationCircle className="mr-2 h-4 w-4" />
-                      Reject Order
-                    </Button>
-                  </>
+                {canReviewPendingChildOrder && canApprove && (
+                  <Button color="success" onClick={() => setConfirmApprove(detail.id)}>
+                    <HiCheckCircle className="mr-2 h-4 w-4" />
+                    Approve Order
+                  </Button>
+                )}
+                {canReviewPendingChildOrder && canReject && (
+                  <Button color="failure" outline onClick={() => setShowRejectModal(true)}>
+                    <HiExclamationCircle className="mr-2 h-4 w-4" />
+                    Reject Order
+                  </Button>
                 )}
                 {canVerifyChildPayment && (
                   <Button color="success" onClick={handleVerifyPayment} isProcessing={verifyingPayment} disabled={verifyingPayment} className="bg-emerald-600 text-white font-bold shadow-sm ring-2 ring-emerald-700 hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 disabled:opacity-60">

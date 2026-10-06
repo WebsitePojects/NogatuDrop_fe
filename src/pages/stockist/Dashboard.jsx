@@ -140,7 +140,7 @@ export default function StockistDashboard() {
           </p>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-gray-600 dark:text-[var(--dark-muted)]">
             {centerStaff
-              ? 'Check new orders, confirm payments, send out deliveries, and keep your stock count up to date.'
+              ? 'Approve new store orders, send out deliveries once payment is confirmed, and keep your stock count up to date.'
               : 'Order products, follow your deliveries, and see at a glance what is running low.'}
           </p>
         </div>

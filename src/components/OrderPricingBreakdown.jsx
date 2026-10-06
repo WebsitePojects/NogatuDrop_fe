@@ -1,5 +1,6 @@
 import { HiOutlineReceiptTax } from 'react-icons/hi';
 import formatCurrency from '@/utils/formatCurrency';
+import { VAT_LABEL } from '@/utils/publicCheckoutPricing';
 
 function PricingRow({ label, amount, emphasis = false, tone = 'default' }) {
   const toneClass = tone === 'discount'
@@ -41,7 +42,7 @@ export default function OrderPricingBreakdown({ breakdown, fallbackTotal = 0 }) 
         <PricingRow label="Merchandise subtotal" amount={merchandise} />
         {discount > 0 ? <PricingRow label="Member discount" amount={discount} tone="discount" /> : null}
         <PricingRow label="Shipping fee" amount={shipping} />
-        <PricingRow label="System fee" amount={system} />
+        <PricingRow label={VAT_LABEL} amount={system} />
         {adjustment !== 0 ? <PricingRow label="Historical adjustment" amount={adjustment} tone="adjustment" /> : null}
         <div className="border-t border-dashed border-amber-200 dark:border-amber-500/25">
           <PricingRow label="Total amount" amount={total} emphasis />

@@ -269,7 +269,10 @@ body {
 }
 
 .kpi-value {
-  font-size: 1.625rem;
+  /* Peso totals reach 17 characters (₱13,539,661,960.00); shrink on narrow cards and wrap rather than clip. */
+  font-size: clamp(1.2rem, 0.9rem + 0.8vw, 1.625rem);
+  overflow-wrap: anywhere;
+  font-variant-numeric: tabular-nums;
   font-weight: 800;
   line-height: 1.1;
   letter-spacing: -0.02em;

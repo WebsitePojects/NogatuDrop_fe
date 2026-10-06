@@ -78,7 +78,8 @@ test('public shop now completes checkout with a bank-transfer payment wall and p
   assert.equal(shopSource.includes('Submit Payment Proof'), true);
   assert.equal(shopSource.includes('ORDERS.PUBLIC_PAYMENT_PROOF'), true);
   assert.equal(shopSource.includes('Track my order'), true);
-  assert.equal(shopSource.includes('VAT and System Fee Included'), true);
+  assert.equal(shopSource.includes('VAT included'), true);
+  assert.equal(shopSource.includes('System Fee'), false, 'management: show the charge as VAT only');
   assert.equal(shopSource.includes('normalizeIncomingPublicCart'), true);
 });
 
@@ -108,7 +109,7 @@ test('stockist orders split own and child queues while exposing child payment an
 test('order details expose a reconciled total breakdown and high-contrast payment actions', () => {
   assert.equal(pricingBreakdownSource.includes('Merchandise subtotal'), true);
   assert.equal(pricingBreakdownSource.includes('Shipping fee'), true);
-  assert.equal(pricingBreakdownSource.includes('System fee'), true);
+  assert.equal(pricingBreakdownSource.includes('label={VAT_LABEL}'), true);
   assert.equal(pricingBreakdownSource.includes('Total amount'), true);
   assert.equal(mainOrdersSource.includes('<OrderPricingBreakdown'), true);
   assert.equal(stockistOrdersSource.includes('<OrderPricingBreakdown'), true);
@@ -147,7 +148,8 @@ test('purchase-order endpoints expose owner submit before supplier approval', ()
 
 test('landing checkout hands products forward into the public shop flow and shows the new total note', () => {
   assert.equal(landingSource.includes("navigate('/shop', { state: { cart: cartItems, openCheckout: true } });"), true);
-  assert.equal(landingSource.includes('VAT and System Fee Included'), true);
+  assert.equal(landingSource.includes('VAT included'), true);
+  assert.equal(landingSource.includes('{VAT_LABEL}'), true);
 });
 
 test('frontend defaults API and image origins to the current browser host when env is unset', () => {
