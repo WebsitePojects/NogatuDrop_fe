@@ -102,8 +102,10 @@ test('stockist orders split own and child queues while exposing child payment an
   assert.equal(stockistOrdersSource.includes('My Provincial Orders'), true);
   assert.equal(stockistOrdersSource.includes('Affiliated City Orders'), true);
   assert.equal(stockistOrdersSource.includes('Verify Payment'), true);
-  assert.equal(stockistOrdersSource.includes('Generate Delivery Link'), true);
-  assert.equal(stockistOrdersSource.includes('Delivery Magic Link'), true);
+  // The Rider Link (vehicle, link, live map) is one shared panel on both Orders screens.
+  assert.equal(stockistOrdersSource.includes('<RiderLinkPanel'), true);
+  assert.equal(mainOrdersSource.includes('<RiderLinkPanel'), true);
+  assert.equal(stockistOrdersSource.includes('Magic Link'), false, 'renamed to Rider Link');
 });
 
 test('order details expose a reconciled total breakdown and high-contrast payment actions', () => {
@@ -115,7 +117,6 @@ test('order details expose a reconciled total breakdown and high-contrast paymen
   assert.equal(stockistOrdersSource.includes('<OrderPricingBreakdown'), true);
   assert.equal(mainOrdersSource.includes('bg-emerald-600 text-white'), true);
   assert.equal(stockistOrdersSource.includes('bg-emerald-600 text-white'), true);
-  assert.equal(mainOrdersSource.includes('bg-amber-400 text-amber-950'), true);
 });
 
 test('warehouse screens use backend-owned My Warehouses and Affiliated Network tabs', () => {

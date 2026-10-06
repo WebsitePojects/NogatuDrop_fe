@@ -12,6 +12,7 @@ import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
 import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
+import ResponsiveList from '@/components/ResponsiveList';
 
 const STATUSES = ['pending', 'approved', 'rejected', 'all'];
 const EMPTY_FORM = { inventory_id: '', type: 'add', quantity: '', reason: '' };
@@ -63,6 +64,7 @@ export default function StockAdjustments() {
   const openDetail = (a) => { setSelected(a); setShowDetailModal(true); };
 
   const handleAdd = async () => {
+    if (submitting) return;
     setSubmitting(true);
     try {
       await api.post(STOCK_ADJUSTMENTS.CREATE, form);
@@ -77,6 +79,7 @@ export default function StockAdjustments() {
   };
 
   const executeApprove = async () => {
+    if (actionLoading) return;
     setActionLoading(true);
     try {
       await api.patch(STOCK_ADJUSTMENTS.APPROVE(confirmTarget.id));
@@ -92,6 +95,7 @@ export default function StockAdjustments() {
   };
 
   const executeReject = async () => {
+    if (actionLoading) return;
     setActionLoading(true);
     try {
       await api.patch(`/stock-adjustments/${selected.id}/reject`, { reason: rejectReason });
@@ -125,67 +129,82 @@ export default function StockAdjustments() {
         <Tabs onActiveTabChange={(i) => { setActiveTab(i); setPage(1); }}>
           {STATUSES.map((s) => (
             <TabItem key={s} title={s.charAt(0).toUpperCase() + s.slice(1)}>
-              <div className="overflow-x-auto">
-                <Table striped>
-                  <TableHead>
-                    <TableRow>
-                      <TableHeadCell>Date</TableHeadCell>
-                      <TableHeadCell>Product</TableHeadCell>
-                      <TableHeadCell>Warehouse</TableHeadCell>
-                      <TableHeadCell>Type</TableHeadCell>
-                      <TableHeadCell>Quantity</TableHeadCell>
-                      <TableHeadCell>Reason</TableHeadCell>
-                      <TableHeadCell>Requested By</TableHeadCell>
-                      <TableHeadCell>Status</TableHeadCell>
-                      <TableHeadCell>Actions</TableHeadCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody className="divide-y">
-                    {loading ? (
-                      Array.from({ length: 6 }).map((_, i) => (
-                        <TableRow key={i}>
-                          {Array.from({ length: 9 }).map((__, j) => (
-                            <TableCell key={j}><div className="skeleton h-4 w-full rounded" /></TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    ) : adjustments.length === 0 ? (
+              <ResponsiveList
+                items={adjustments}
+                getKey={(a) => a.id}
+                loading={loading}
+                emptyLabel="No adjustment requests in this category"
+                onOpen={(a) => openDetail(a)}
+                row={(a) => ({
+                  title: a.product_name,
+                  subtitle: `${a.warehouse_name} · ${formatDate(a.created_at)}`,
+                  meta: `${a.type} ${a.quantity}`,
+                  status: <StatusBadge status={a.status} />,
+                  action: a.status === 'pending' ? { label: 'Approve', tone: 'primary', onClick: () => setConfirmTarget(a) } : null,
+                })}
+              >
+                <div className="overflow-x-auto">
+                  <Table striped>
+                    <TableHead>
                       <TableRow>
-                        <TableCell colSpan={9}>
-                          <EmptyState icon={HiOutlineAdjustments} title="No adjustments" description="No adjustment requests in this category" />
-                        </TableCell>
+                        <TableHeadCell>Date</TableHeadCell>
+                        <TableHeadCell>Product</TableHeadCell>
+                        <TableHeadCell>Warehouse</TableHeadCell>
+                        <TableHeadCell>Type</TableHeadCell>
+                        <TableHeadCell>Quantity</TableHeadCell>
+                        <TableHeadCell>Reason</TableHeadCell>
+                        <TableHeadCell>Requested By</TableHeadCell>
+                        <TableHeadCell>Status</TableHeadCell>
+                        <TableHeadCell>Actions</TableHeadCell>
                       </TableRow>
-                    ) : (
-                      adjustments.map((a) => (
-                        <TableRow key={a.id} className="hover:bg-amber-50/30 dark:hover:bg-white/5 cursor-pointer" onClick={() => openDetail(a)}>
-                          <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{formatDate(a.created_at)}</TableCell>
-                          <TableCell className="font-medium text-gray-900 dark:text-[var(--dark-text)] text-xs">{a.product_name}</TableCell>
-                          <TableCell className="text-xs">{a.warehouse_name}</TableCell>
-                          <TableCell>{typeBadge(a.type)}</TableCell>
-                          <TableCell className="font-semibold">{a.quantity}</TableCell>
-                          <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)] max-w-xs truncate">{a.reason || '—'}</TableCell>
-                          <TableCell className="text-xs">{a.requested_by_name || '—'}</TableCell>
-                          <TableCell><StatusBadge status={a.status} /></TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <div className="flex gap-1">
-                              {a.status === 'pending' && (
-                                <>
-                                  <Button size="xs" color="success" onClick={() => setConfirmTarget(a)}>
-                                    <HiOutlineCheck className="w-3.5 h-3.5" />
-                                  </Button>
-                                  <Button size="xs" color="failure" onClick={() => { setSelected(a); setRejectReason(''); setShowRejectModal(true); }}>
-                                    <HiOutlineX className="w-3.5 h-3.5" />
-                                  </Button>
-                                </>
-                              )}
-                            </div>
+                    </TableHead>
+                    <TableBody className="divide-y">
+                      {loading ? (
+                        Array.from({ length: 6 }).map((_, i) => (
+                          <TableRow key={i}>
+                            {Array.from({ length: 9 }).map((__, j) => (
+                              <TableCell key={j}><div className="skeleton h-4 w-full rounded" /></TableCell>
+                            ))}
+                          </TableRow>
+                        ))
+                      ) : adjustments.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={9}>
+                            <EmptyState icon={HiOutlineAdjustments} title="No adjustments" description="No adjustment requests in this category" />
                           </TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                      ) : (
+                        adjustments.map((a) => (
+                          <TableRow key={a.id} className="hover:bg-amber-50/30 dark:hover:bg-white/5 cursor-pointer" onClick={() => openDetail(a)}>
+                            <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{formatDate(a.created_at)}</TableCell>
+                            <TableCell className="font-medium text-gray-900 dark:text-[var(--dark-text)] text-xs">{a.product_name}</TableCell>
+                            <TableCell className="text-xs">{a.warehouse_name}</TableCell>
+                            <TableCell>{typeBadge(a.type)}</TableCell>
+                            <TableCell className="font-semibold">{a.quantity}</TableCell>
+                            <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)] max-w-xs truncate">{a.reason || '—'}</TableCell>
+                            <TableCell className="text-xs">{a.requested_by_name || '—'}</TableCell>
+                            <TableCell><StatusBadge status={a.status} /></TableCell>
+                            <TableCell onClick={(e) => e.stopPropagation()}>
+                              <div className="flex gap-1">
+                                {a.status === 'pending' && (
+                                  <>
+                                    <Button size="xs" color="success" onClick={() => setConfirmTarget(a)}>
+                                      <HiOutlineCheck className="w-3.5 h-3.5" />
+                                    </Button>
+                                    <Button size="xs" color="failure" onClick={() => { setSelected(a); setRejectReason(''); setShowRejectModal(true); }}>
+                                      <HiOutlineX className="w-3.5 h-3.5" />
+                                    </Button>
+                                  </>
+                                )}
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </ResponsiveList>
               {totalPages > 1 && (
                 <div className="flex justify-center mt-4">
                   <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} showIcons />

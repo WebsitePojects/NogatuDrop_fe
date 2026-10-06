@@ -4,6 +4,7 @@ import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/Animate
  * Scoped to this stockist's warehouses (backend filters by partner_id via JWT)
  */
 import { useState, useEffect, useCallback } from 'react';
+import useSubmitGuard from '@/hooks/useSubmitGuard';
 import {
   Card, Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Badge, Label, TextInput, Select, Textarea, Spinner, Tabs, TabItem } from 'flowbite-react';
 import {
@@ -18,11 +19,14 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { ToastContainer, useToast } from '@/components/Toast';
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
+import ResponsiveList from '@/components/ResponsiveList';
+import LineItemList from '@/components/LineItemList';
 
 const STATUS_STEPS = ['pending', 'in_transit', 'completed'];
 
 export default function StockistStockTransfers() {
   const { toasts, showToast, dismiss } = useToast();
+  const { submitting: advancing, run: runAdvance } = useSubmitGuard();
   const [transfers, setTransfers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('all');
@@ -64,15 +68,18 @@ export default function StockistStockTransfers() {
       open: true,
       title: `Mark as ${next === 'in_transit' ? 'In Transit' : 'Completed'}?`,
       message: `This will update transfer ${transfer.transfer_number} status.`,
-      onConfirm: async () => {
+      // Guarded and closed on success: the confirm dialog used to stay open after a click,
+      // so a second click sent a second request.
+      onConfirm: () => runAdvance(async () => {
         try {
           await api.patch(STOCK_TRANSFERS.COMPLETE(transfer.id));
           showToast('Transfer status updated', 'success');
+          setConfirm((c) => ({ ...c, open: false }));
           fetchTransfers();
         } catch {
           showToast('Failed to update transfer', 'error');
         }
-      },
+      }),
     });
   };
 
@@ -88,6 +95,7 @@ export default function StockistStockTransfers() {
   }));
 
   const handleCreate = async () => {
+    if (creating) return;
     setCreating(true);
     try {
       await api.post(STOCK_TRANSFERS.CREATE, form);
@@ -130,7 +138,7 @@ export default function StockistStockTransfers() {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             {['all', 'pending', 'in_transit', 'completed', 'cancelled'].map((s) => (
               <button
                 key={s}
@@ -153,69 +161,85 @@ export default function StockistStockTransfers() {
           </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left text-gray-700 dark:text-[var(--dark-text)]">
-            <thead className="text-xs text-coffee-700 dark:text-[var(--dark-muted)] bg-coffee-50 dark:bg-[var(--dark-card2)] uppercase">
-              <tr>
-                <th className="px-4 py-3">Transfer #</th>
-                <th className="px-4 py-3">From</th>
-                <th className="px-4 py-3">To</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <tr key={i} className="border-b border-gray-100">
-                    {Array.from({ length: 6 }).map((_, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className="skeleton h-4 w-24 rounded" />
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : filtered.length === 0 ? (
+        <ResponsiveList
+          items={filtered}
+          getKey={(t) => t.id}
+          loading={loading}
+          emptyLabel="No transfers found"
+          onOpen={(t) => { setSelected(t); setViewModal(true); }}
+          row={(t) => ({
+            title: t.transfer_number,
+            subtitle: `${t.from_warehouse?.name || '—'} → ${t.to_warehouse?.name || '—'} · ${formatDate(t.created_at)}`,
+            status: <StatusBadge status={t.status} />,
+            action: t.status === 'pending' || t.status === 'in_transit'
+              ? { label: t.status === 'pending' ? 'Mark In Transit' : 'Mark Completed', tone: 'primary', onClick: () => handleAdvanceStatus(t) }
+              : null,
+          })}
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left text-gray-700 dark:text-[var(--dark-text)]">
+              <thead className="text-xs text-coffee-700 dark:text-[var(--dark-muted)] bg-coffee-50 dark:bg-[var(--dark-card2)] uppercase">
                 <tr>
-                  <td colSpan={6} className="px-4 py-12 text-center text-muted">
-                    No transfers found
-                  </td>
+                  <th className="px-4 py-3">Transfer #</th>
+                  <th className="px-4 py-3">From</th>
+                  <th className="px-4 py-3">To</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
-              ) : (
-                filtered.map((t) => (
-                  <tr key={t.id} className="border-b border-gray-100 hover:bg-coffee-50/50 dark:hover:bg-white/5 cursor-pointer" onClick={() => { setSelected(t); setViewModal(true); }}>
-                    <td className="px-4 py-3 font-medium text-coffee-700 dark:text-[var(--dark-text)]">{t.transfer_number}</td>
-                    <td className="px-4 py-3">{t.from_warehouse?.name || '—'}</td>
-                    <td className="px-4 py-3">{t.to_warehouse?.name || '—'}</td>
-                    <td className="px-4 py-3">
-                      <StatusBadge status={t.status} />
-                    </td>
-                    <td className="px-4 py-3 text-muted">{formatDate(t.created_at)}</td>
-                    <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                      <div className="flex justify-end gap-2">
-                        <button
-                          className="p-1.5 rounded-lg hover:bg-gray-100 dark:bg-gray-700 text-muted"
-                          onClick={() => { setSelected(t); setViewModal(true); }}
-                        >
-                          <HiOutlineEye className="w-4 h-4" />
-                        </button>
-                        {(t.status === 'pending' || t.status === 'in_transit') && (
-                          <button
-                            className="p-1.5 rounded-lg hover:bg-green-50 dark:hover:bg-white/5 text-green-600 dark:text-green-400"
-                            onClick={() => handleAdvanceStatus(t)}
-                          >
-                            <HiOutlineCheckCircle className="w-4 h-4" />
-                          </button>
-                        )}
-                      </div>
+              </thead>
+              <tbody>
+                {loading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <tr key={i} className="border-b border-gray-100">
+                      {Array.from({ length: 6 }).map((_, j) => (
+                        <td key={j} className="px-4 py-3">
+                          <div className="skeleton h-4 w-24 rounded" />
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                ) : filtered.length === 0 ? (
+                  <tr>
+                    <td colSpan={6} className="px-4 py-12 text-center text-muted">
+                      No transfers found
                     </td>
                   </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+                ) : (
+                  filtered.map((t) => (
+                    <tr key={t.id} className="border-b border-gray-100 hover:bg-coffee-50/50 dark:hover:bg-white/5 cursor-pointer" onClick={() => { setSelected(t); setViewModal(true); }}>
+                      <td className="px-4 py-3 font-medium text-coffee-700 dark:text-[var(--dark-text)]">{t.transfer_number}</td>
+                      <td className="px-4 py-3">{t.from_warehouse?.name || '—'}</td>
+                      <td className="px-4 py-3">{t.to_warehouse?.name || '—'}</td>
+                      <td className="px-4 py-3">
+                        <StatusBadge status={t.status} />
+                      </td>
+                      <td className="px-4 py-3 text-muted">{formatDate(t.created_at)}</td>
+                      <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            className="p-1.5 rounded-lg hover:bg-gray-100 dark:bg-gray-700 text-muted"
+                            onClick={() => { setSelected(t); setViewModal(true); }}
+                          >
+                            <HiOutlineEye className="w-4 h-4" />
+                          </button>
+                          {(t.status === 'pending' || t.status === 'in_transit') && (
+                            <button
+                              className="p-1.5 rounded-lg hover:bg-green-50 dark:hover:bg-white/5 text-green-600 dark:text-green-400"
+                              onClick={() => handleAdvanceStatus(t)}
+                            >
+                              <HiOutlineCheckCircle className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </ResponsiveList>
       </Card>
 
       {/* View Modal */}
@@ -265,7 +289,14 @@ export default function StockistStockTransfers() {
                 <>
                   <hr className="border-gray-100" />
                   <p className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)]">Items</p>
-                  <table className="w-full text-sm">
+                  <LineItemList
+                    lines={selected.items.map((item, i) => ({
+                      key: i,
+                      title: item.product?.name || item.product_id,
+                      value: `× ${item.quantity}`,
+                    }))}
+                  />
+                  <table className="hidden w-full text-sm md:table">
                     <thead>
                       <tr className="text-xs text-muted uppercase">
                         <th className="text-left py-2">Product</th>
@@ -398,6 +429,7 @@ export default function StockistStockTransfers() {
         onClose={() => setConfirm(c => ({ ...c, open: false }))}
         confirmColor="success"
         confirmLabel="Confirm"
+        loading={advancing}
       />
 
       <ToastContainer toasts={toasts} dismiss={dismiss} />

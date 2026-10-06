@@ -16,6 +16,7 @@ import {
   HiOutlineMoon,
   HiOutlineCog,
   HiOutlineArchive,
+  HiOutlineTruck,
   HiChevronDown,
 } from 'react-icons/hi';
 import { useAuth } from '@/context/AuthContext';
@@ -23,6 +24,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { useNotifications } from '@/hooks/useNotifications';
 import { PERMISSIONS, can, normalizeRoleSlug } from '@/utils/permissions';
 import { isCenterStaff, centerStaffLabel } from '@/utils/partnerLevel';
+import MobileTabBar from '@/components/MobileTabBar';
 import NotificationDrawer from '@/components/NotificationDrawer';
 import FloatingCartButton from '@/components/FloatingCartButton';
 import useNotificationDrawer from '@/hooks/useNotificationDrawer';
@@ -59,6 +61,9 @@ function buildNavGroups(role, centerStaff) {
       items: [
         ...(canUseCart ? [{ path: '/stockist/catalog', label: 'Order Products', icon: HiOutlineViewGrid }] : []),
         { path: '/stockist/orders', label: centerStaff ? 'Center Orders' : 'My Orders', icon: HiOutlineClipboardList },
+        // Centers ship the store orders, so their staff follow riders on the road; Stockists see
+        // their own incoming delivery on the order itself.
+        ...(centerStaff ? [{ path: '/stockist/delivery/live', label: 'Live Deliveries', icon: HiOutlineTruck }] : []),
       ],
     },
 
@@ -91,6 +96,22 @@ function buildNavGroups(role, centerStaff) {
   ].filter((group) => Array.isArray(group.items) && group.items.length > 0);
 }
 
+// Phone tab bar: the first four of these that the user's menu actually has, with short labels.
+const TAB_PATHS = ['/stockist/dashboard', '/stockist/catalog', '/stockist/orders', '/stockist/delivery/live', '/stockist/inventory', '/stockist/grn', '/stockist/reports'];
+const TAB_LABELS = {
+  '/stockist/dashboard': 'Home',
+  '/stockist/catalog': 'Order',
+  '/stockist/orders': 'Orders',
+  '/stockist/delivery/live': 'Live',
+  '/stockist/inventory': 'Stock',
+  '/stockist/grn': 'Receive',
+  '/stockist/reports': 'Sales',
+};
+function buildTabItems(navGroups) {
+  const byPath = new Map(navGroups.flatMap((g) => g.items).map((item) => [item.path, item]));
+  return TAB_PATHS.filter((p) => byPath.has(p)).slice(0, 4).map((p) => ({ ...byPath.get(p), label: TAB_LABELS[p] }));
+}
+
 export default function StockistLayout() {
   const { user, logout } = useAuth();
   const { dark, toggle: toggleTheme } = useTheme();
@@ -103,6 +124,7 @@ export default function StockistLayout() {
   const role = normalizeRoleSlug(user?.role_slug || 'city_stockist');
   const centerStaff = isCenterStaff(user);
   const navGroups = buildNavGroups(role, centerStaff);
+  const tabItems = buildTabItems(navGroups);
 
   const handleLogout = async () => {
     await logout();
@@ -248,6 +270,7 @@ export default function StockistLayout() {
               onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
               title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+              aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {dark ? <HiOutlineSun className="w-5 h-5" /> : <HiOutlineMoon className="w-5 h-5" />}
             </button>
@@ -255,6 +278,7 @@ export default function StockistLayout() {
             {/* Notifications */}
             <button
               onClick={() => setNotifOpen(true)}
+              aria-label={count > 0 ? `Notifications, ${count} unread` : 'Notifications'}
               className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
             >
               <HiOutlineBell className="w-5 h-5" />
@@ -297,6 +321,7 @@ export default function StockistLayout() {
         >
           <Outlet />
         </main>
+        <MobileTabBar items={tabItems} onMenu={() => setSidebarOpen(true)} tone="green" />
       </div>
 
       <NotificationDrawer isOpen={notifOpen} onClose={() => setNotifOpen(false)} />

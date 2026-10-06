@@ -6,6 +6,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
 } from 'recharts';
 import { ToastContainer, useToast } from '@/components/Toast';
+import ResponsiveList from '@/components/ResponsiveList';
 import api from '@/services/api';
 import { REPORTS, ORDERS, INVENTORY } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
@@ -155,29 +156,46 @@ export default function StockistReports() {
                   </ResponsiveContainer>
                 )}
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-[var(--dark-card2)]">
-                    <tr>
-                      {['Month', 'Orders', 'Revenue', 'Avg Order'].map(h => (
-                        <th key={h} className="text-left px-4 py-3 text-xs text-muted font-semibold uppercase">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {revenueData.map((row, i) => (
-                      <tr key={i} className="border-t border-gray-50 hover:bg-amber-50/30">
-                        <td className="px-4 py-2.5 font-medium">{row.month}</td>
-                        <td className="px-4 py-2.5 text-gray-600 dark:text-[var(--dark-muted)]">{row.order_count || 0}</td>
-                        <td className="px-4 py-2.5 font-semibold text-strong">{formatCurrency(row.revenue || 0)}</td>
-                        <td className="px-4 py-2.5 text-muted">
-                          {row.order_count ? formatCurrency((row.revenue || 0) / row.order_count) : '—'}
-                        </td>
+              <ResponsiveList
+                items={revenueData.map((row, _k) => ({ ...row, _k }))}
+                getKey={(row) => row._k}
+                emptyLabel="No revenue in this period"
+                row={(row) => ({
+                  title: row.month,
+                  subtitle: `${row.order_count || 0} orders`,
+                  meta: formatCurrency(row.revenue || 0),
+                  details: [
+                    ['Month', row.month],
+                    ['Orders', row.order_count || 0],
+                    ['Revenue', formatCurrency(row.revenue || 0)],
+                    ['Avg order', row.order_count ? formatCurrency((row.revenue || 0) / row.order_count) : '—'],
+                  ],
+                })}
+              >
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 dark:bg-[var(--dark-card2)]">
+                      <tr>
+                        {['Month', 'Orders', 'Revenue', 'Avg Order'].map(h => (
+                          <th key={h} className="text-left px-4 py-3 text-xs text-muted font-semibold uppercase">{h}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {revenueData.map((row, i) => (
+                        <tr key={i} className="border-t border-gray-50 hover:bg-amber-50/30">
+                          <td className="px-4 py-2.5 font-medium">{row.month}</td>
+                          <td className="px-4 py-2.5 text-gray-600 dark:text-[var(--dark-muted)]">{row.order_count || 0}</td>
+                          <td className="px-4 py-2.5 font-semibold text-strong">{formatCurrency(row.revenue || 0)}</td>
+                          <td className="px-4 py-2.5 text-muted">
+                            {row.order_count ? formatCurrency((row.revenue || 0) / row.order_count) : '—'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </ResponsiveList>
             </div>
           </TabItem>
 
@@ -215,27 +233,44 @@ export default function StockistReports() {
                   </div>
                 </div>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-[var(--dark-card2)]">
-                    <tr>
-                      {['Order #', 'Total', 'Status', 'Date'].map(h => (
-                        <th key={h} className="text-left px-4 py-3 text-xs text-muted font-semibold uppercase">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ordersData.slice(0, 20).map((row, i) => (
-                      <tr key={i} className="border-t border-gray-50 hover:bg-amber-50/30">
-                        <td className="px-4 py-2.5 font-mono text-xs">{row.order_number || `#${row.id}`}</td>
-                        <td className="px-4 py-2.5 font-semibold">{formatCurrency(row.total_amount || 0)}</td>
-                        <td className="px-4 py-2.5 capitalize text-gray-600 dark:text-[var(--dark-muted)]">{row.status}</td>
-                        <td className="px-4 py-2.5 text-xs text-muted">{formatDate(row.created_at)}</td>
+              <ResponsiveList
+                items={ordersData.slice(0, 20).map((row, _k) => ({ ...row, _k }))}
+                getKey={(row) => row._k}
+                emptyLabel="No orders in this period"
+                row={(row) => ({
+                  title: row.order_number || `#${row.id}`,
+                  subtitle: `${formatDate(row.created_at)} · ${row.status}`,
+                  meta: formatCurrency(row.total_amount || 0),
+                  details: [
+                    ['Order', row.order_number || `#${row.id}`],
+                    ['Total', formatCurrency(row.total_amount || 0)],
+                    ['Status', row.status],
+                    ['Date', formatDate(row.created_at)],
+                  ],
+                })}
+              >
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 dark:bg-[var(--dark-card2)]">
+                      <tr>
+                        {['Order #', 'Total', 'Status', 'Date'].map(h => (
+                          <th key={h} className="text-left px-4 py-3 text-xs text-muted font-semibold uppercase">{h}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {ordersData.slice(0, 20).map((row, i) => (
+                        <tr key={i} className="border-t border-gray-50 hover:bg-amber-50/30">
+                          <td className="px-4 py-2.5 font-mono text-xs">{row.order_number || `#${row.id}`}</td>
+                          <td className="px-4 py-2.5 font-semibold">{formatCurrency(row.total_amount || 0)}</td>
+                          <td className="px-4 py-2.5 capitalize text-gray-600 dark:text-[var(--dark-muted)]">{row.status}</td>
+                          <td className="px-4 py-2.5 text-xs text-muted">{formatDate(row.created_at)}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </ResponsiveList>
             </div>
           </TabItem>
 
@@ -259,33 +294,54 @@ export default function StockistReports() {
                   </ResponsiveContainer>
                 )}
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-[var(--dark-card2)]">
-                    <tr>
-                      {['Product', 'On Hand', 'Reserved', 'Available', 'Status'].map(h => (
-                        <th key={h} className="text-left px-4 py-3 text-xs text-muted font-semibold uppercase">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {inventoryData.map((row, i) => {
-                      const avail = (row.current_stock || 0) - (row.reserved_stock || 0);
-                      return (
-                        <tr key={i} className="border-t border-gray-50 hover:bg-amber-50/30">
-                          <td className="px-4 py-2.5 font-medium text-strong">{row.product_name}</td>
-                          <td className="px-4 py-2.5 font-semibold">{row.current_stock || 0}</td>
-                          <td className="px-4 py-2.5 text-amber-700 dark:text-amber-500">{row.reserved_stock || 0}</td>
-                          <td className={`px-4 py-2.5 font-semibold ${avail <= 0 ? 'text-red-600' : 'text-emerald-700 dark:text-emerald-400'}`}>
-                            {avail}
-                          </td>
-                          <td className="px-4 py-2.5 capitalize text-muted text-xs">{row.status || 'in_stock'}</td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
+              <ResponsiveList
+                items={inventoryData.map((row, _k) => ({ ...row, _k }))}
+                getKey={(row) => row._k}
+                emptyLabel="No inventory data"
+                row={(row) => {
+                  const avail = (row.current_stock || 0) - (row.reserved_stock || 0);
+                  return {
+                    title: row.product_name,
+                    subtitle: `${avail} available · ${(row.status || 'in_stock').replace(/_/g, ' ')}`,
+                    meta: `${row.current_stock || 0} on hand`,
+                    details: [
+                      ['Product', row.product_name],
+                      ['On hand', row.current_stock || 0],
+                      ['Reserved', row.reserved_stock || 0],
+                      ['Available', avail],
+                      ['Status', (row.status || 'in_stock').replace(/_/g, ' ')],
+                    ],
+                  };
+                }}
+              >
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 dark:bg-[var(--dark-card2)]">
+                      <tr>
+                        {['Product', 'On Hand', 'Reserved', 'Available', 'Status'].map(h => (
+                          <th key={h} className="text-left px-4 py-3 text-xs text-muted font-semibold uppercase">{h}</th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {inventoryData.map((row, i) => {
+                        const avail = (row.current_stock || 0) - (row.reserved_stock || 0);
+                        return (
+                          <tr key={i} className="border-t border-gray-50 hover:bg-amber-50/30">
+                            <td className="px-4 py-2.5 font-medium text-strong">{row.product_name}</td>
+                            <td className="px-4 py-2.5 font-semibold">{row.current_stock || 0}</td>
+                            <td className="px-4 py-2.5 text-amber-700 dark:text-amber-500">{row.reserved_stock || 0}</td>
+                            <td className={`px-4 py-2.5 font-semibold ${avail <= 0 ? 'text-red-600' : 'text-emerald-700 dark:text-emerald-400'}`}>
+                              {avail}
+                            </td>
+                            <td className="px-4 py-2.5 capitalize text-muted text-xs">{row.status || 'in_stock'}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </ResponsiveList>
             </div>
           </TabItem>
 
@@ -321,34 +377,59 @@ export default function StockistReports() {
                   </ResponsiveContainer>
                 )}
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-gray-50 dark:bg-[var(--dark-card2)]">
-                    <tr>
-                      {['Date', 'Product', 'Type', 'Qty', 'Reference'].map(h => (
-                        <th key={h} className="text-left px-4 py-3 text-xs text-muted font-semibold uppercase">{h}</th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {movementsData.slice(0, 20).map((row, i) => (
-                      <tr key={i} className="border-t border-gray-50 hover:bg-amber-50/30">
-                        <td className="px-4 py-2.5 text-xs text-muted">{formatDate(row.created_at || row.date)}</td>
-                        <td className="px-4 py-2.5 font-medium text-strong">{row.product_name || '—'}</td>
-                        <td className="px-4 py-2.5">
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                            row.movement_type === 'in' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
-                          }`}>
-                            {row.movement_type || '—'}
-                          </span>
-                        </td>
-                        <td className="px-4 py-2.5 font-semibold">{row.quantity || 0}</td>
-                        <td className="px-4 py-2.5 text-xs text-muted font-mono">{row.reference || '—'}</td>
+              <ResponsiveList
+                items={movementsData.slice(0, 20).map((row, _k) => ({ ...row, _k }))}
+                getKey={(row) => row._k}
+                emptyLabel="No movements in this period"
+                row={(row) => ({
+                  title: row.product_name || '—',
+                  subtitle: `${formatDate(row.created_at || row.date)}${row.reference ? ` · ${row.reference}` : ''}`,
+                  meta: `${row.movement_type === 'in' ? '+' : row.movement_type === 'out' ? '-' : ''}${row.quantity || 0}`,
+                  status: (
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                      row.movement_type === 'in' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
+                    }`}>
+                      {row.movement_type || '—'}
+                    </span>
+                  ),
+                  details: [
+                    ['Date', formatDate(row.created_at || row.date)],
+                    ['Product', row.product_name || '—'],
+                    ['Type', row.movement_type || '—'],
+                    ['Qty', row.quantity || 0],
+                    ['Reference', row.reference || '—'],
+                  ],
+                })}
+              >
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-gray-50 dark:bg-[var(--dark-card2)]">
+                      <tr>
+                        {['Date', 'Product', 'Type', 'Qty', 'Reference'].map(h => (
+                          <th key={h} className="text-left px-4 py-3 text-xs text-muted font-semibold uppercase">{h}</th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                    </thead>
+                    <tbody>
+                      {movementsData.slice(0, 20).map((row, i) => (
+                        <tr key={i} className="border-t border-gray-50 hover:bg-amber-50/30">
+                          <td className="px-4 py-2.5 text-xs text-muted">{formatDate(row.created_at || row.date)}</td>
+                          <td className="px-4 py-2.5 font-medium text-strong">{row.product_name || '—'}</td>
+                          <td className="px-4 py-2.5">
+                            <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                              row.movement_type === 'in' ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-600'
+                            }`}>
+                              {row.movement_type || '—'}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2.5 font-semibold">{row.quantity || 0}</td>
+                          <td className="px-4 py-2.5 text-xs text-muted font-mono">{row.reference || '—'}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </ResponsiveList>
             </div>
           </TabItem>
         </Tabs>

@@ -11,6 +11,8 @@ import PageHeader from '@/components/PageHeader';
 import StatusBadge from '@/components/StatusBadge';
 import ConfirmModal from '@/components/ConfirmModal';
 import { ToastContainer, useToast } from '@/components/Toast';
+import ResponsiveList from '@/components/ResponsiveList';
+import LineItemList from '@/components/LineItemList';
 
 const STATUSES = ['all', 'awaiting_owner_approval', 'submitted', 'accepted', 'completed', 'rejected'];
 const EMPTY_FORM = { supplier: '', warehouse_id: '', notes: '' };
@@ -87,6 +89,7 @@ export default function PurchaseOrders() {
   const itemsTotal = items.reduce((sum, it) => sum + (Number(it.quantity || 0) * Number(it.unit_price || 0)), 0);
 
   const handleAdd = async () => {
+    if (submitting) return;
     setSubmitting(true);
     try {
       await api.post(PURCHASE_ORDERS.CREATE, {
@@ -104,7 +107,7 @@ export default function PurchaseOrders() {
   };
 
   const executeAction = async () => {
-    if (!confirmTarget) return;
+    if (!confirmTarget || actionLoading) return;
     setActionLoading(true);
     try {
       const { action, order } = confirmTarget;
@@ -139,56 +142,73 @@ export default function PurchaseOrders() {
         <Tabs onActiveTabChange={(i) => { setActiveTab(i); setPage(1); }}>
           {STATUSES.map((s) => (
             <TabItem key={s} title={s.charAt(0).toUpperCase() + s.slice(1)}>
-              <div className="overflow-x-auto">
-                <Table striped>
-                  <TableHead>
-                    <TableRow>
-                      <TableHeadCell>PO #</TableHeadCell>
-                      <TableHeadCell>Supplier</TableHeadCell>
-                      <TableHeadCell>Warehouse</TableHeadCell>
-                      <TableHeadCell>Status</TableHeadCell>
-                      <TableHeadCell>Auto</TableHeadCell>
-                      <TableHeadCell>Total</TableHeadCell>
-                      <TableHeadCell>Date</TableHeadCell>
-                      <TableHeadCell>Actions</TableHeadCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody className="divide-y">
-                    {loading ? (
-                      Array.from({ length: 6 }).map((_, i) => (
-                        <TableRow key={i}>
-                          {Array.from({ length: 8 }).map((__, j) => (
-                            <TableCell key={j}><div className="skeleton h-4 w-full rounded" /></TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    ) : orders.length === 0 ? (
+              <ResponsiveList
+                items={orders}
+                getKey={(o) => o.id}
+                loading={loading}
+                emptyLabel="No purchase orders found"
+                onOpen={(o) => openDetail(o)}
+                row={(o) => ({
+                  title: o.po_number || `PO-${o.id}`,
+                  subtitle: `${o.supplier} · ${o.warehouse_name || '—'} · ${formatDate(o.created_at)}`,
+                  meta: formatCurrency(o.total_amount || 0),
+                  status: <StatusBadge status={o.status} />,
+                  action: o.status === 'submitted'
+                    ? { label: 'Review', tone: 'primary', onClick: () => openDetail(o) }
+                    : null,
+                })}
+              >
+                <div className="overflow-x-auto">
+                  <Table striped>
+                    <TableHead>
                       <TableRow>
-                        <TableCell colSpan={8} className="text-center text-muted py-10">No purchase orders found</TableCell>
+                        <TableHeadCell>PO #</TableHeadCell>
+                        <TableHeadCell>Supplier</TableHeadCell>
+                        <TableHeadCell>Warehouse</TableHeadCell>
+                        <TableHeadCell>Status</TableHeadCell>
+                        <TableHeadCell>Auto</TableHeadCell>
+                        <TableHeadCell>Total</TableHeadCell>
+                        <TableHeadCell>Date</TableHeadCell>
+                        <TableHeadCell>Actions</TableHeadCell>
                       </TableRow>
-                    ) : (
-                      orders.map((o) => (
-                        <TableRow key={o.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(o)}>
-                          <TableCell className="font-mono font-medium text-xs">{o.po_number || `PO-${o.id}`}</TableCell>
-                          <TableCell className="text-xs">{o.supplier}</TableCell>
-                          <TableCell className="text-xs">{o.warehouse_name || '—'}</TableCell>
-                          <TableCell><StatusBadge status={o.status} /></TableCell>
-                          <TableCell>
-                            {o.is_auto_generated ? (
-                              <span className="badge-approved">Auto</span>
-                            ) : <span className="text-muted text-xs">Manual</span>}
-                          </TableCell>
-                          <TableCell className="font-semibold text-xs">{formatCurrency(o.total_amount || 0)}</TableCell>
-                          <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{formatDate(o.created_at)}</TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <Button size="xs" color="light" onClick={() => openDetail(o)}>View</Button>
-                          </TableCell>
+                    </TableHead>
+                    <TableBody className="divide-y">
+                      {loading ? (
+                        Array.from({ length: 6 }).map((_, i) => (
+                          <TableRow key={i}>
+                            {Array.from({ length: 8 }).map((__, j) => (
+                              <TableCell key={j}><div className="skeleton h-4 w-full rounded" /></TableCell>
+                            ))}
+                          </TableRow>
+                        ))
+                      ) : orders.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={8} className="text-center text-muted py-10">No purchase orders found</TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                      ) : (
+                        orders.map((o) => (
+                          <TableRow key={o.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(o)}>
+                            <TableCell className="font-mono font-medium text-xs">{o.po_number || `PO-${o.id}`}</TableCell>
+                            <TableCell className="text-xs">{o.supplier}</TableCell>
+                            <TableCell className="text-xs">{o.warehouse_name || '—'}</TableCell>
+                            <TableCell><StatusBadge status={o.status} /></TableCell>
+                            <TableCell>
+                              {o.is_auto_generated ? (
+                                <span className="badge-approved">Auto</span>
+                              ) : <span className="text-muted text-xs">Manual</span>}
+                            </TableCell>
+                            <TableCell className="font-semibold text-xs">{formatCurrency(o.total_amount || 0)}</TableCell>
+                            <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{formatDate(o.created_at)}</TableCell>
+                            <TableCell onClick={(e) => e.stopPropagation()}>
+                              <Button size="xs" color="light" onClick={() => openDetail(o)}>View</Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </ResponsiveList>
               {totalPages > 1 && (
                 <div className="flex justify-center mt-4">
                   <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} showIcons />
@@ -291,28 +311,38 @@ export default function PurchaseOrders() {
                 <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Warehouse</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.warehouse_name || '—'}</p></div>
               </div>
               {(selected.items || []).length > 0 && (
-                <div className="overflow-x-auto border border-gray-100 dark:border-[var(--dark-border)] rounded-lg">
-                  <Table>
-                    <TableHead>
-                      <TableRow>
-                        <TableHeadCell>Product</TableHeadCell>
-                        <TableHeadCell>Qty</TableHeadCell>
-                        <TableHeadCell>Unit Price</TableHeadCell>
-                        <TableHeadCell>Subtotal</TableHeadCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody className="divide-y">
-                      {selected.items.map((it, i) => (
-                        <TableRow key={i}>
-                          <TableCell>{it.product_name}</TableCell>
-                          <TableCell>{it.quantity}</TableCell>
-                          <TableCell>{formatCurrency(it.unit_price)}</TableCell>
-                          <TableCell className="font-semibold">{formatCurrency(it.subtotal || it.quantity * it.unit_price)}</TableCell>
+                <>
+                  <LineItemList
+                    lines={selected.items.map((it, i) => ({
+                      key: i,
+                      title: it.product_name,
+                      caption: `${it.quantity} × ${formatCurrency(it.unit_price)}`,
+                      value: formatCurrency(it.subtotal || it.quantity * it.unit_price),
+                    }))}
+                  />
+                  <div className="hidden overflow-x-auto border border-gray-100 dark:border-[var(--dark-border)] rounded-lg md:block">
+                    <Table>
+                      <TableHead>
+                        <TableRow>
+                          <TableHeadCell>Product</TableHeadCell>
+                          <TableHeadCell>Qty</TableHeadCell>
+                          <TableHeadCell>Unit Price</TableHeadCell>
+                          <TableHeadCell>Subtotal</TableHeadCell>
                         </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
+                      </TableHead>
+                      <TableBody className="divide-y">
+                        {selected.items.map((it, i) => (
+                          <TableRow key={i}>
+                            <TableCell>{it.product_name}</TableCell>
+                            <TableCell>{it.quantity}</TableCell>
+                            <TableCell>{formatCurrency(it.unit_price)}</TableCell>
+                            <TableCell className="font-semibold">{formatCurrency(it.subtotal || it.quantity * it.unit_price)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                </>
               )}
               <div className="flex justify-end">
                 <p className="text-base font-bold">Total: {formatCurrency(selected.total_amount)}</p>

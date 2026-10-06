@@ -7,6 +7,8 @@ import { FiCheckCircle, FiAlertTriangle } from 'react-icons/fi';
 import ConfirmModal from '@/components/ConfirmModal';
 import StatusBadge from '@/components/StatusBadge';
 import { ToastContainer, useToast } from '@/components/Toast';
+import ResponsiveList from '@/components/ResponsiveList';
+import LineItemList from '@/components/LineItemList';
 import api from '@/services/api';
 import { GRN, WAREHOUSES, PRODUCTS } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
@@ -89,7 +91,7 @@ export default function StockistGRN() {
   };
 
   const handleComplete = async () => {
-    if (!confirmComplete) return;
+    if (!confirmComplete || completing) return;
     setCompleting(true);
     try {
       await api.patch(GRN.COMPLETE(confirmComplete));
@@ -115,6 +117,7 @@ export default function StockistGRN() {
     if (form.items.some(i => !i.product_id || !i.received_qty)) {
       showToast('Please complete all item fields', 'warning'); return;
     }
+    if (submitting) return;
     setSubmitting(true);
     try {
       await api.post(GRN.CREATE, {
@@ -164,40 +167,52 @@ export default function StockistGRN() {
       );
     }
     return (
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 dark:bg-[var(--dark-card)] border-b border-gray-100 dark:border-[var(--dark-border)]">
-            <tr>
-              {['GRN #', 'Supplier', 'Warehouse', 'Received By', 'Status', 'Date', ''].map(h => (
-                <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-600 dark:text-[var(--dark-muted)] uppercase tracking-wide">
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {list.map(grn => (
-              <tr
-                key={grn.id}
-                className="border-b border-gray-50 hover:bg-amber-50/30 cursor-pointer transition-colors"
-                onClick={() => openDetail(grn)}
-              >
-                <td className="px-4 py-3 font-mono font-semibold text-xs text-gray-800 dark:text-[var(--dark-text)]">
-                  #{grn.grn_number || grn.id}
-                </td>
-                <td className="px-4 py-3 text-gray-700 dark:text-[var(--dark-text)]">{grn.supplier || '—'}</td>
-                <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-xs">{grn.warehouse_name || '—'}</td>
-                <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-xs">{grn.received_by_name || '—'}</td>
-                <td className="px-4 py-3"><StatusBadge status={grn.status} /></td>
-                <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-xs">{formatDate(grn.created_at)}</td>
-                <td className="px-4 py-3">
-                  <button className="text-xs text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-medium">View</button>
-                </td>
+      <ResponsiveList
+        items={list}
+        getKey={(grn) => grn.id}
+        onOpen={(grn) => openDetail(grn)}
+        row={(grn) => ({
+          title: `#${grn.grn_number || grn.id}`,
+          subtitle: `${grn.supplier || '—'} · ${formatDate(grn.created_at)}`,
+          status: <StatusBadge status={grn.status} />,
+          action: grn.status === 'draft' ? { label: 'Review', tone: 'primary', onClick: () => openDetail(grn) } : null,
+        })}
+      >
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 dark:bg-[var(--dark-card)] border-b border-gray-100 dark:border-[var(--dark-border)]">
+              <tr>
+                {['GRN #', 'Supplier', 'Warehouse', 'Received By', 'Status', 'Date', ''].map(h => (
+                  <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-600 dark:text-[var(--dark-muted)] uppercase tracking-wide">
+                    {h}
+                  </th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {list.map(grn => (
+                <tr
+                  key={grn.id}
+                  className="border-b border-gray-50 hover:bg-amber-50/30 cursor-pointer transition-colors"
+                  onClick={() => openDetail(grn)}
+                >
+                  <td className="px-4 py-3 font-mono font-semibold text-xs text-gray-800 dark:text-[var(--dark-text)]">
+                    #{grn.grn_number || grn.id}
+                  </td>
+                  <td className="px-4 py-3 text-gray-700 dark:text-[var(--dark-text)]">{grn.supplier || '—'}</td>
+                  <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-xs">{grn.warehouse_name || '—'}</td>
+                  <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-xs">{grn.received_by_name || '—'}</td>
+                  <td className="px-4 py-3"><StatusBadge status={grn.status} /></td>
+                  <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-xs">{formatDate(grn.created_at)}</td>
+                  <td className="px-4 py-3">
+                    <button className="text-xs text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-medium">View</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </ResponsiveList>
     );
   };
 
@@ -268,7 +283,25 @@ export default function StockistGRN() {
               {detail.items && detail.items.length > 0 && (
                 <div>
                   <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-2">Items</h3>
-                  <div className="border border-gray-100 dark:border-[var(--dark-border)] rounded-xl overflow-hidden">
+                  <LineItemList
+                    lines={detail.items.map((item, i) => {
+                      const disc = (item.expected_qty || 0) - (item.received_qty || 0);
+                      return {
+                        key: i,
+                        title: item.product_name || `Product #${item.product_id}`,
+                        caption: `Expected ${item.expected_qty} · Received ${item.received_qty}`,
+                        extra: [
+                          item.batch_number ? `Batch ${item.batch_number}` : null,
+                          item.expiry_date ? `Exp ${formatDate(item.expiry_date)}` : null,
+                          item.unit_cost ? formatCurrency(item.unit_cost) : null,
+                        ].filter(Boolean).join(' · ') || null,
+                        value: disc !== 0 ? (
+                          <span className="text-red-600">{disc > 0 ? `-${disc}` : `+${Math.abs(disc)}`}</span>
+                        ) : null,
+                      };
+                    })}
+                  />
+                  <div className="hidden overflow-hidden rounded-xl border border-gray-100 dark:border-[var(--dark-border)] md:block">
                     <table className="w-full text-sm">
                       <thead className="bg-gray-50 dark:bg-[var(--dark-card)]">
                         <tr>

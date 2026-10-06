@@ -10,6 +10,7 @@ import KpiCard from '@/components/KpiCard';
 import EmptyState from '@/components/EmptyState';
 import StatusBadge from '@/components/StatusBadge';
 import SalesChannelComparison from '@/components/SalesChannelComparison';
+import ResponsiveList from '@/components/ResponsiveList';
 
 const EMPTY_SUMMARY = { order_count: 0, gross_sales: 0, by_provider: [], by_center: [] };
 
@@ -176,34 +177,54 @@ export default function InfluencerReports() {
           </div>
 
           <Card>
-            <div className="overflow-x-auto">
-              <Table striped>
-                <TableHead>
-                  <TableRow>
-                    <TableHeadCell>Order</TableHeadCell>
-                    <TableHeadCell>Date &amp; time</TableHeadCell>
-                    <TableHeadCell>Provider</TableHeadCell>
-                    <TableHeadCell>Fulfillment center</TableHeadCell>
-                    <TableHeadCell>Customer location</TableHeadCell>
-                    <TableHeadCell className="text-right">Total</TableHeadCell>
-                    <TableHeadCell>Status</TableHeadCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody className="divide-y">
-                  {rows.map((row) => (
-                    <TableRow key={row.order_number}>
-                      <TableCell className="font-mono font-medium">#{row.order_number}</TableCell>
-                      <TableCell className="whitespace-nowrap">{formatDateTime(row.created_at)}</TableCell>
-                      <TableCell>{row.payment_provider || '—'}</TableCell>
-                      <TableCell>{row.fulfillment_center || '—'}</TableCell>
-                      <TableCell>{row.customer_location || '—'}</TableCell>
-                      <TableCell className="text-right font-semibold">{formatCurrency(row.total_amount)}</TableCell>
-                      <TableCell><StatusBadge status={row.status} /></TableCell>
+            <ResponsiveList
+              items={rows}
+              getKey={(row) => row.order_number}
+              row={(row) => ({
+                title: `#${row.order_number}`,
+                subtitle: `${row.fulfillment_center || '—'} · ${formatDateTime(row.created_at)}`,
+                meta: formatCurrency(row.total_amount),
+                status: <StatusBadge status={row.status} />,
+                details: [
+                  ['Order', `#${row.order_number}`],
+                  ['Date & time', formatDateTime(row.created_at)],
+                  ['Provider', row.payment_provider || '—'],
+                  ['Fulfillment center', row.fulfillment_center || '—'],
+                  ['Customer location', row.customer_location || '—'],
+                  ['Total', formatCurrency(row.total_amount)],
+                  ['Status', <StatusBadge key="s" status={row.status} />],
+                ],
+              })}
+            >
+              <div className="overflow-x-auto">
+                <Table striped>
+                  <TableHead>
+                    <TableRow>
+                      <TableHeadCell>Order</TableHeadCell>
+                      <TableHeadCell>Date &amp; time</TableHeadCell>
+                      <TableHeadCell>Provider</TableHeadCell>
+                      <TableHeadCell>Fulfillment center</TableHeadCell>
+                      <TableHeadCell>Customer location</TableHeadCell>
+                      <TableHeadCell className="text-right">Total</TableHeadCell>
+                      <TableHeadCell>Status</TableHeadCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                  </TableHead>
+                  <TableBody className="divide-y">
+                    {rows.map((row) => (
+                      <TableRow key={row.order_number}>
+                        <TableCell className="font-mono font-medium">#{row.order_number}</TableCell>
+                        <TableCell className="whitespace-nowrap">{formatDateTime(row.created_at)}</TableCell>
+                        <TableCell>{row.payment_provider || '—'}</TableCell>
+                        <TableCell>{row.fulfillment_center || '—'}</TableCell>
+                        <TableCell>{row.customer_location || '—'}</TableCell>
+                        <TableCell className="text-right font-semibold">{formatCurrency(row.total_amount)}</TableCell>
+                        <TableCell><StatusBadge status={row.status} /></TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </ResponsiveList>
           </Card>
         </>
       )}

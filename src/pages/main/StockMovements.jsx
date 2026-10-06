@@ -19,6 +19,7 @@ import { formatDateTime } from '@/utils/formatDate';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import { ToastContainer, useToast } from '@/components/Toast';
+import ResponsiveList from '@/components/ResponsiveList';
 
 const TYPE_BADGE = {
   in: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
@@ -189,58 +190,82 @@ export default function StockMovements() {
           <TextInput type="date" value={dateTo} onChange={(e) => { setDateTo(e.target.value); setPage(1); }} sizing="sm" />
         </div>
 
-        <div className="overflow-x-auto">
-          <Table striped>
-            <TableHead>
-              <TableRow>
-                <TableHeadCell>Date</TableHeadCell>
-                <TableHeadCell>Product</TableHeadCell>
-                <TableHeadCell>Warehouse</TableHeadCell>
-                <TableHeadCell>Type</TableHeadCell>
-                <TableHeadCell>Qty</TableHeadCell>
-                <TableHeadCell>Before</TableHeadCell>
-                <TableHeadCell>After</TableHeadCell>
-                <TableHeadCell>Reference</TableHeadCell>
-                <TableHeadCell>Notes</TableHeadCell>
-              </TableRow>
-            </TableHead>
-            <TableBody className="divide-y">
-              {loading ? (
-                Array.from({ length: 10 }).map((_, index) => (
-                  <TableRow key={index}>
-                    {Array.from({ length: 9 }).map((__, cellIndex) => (
-                      <TableCell key={cellIndex}><div className="skeleton h-4 w-full rounded" /></TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : movements.length === 0 ? (
+        <ResponsiveList
+          items={movements}
+          getKey={(m) => m.id}
+          loading={loading}
+          emptyLabel="No stock movements match the current filters"
+          row={(m) => ({
+            title: m.product_name,
+            subtitle: `${m.warehouse_name} · ${formatDateTime(m.created_at)}`,
+            meta: `${Number(m.quantity) > 0 ? '+' : ''}${m.quantity}`,
+            status: typeSpan(m.movement_type),
+            details: [
+              ['Date', formatDateTime(m.created_at)],
+              ['Product', m.product_name],
+              ['Warehouse', m.warehouse_name],
+              ['Type', typeSpan(m.movement_type)],
+              ['Qty', `${Number(m.quantity) > 0 ? '+' : ''}${m.quantity}`],
+              ['Before', m.stock_before ?? '-'],
+              ['After', m.stock_after ?? '-'],
+              ['Reference', m.reference_id || '-'],
+              ['Notes', m.notes || '-'],
+            ],
+          })}
+        >
+          <div className="overflow-x-auto">
+            <Table striped>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={9}>
-                    <EmptyState icon={HiOutlineCollection} title="No movements found" description="No stock movements match the current filters" />
-                  </TableCell>
+                  <TableHeadCell>Date</TableHeadCell>
+                  <TableHeadCell>Product</TableHeadCell>
+                  <TableHeadCell>Warehouse</TableHeadCell>
+                  <TableHeadCell>Type</TableHeadCell>
+                  <TableHeadCell>Qty</TableHeadCell>
+                  <TableHeadCell>Before</TableHeadCell>
+                  <TableHeadCell>After</TableHeadCell>
+                  <TableHeadCell>Reference</TableHeadCell>
+                  <TableHeadCell>Notes</TableHeadCell>
                 </TableRow>
-              ) : (
-                movements.map((movement) => (
-                  <TableRow key={movement.id} className="hover:bg-amber-50/20 dark:hover:bg-white/5">
-                    <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{formatDateTime(movement.created_at)}</TableCell>
-                    <TableCell className="text-xs font-medium text-gray-900 dark:text-[var(--dark-text)]">{movement.product_name}</TableCell>
-                    <TableCell className="text-xs">{movement.warehouse_name}</TableCell>
-                    <TableCell>{typeSpan(movement.movement_type)}</TableCell>
-                    <TableCell>
-                      <span className={`text-sm font-bold ${Number(movement.quantity) > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                        {Number(movement.quantity) > 0 ? '+' : ''}{movement.quantity}
-                      </span>
+              </TableHead>
+              <TableBody className="divide-y">
+                {loading ? (
+                  Array.from({ length: 10 }).map((_, index) => (
+                    <TableRow key={index}>
+                      {Array.from({ length: 9 }).map((__, cellIndex) => (
+                        <TableCell key={cellIndex}><div className="skeleton h-4 w-full rounded" /></TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : movements.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9}>
+                      <EmptyState icon={HiOutlineCollection} title="No movements found" description="No stock movements match the current filters" />
                     </TableCell>
-                    <TableCell className="text-xs">{movement.stock_before ?? '-'}</TableCell>
-                    <TableCell className="text-xs">{movement.stock_after ?? '-'}</TableCell>
-                    <TableCell className="font-mono text-xs text-gray-600 dark:text-[var(--dark-muted)]">{movement.reference_id || '-'}</TableCell>
-                    <TableCell className="max-w-xs truncate text-xs text-gray-600 dark:text-[var(--dark-muted)]">{movement.notes || '-'}</TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                ) : (
+                  movements.map((movement) => (
+                    <TableRow key={movement.id} className="hover:bg-amber-50/20 dark:hover:bg-white/5">
+                      <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{formatDateTime(movement.created_at)}</TableCell>
+                      <TableCell className="text-xs font-medium text-gray-900 dark:text-[var(--dark-text)]">{movement.product_name}</TableCell>
+                      <TableCell className="text-xs">{movement.warehouse_name}</TableCell>
+                      <TableCell>{typeSpan(movement.movement_type)}</TableCell>
+                      <TableCell>
+                        <span className={`text-sm font-bold ${Number(movement.quantity) > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
+                          {Number(movement.quantity) > 0 ? '+' : ''}{movement.quantity}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-xs">{movement.stock_before ?? '-'}</TableCell>
+                      <TableCell className="text-xs">{movement.stock_after ?? '-'}</TableCell>
+                      <TableCell className="font-mono text-xs text-gray-600 dark:text-[var(--dark-muted)]">{movement.reference_id || '-'}</TableCell>
+                      <TableCell className="max-w-xs truncate text-xs text-gray-600 dark:text-[var(--dark-muted)]">{movement.notes || '-'}</TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </ResponsiveList>
 
         {totalPages > 1 && (
           <div className="mt-4 flex justify-center">

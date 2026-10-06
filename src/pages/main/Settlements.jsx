@@ -5,8 +5,10 @@ import api from '@/services/api';
 import { EXPORTS, SETTLEMENTS } from '@/services/endpoints';
 import PageHeader from '@/components/PageHeader';
 import StatusBadge from '@/components/StatusBadge';
+import useSubmitGuard from '@/hooks/useSubmitGuard';
 import EmptyState from '@/components/EmptyState';
 import { ToastContainer, useToast } from '@/components/Toast';
+import ResponsiveList from '@/components/ResponsiveList';
 import { formatDateTime } from '@/utils/formatDate';
 import { formatCurrency } from '@/utils/formatCurrency';
 
@@ -15,6 +17,7 @@ export default function MainSettlements() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [reviewTarget, setReviewTarget] = useState(null);
+  const { submitting, run } = useSubmitGuard();
   const [form, setForm] = useState({ status: 'reconciled', reference_number: '', variance_amount: '0', notes: '' });
 
   const load = async () => {
@@ -48,7 +51,7 @@ export default function MainSettlements() {
     }
   };
 
-  const handleReconcile = async () => {
+  const handleReconcile = () => run(async () => {
     if (!reviewTarget) return;
     try {
       await api.patch(SETTLEMENTS.RECONCILE(reviewTarget.id), {
@@ -62,7 +65,7 @@ export default function MainSettlements() {
     } catch (err) {
       showToast(err?.response?.data?.message || 'Failed to update settlement', 'error');
     }
-  };
+  });
 
   return (
     <div className="page-enter">
@@ -79,42 +82,64 @@ export default function MainSettlements() {
         ) : rows.length === 0 ? (
           <EmptyState icon={HiOutlineCurrencyDollar} title="No settlements" description="Verified payments will generate pending settlements." />
         ) : (
-          <div className="overflow-x-auto">
-            <Table striped>
-              <TableHead>
-                <TableRow>
-                  <TableHeadCell>Settlement</TableHeadCell>
-                  <TableHeadCell>Order</TableHeadCell>
-                  <TableHeadCell>Stockist</TableHeadCell>
-                  <TableHeadCell>Amount</TableHeadCell>
-                  <TableHeadCell>Status</TableHeadCell>
-                  <TableHeadCell>Method</TableHeadCell>
-                  <TableHeadCell>Expected</TableHeadCell>
-                  <TableHeadCell />
-                </TableRow>
-              </TableHead>
-              <TableBody className="divide-y">
-                {rows.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className="font-mono text-xs">{row.settlement_number}</TableCell>
-                    <TableCell className="font-mono text-xs">#{row.order_number}</TableCell>
-                    <TableCell>{row.partner_name}</TableCell>
-                    <TableCell>{formatCurrency(row.amount)}</TableCell>
-                    <TableCell><StatusBadge status={row.status} /></TableCell>
-                    <TableCell>{row.method}</TableCell>
-                    <TableCell className="text-xs">{row.expected_at ? formatDateTime(row.expected_at) : '—'}</TableCell>
-                    <TableCell>
-                      {row.status === 'pending' && (
-                        <Button size="xs" color="warning" onClick={() => setReviewTarget(row)}>
-                          Review
-                        </Button>
-                      )}
-                    </TableCell>
+          <ResponsiveList
+            items={rows}
+            getKey={(row) => row.id}
+            emptyLabel="No settlements"
+            row={(row) => ({
+              title: row.settlement_number,
+              subtitle: `#${row.order_number} · ${row.partner_name || '—'}`,
+              meta: formatCurrency(row.amount),
+              status: <StatusBadge status={row.status} />,
+              details: [
+                ['Settlement', row.settlement_number],
+                ['Order', `#${row.order_number}`],
+                ['Stockist', row.partner_name],
+                ['Amount', formatCurrency(row.amount)],
+                ['Status', <StatusBadge key="s" status={row.status} />],
+                ['Method', row.method],
+                ['Expected', row.expected_at ? formatDateTime(row.expected_at) : '—'],
+              ],
+              action: row.status === 'pending' ? { label: 'Review', tone: 'primary', onClick: () => setReviewTarget(row) } : null,
+            })}
+          >
+            <div className="overflow-x-auto">
+              <Table striped>
+                <TableHead>
+                  <TableRow>
+                    <TableHeadCell>Settlement</TableHeadCell>
+                    <TableHeadCell>Order</TableHeadCell>
+                    <TableHeadCell>Stockist</TableHeadCell>
+                    <TableHeadCell>Amount</TableHeadCell>
+                    <TableHeadCell>Status</TableHeadCell>
+                    <TableHeadCell>Method</TableHeadCell>
+                    <TableHeadCell>Expected</TableHeadCell>
+                    <TableHeadCell />
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHead>
+                <TableBody className="divide-y">
+                  {rows.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell className="font-mono text-xs">{row.settlement_number}</TableCell>
+                      <TableCell className="font-mono text-xs">#{row.order_number}</TableCell>
+                      <TableCell>{row.partner_name}</TableCell>
+                      <TableCell>{formatCurrency(row.amount)}</TableCell>
+                      <TableCell><StatusBadge status={row.status} /></TableCell>
+                      <TableCell>{row.method}</TableCell>
+                      <TableCell className="text-xs">{row.expected_at ? formatDateTime(row.expected_at) : '—'}</TableCell>
+                      <TableCell>
+                        {row.status === 'pending' && (
+                          <Button size="xs" color="warning" onClick={() => setReviewTarget(row)}>
+                            Review
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </ResponsiveList>
         )}
       </Card>
 
@@ -131,7 +156,7 @@ export default function MainSettlements() {
           <Textarea rows={4} value={form.notes} onChange={(e) => setForm((prev) => ({ ...prev, notes: e.target.value }))} placeholder="Notes" />
         </ModalBody>
         <ModalFooter>
-          <Button color="warning" onClick={handleReconcile}>Save</Button>
+          <Button color="warning" onClick={handleReconcile} disabled={submitting}>{submitting ? 'Saving…' : 'Save'}</Button>
           <Button color="gray" onClick={() => setReviewTarget(null)}>Cancel</Button>
         </ModalFooter>
       </Modal>

@@ -7,7 +7,7 @@ import {
   HiOutlineSearch, HiOutlineEye, HiOutlineCheck, HiOutlineX,
   HiOutlineClock, HiOutlinePhotograph, HiOutlineExternalLink,
   HiOutlineUser, HiOutlineCalendar, HiOutlineXCircle,
-  HiOutlineLink, HiOutlineClipboardCopy, HiOutlineCheckCircle, HiOutlinePaperAirplane
+  HiOutlineCheckCircle
 } from 'react-icons/hi';
 import api from '@/services/api';
 import { DELIVERY_TOKENS, ORDERS } from '@/services/endpoints';
@@ -19,6 +19,8 @@ import OrderStatusTimeline from '@/components/OrderStatusTimeline';
 import ConfirmModal from '@/components/ConfirmModal';
 import PageHeader from '@/components/PageHeader';
 import ProofOfDeliveryPanel from '@/components/ProofOfDeliveryPanel';
+import RiderLinkPanel from '@/components/delivery/RiderLinkPanel';
+import ResponsiveList from '@/components/ResponsiveList';
 import { ToastContainer, useToast } from '@/components/Toast';
 import OrderPricingBreakdown from '@/components/OrderPricingBreakdown';
 
@@ -82,8 +84,6 @@ export default function Orders() {
   const [rejectReason, setRejectReason] = useState('');
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectOrder, setRejectOrder] = useState(null);
-  const [deliveryLinkInfo, setDeliveryLinkInfo] = useState(null); // { orderId, magicLink, expiresAt }
-  const [copiedOrderId, setCopiedOrderId] = useState(null);
 
   // Notification deep-link: ?highlight=<orderId> glows that row briefly.
   const [searchParams, setSearchParams] = useSearchParams();
@@ -150,20 +150,14 @@ export default function Orders() {
   };
 
   const openDetail = async (order) => {
-    setCopiedOrderId(null);
     setDeliveryProof(null);
     setDeliveryProofLoading(false);
-    setDeliveryLinkInfo((prev) => {
-      if (!prev) return null;
-      return String(prev.orderId) === String(order.id) ? prev : null;
-    });
 
     setShowDetail(true);
     setDetailLoading(true);
     try {
       const { data } = await api.get(ORDERS.BY_ID(order.id));
       setSelectedOrder(data.data);
-      await hydrateDeliveryLinkForOrder(data.data);
       if (['delivering', 'delivered'].includes(toStatusKey(data.data?.status))) {
         setDeliveryProofLoading(true);
         try {
@@ -177,7 +171,6 @@ export default function Orders() {
       }
     } catch {
       setSelectedOrder(order);
-      await hydrateDeliveryLinkForOrder(order);
     } finally {
       setDetailLoading(false);
     }
@@ -197,141 +190,24 @@ export default function Orders() {
     setConfirmAction({ type: 'cancel', order });
   };
 
-  const hydrateDeliveryLinkForOrder = async (orderLike) => {
-    if (!orderLike?.id) return;
-
-    const paymentKey = toStatusKey(orderLike.payment_status);
-    const statusKey = toStatusKey(orderLike.status);
-    const paymentEligible = ['paid', 'verified'].includes(paymentKey);
-    const statusEligible = !['delivered', 'cancelled', 'rejected'].includes(statusKey);
-
-    if (!paymentEligible || !statusEligible) {
-      setDeliveryLinkInfo((prev) => {
-        if (!prev) return null;
-        return String(prev.orderId) === String(orderLike.id) ? null : prev;
-      });
-      return;
-    }
-
-    try {
-      const { data } = await api.get(DELIVERY_TOKENS.BY_ORDER(orderLike.id));
-      const existingLink = data?.data?.magic_link || null;
-      if (existingLink) {
-        setDeliveryLinkInfo({
-          orderId: orderLike.id,
-          magicLink: existingLink,
-          expiresAt: data.data?.expires_at || null,
-        });
-      } else {
-        setDeliveryLinkInfo((prev) => {
-          if (!prev) return null;
-          return String(prev.orderId) === String(orderLike.id) ? null : prev;
-        });
-      }
-    } catch {
-      // Retrieval failure is non-blocking; manual generate still works.
-    }
-  };
-
-  const handleGenerateDelivery = async (order) => {
-    setActionLoading(true);
-    try {
-      const { data } = await api.post(DELIVERY_TOKENS.GENERATE, { order_id: order.id });
-      const generatedLink = data.data?.magic_link || null;
-      setCopiedOrderId(null);
-      if (generatedLink) {
-        setDeliveryLinkInfo({
-          orderId: order.id,
-          magicLink: generatedLink,
-          expiresAt: data.data?.expires_at || null,
-        });
-      }
-
-      showToast('Delivery link generated. Copy it from this modal and send it to the Stockist chat.', 'success');
-
-      fetchOrders();
-      if (String(selectedOrder?.id) === String(order.id)) {
-        try {
-          const { data: detail } = await api.get(ORDERS.BY_ID(order.id));
-          setSelectedOrder(detail.data);
-          await hydrateDeliveryLinkForOrder(detail.data);
-        } catch {
-          // Keep existing modal state if detail refresh fails.
-        }
-      }
-    } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to generate delivery link', 'error');
-    } finally {
-      setActionLoading(false);
-    }
-  };
-
-  const handleCopyDeliveryLink = async () => {
-    const link = deliveryLinkInfo?.magicLink;
-    if (!link || !selectedOrder?.id) return;
-
-    try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(link);
-      } else {
-        const textArea = document.createElement('textarea');
-        textArea.value = link;
-        textArea.style.position = 'fixed';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-      }
-
-      setCopiedOrderId(String(selectedOrder.id));
-      showToast('Delivery link copied. You can now paste it in Stockist chat.', 'success');
-    } catch {
-      showToast('Failed to copy link. Please copy it manually from the field.', 'error');
-    }
-  };
-
   const handleVerifyPayment = async (order) => {
     setActionLoading(true);
     try {
       await api.patch(ORDERS.VERIFY_PAYMENT(order.id));
 
-      // Optimistic update so delivery-link action appears immediately after verification.
+      // Optimistic update so the Rider Link section appears immediately after verification.
       setSelectedOrder((prev) => {
         if (!prev || String(prev.id) !== String(order.id)) return prev;
         return { ...prev, payment_status: 'paid' };
       });
-
-      let autoLinkGenerated = false;
-      try {
-        const { data } = await api.post(DELIVERY_TOKENS.GENERATE, { order_id: order.id });
-        const generatedLink = data.data?.magic_link || null;
-        if (generatedLink) {
-          setDeliveryLinkInfo({
-            orderId: order.id,
-            magicLink: generatedLink,
-            expiresAt: data.data?.expires_at || null,
-          });
-          setCopiedOrderId(null);
-          autoLinkGenerated = true;
-        }
-      } catch {
-        autoLinkGenerated = false;
-      }
-
-      if (autoLinkGenerated) {
-        showToast('Payment verified and delivery link generated. Copy it below and send to the Stockist chat.', 'success');
-      } else {
-        showToast('Payment verified. Auto-generate failed, click Generate Delivery Link below.', 'warning');
-      }
+      // The link is no longer created automatically: the vehicle has to be picked first.
+      showToast('Payment verified. Pick the vehicle and create the Rider Link in the Delivery section.', 'success');
 
       fetchOrders();
       if (String(selectedOrder?.id) === String(order.id)) {
         try {
           const { data } = await api.get(ORDERS.BY_ID(order.id));
           setSelectedOrder(data.data);
-          await hydrateDeliveryLinkForOrder(data.data);
         } catch {
           // Keep optimistic state if detail refresh fails.
         }
@@ -389,15 +265,6 @@ export default function Orders() {
 
   const selectedStatusKey = toStatusKey(selectedOrder?.status);
   const selectedPaymentStatusKey = toStatusKey(selectedOrder?.payment_status);
-  const isPaymentVerified = ['paid', 'verified'].includes(selectedPaymentStatusKey);
-  const isTerminalStatus = ['delivered', 'cancelled', 'rejected'].includes(selectedStatusKey);
-  const canGenerateDeliveryLink = isPaymentVerified && !isTerminalStatus;
-  const isActiveOrderLink = selectedOrder && deliveryLinkInfo && String(deliveryLinkInfo.orderId) === String(selectedOrder.id);
-  const deliveryLinkLabel = isTerminalStatus
-    ? 'Generate Delivery Link (Order Closed)'
-    : isPaymentVerified
-      ? (actionLoading ? 'Generating Delivery Link...' : 'Generate Delivery Link')
-      : 'Generate Delivery Link (Payment Required)';
 
   return (
     <div className="page-enter">
@@ -424,6 +291,18 @@ export default function Orders() {
             <TabItem key={s} title={s.charAt(0).toUpperCase() + s.slice(1)}>
               {/* Table */}
               <div className="overflow-x-auto">
+                <ResponsiveList
+                  items={orders}
+                  loading={loading}
+                  emptyLabel="No orders found"
+                  onOpen={openDetail}
+                  row={(order) => ({
+                    title: order.order_number,
+                    subtitle: `${order.is_public ? (order.customer_name || 'Store buyer') : (order.partner_name || order.business_name || 'N/A')} · ${formatDate(order.created_at)}`,
+                    meta: formatCurrency(order.total_amount),
+                    status: <StatusBadge status={order.status} />,
+                  })}
+                >
                 <Table striped>
                   <TableHead>
                     <TableRow>
@@ -494,6 +373,7 @@ export default function Orders() {
                     )}
                   </TableBody>
                 </Table>
+                </ResponsiveList>
               </div>
               {totalPages > 1 && (
                 <div className="flex justify-center mt-4">
@@ -713,44 +593,8 @@ export default function Orders() {
                 )}
               </div>
 
-              {/* Delivery Link Area */}
-              {isActiveOrderLink && deliveryLinkInfo?.magicLink && (
-                <div className="bg-purple-50 dark:bg-purple-900/10 border border-purple-200 dark:border-purple-800 p-5 rounded-xl shadow-sm relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-24 h-24 bg-purple-100 dark:bg-purple-800/20 rounded-bl-full -mr-4 -mt-4 z-0"></div>
-                  <div className="relative z-10">
-                    <div className="flex items-start gap-3 flex-col sm:flex-row sm:items-center justify-between mb-4">
-                      <div>
-                        <p className="text-sm font-bold text-purple-900 dark:text-purple-300 uppercase tracking-wider mb-1 flex items-center gap-1.5">
-                          <HiOutlineLink className="w-4 h-4" /> Delivery Magic Link
-                        </p>
-                        <p className="text-sm text-purple-700/80 dark:text-purple-400/80">
-                          Send this to the rider (Viber, SMS or Messenger). They open it on their phone, share their location while driving, and upload a photo at the door to mark the order delivered. No login needed; the link stops working after delivery or 48 hours.
-                        </p>
-                      </div>
-                      {deliveryLinkInfo.expiresAt && (
-                        <span className="text-xs font-bold bg-purple-100 dark:bg-purple-800/40 text-purple-700 dark:text-purple-300 px-3 py-1 rounded-full whitespace-nowrap border border-purple-200 dark:border-purple-800/50">
-                          Expires: {formatDateTime(deliveryLinkInfo.expiresAt)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-3 md:flex-row md:items-stretch">
-                      <TextInput 
-                        value={deliveryLinkInfo.magicLink} 
-                        readOnly 
-                        className="flex-1 font-mono text-xs shadow-inner"
-                        color="purple"
-                      />
-                      <Button color="purple" onClick={handleCopyDeliveryLink} className="flex-shrink-0 font-bold whitespace-nowrap shadow-sm hover:shadow">
-                        {String(copiedOrderId) === String(selectedOrder.id) ? (
-                          <><HiOutlineCheck className="w-4 h-4 mr-2" /> Copied</>
-                        ) : (
-                          <><HiOutlineClipboardCopy className="w-4 h-4 mr-2" /> Copy Link</>
-                        )}
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
+              {/* Delivery: vehicle, Rider Link and the live map (shared with the stockist portal). */}
+              <RiderLinkPanel order={selectedOrder} canManage={isSuperAdmin} notify={showToast} />
 
               {/* Cancellation string */}
               {selectedOrder.cancellation_reason && (
@@ -774,7 +618,7 @@ export default function Orders() {
                   proof={deliveryProof}
                   loading={deliveryProofLoading}
                   title="Proof of Delivery Review"
-                  emptyMessage="The rider has not submitted proof of delivery yet. The office can review the photo, signature, and GPS here as soon as the delivery magic link is completed."
+                  emptyMessage="The rider has not submitted proof of delivery yet. The office can review the photo, signature, and GPS here as soon as the rider completes the Rider Link."
                 />
               )}
             </div>
@@ -809,17 +653,7 @@ export default function Orders() {
             </div>
             
             <div className="flex items-center gap-2 flex-wrap justify-end">
-               <Button
-                  color="purple"
-                  disabled={!canGenerateDeliveryLink || actionLoading}
-                  onClick={() => handleGenerateDelivery(selectedOrder)}
-                  className={canGenerateDeliveryLink
-                    ? 'font-bold bg-purple-600 text-white shadow-sm ring-2 ring-purple-700 hover:bg-purple-700 focus:ring-4 focus:ring-purple-300'
-                    : 'font-bold bg-amber-400 text-amber-950 border-amber-500 shadow-sm ring-2 ring-amber-500 disabled:opacity-100 dark:bg-amber-400 dark:text-amber-950'}
-                >
-                  <HiOutlinePaperAirplane className="w-4 h-4 mr-1.5 rotate-45 -mt-0.5" />
-                  {isTerminalStatus ? 'Link unavailable' : isPaymentVerified ? (actionLoading ? 'Working...' : 'Send Delivery Link') : 'Payment required'}
-                </Button>
+
 
                 {!['delivered', 'cancelled', 'rejected'].includes(selectedStatusKey) && (
                   <Button color="failure" outline onClick={() => { setShowDetail(false); handleCancel(selectedOrder); }} className="font-bold bg-white text-[#8a3b12] border-[#e8c29a] hover:bg-[#fff3e2] dark:bg-transparent dark:text-orange-200 dark:border-orange-800">

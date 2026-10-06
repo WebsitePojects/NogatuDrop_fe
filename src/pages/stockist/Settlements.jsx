@@ -7,6 +7,7 @@ import PageHeader from '@/components/PageHeader';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import { ToastContainer, useToast } from '@/components/Toast';
+import ResponsiveList from '@/components/ResponsiveList';
 import { formatDateTime } from '@/utils/formatDate';
 import { formatCurrency } from '@/utils/formatCurrency';
 
@@ -65,34 +66,55 @@ export default function StockistSettlements() {
         ) : rows.length === 0 ? (
           <EmptyState icon={HiOutlineCurrencyDollar} title="No settlements" description="Verified payments and courier remittances will appear here." />
         ) : (
-          <div className="overflow-x-auto">
-            <Table striped>
-              <TableHead>
-                <TableRow>
-                  <TableHeadCell>Settlement</TableHeadCell>
-                  <TableHeadCell>Order</TableHeadCell>
-                  <TableHeadCell>Amount</TableHeadCell>
-                  <TableHeadCell>Method</TableHeadCell>
-                  <TableHeadCell>Status</TableHeadCell>
-                  <TableHeadCell>Expected</TableHeadCell>
-                  <TableHeadCell>Reconciled</TableHeadCell>
-                </TableRow>
-              </TableHead>
-              <TableBody className="divide-y">
-                {rows.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className="font-mono text-xs">{row.settlement_number}</TableCell>
-                    <TableCell className="font-mono text-xs">#{row.order_number}</TableCell>
-                    <TableCell>{formatCurrency(row.amount)}</TableCell>
-                    <TableCell>{row.method}</TableCell>
-                    <TableCell><StatusBadge status={row.status} /></TableCell>
-                    <TableCell className="text-xs">{row.expected_at ? formatDateTime(row.expected_at) : '-'}</TableCell>
-                    <TableCell className="text-xs">{row.reconciled_at ? formatDateTime(row.reconciled_at) : '-'}</TableCell>
+          <ResponsiveList
+            items={rows}
+            getKey={(row) => row.id}
+            emptyLabel="No settlements"
+            row={(row) => ({
+              title: row.settlement_number,
+              subtitle: `#${row.order_number} · ${row.method || '-'}`,
+              meta: formatCurrency(row.amount),
+              status: <StatusBadge status={row.status} />,
+              details: [
+                ['Settlement', row.settlement_number],
+                ['Order', `#${row.order_number}`],
+                ['Amount', formatCurrency(row.amount)],
+                ['Method', row.method],
+                ['Status', <StatusBadge key="s" status={row.status} />],
+                ['Expected', row.expected_at ? formatDateTime(row.expected_at) : '-'],
+                ['Reconciled', row.reconciled_at ? formatDateTime(row.reconciled_at) : '-'],
+              ],
+            })}
+          >
+            <div className="overflow-x-auto">
+              <Table striped>
+                <TableHead>
+                  <TableRow>
+                    <TableHeadCell>Settlement</TableHeadCell>
+                    <TableHeadCell>Order</TableHeadCell>
+                    <TableHeadCell>Amount</TableHeadCell>
+                    <TableHeadCell>Method</TableHeadCell>
+                    <TableHeadCell>Status</TableHeadCell>
+                    <TableHeadCell>Expected</TableHeadCell>
+                    <TableHeadCell>Reconciled</TableHeadCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHead>
+                <TableBody className="divide-y">
+                  {rows.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell className="font-mono text-xs">{row.settlement_number}</TableCell>
+                      <TableCell className="font-mono text-xs">#{row.order_number}</TableCell>
+                      <TableCell>{formatCurrency(row.amount)}</TableCell>
+                      <TableCell>{row.method}</TableCell>
+                      <TableCell><StatusBadge status={row.status} /></TableCell>
+                      <TableCell className="text-xs">{row.expected_at ? formatDateTime(row.expected_at) : '-'}</TableCell>
+                      <TableCell className="text-xs">{row.reconciled_at ? formatDateTime(row.reconciled_at) : '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </ResponsiveList>
         )}
       </Card>
     </div>

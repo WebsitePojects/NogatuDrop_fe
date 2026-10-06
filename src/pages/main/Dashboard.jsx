@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell } from 'flowbite-react';
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -20,6 +21,7 @@ import KpiCard from '@/components/KpiCard';
 import StatusBadge from '@/components/StatusBadge';
 import PageHeader from '@/components/PageHeader';
 import DataTable from '@/components/DataTable';
+import ResponsiveList from '@/components/ResponsiveList';
 
 const CHART_COLORS = ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#06B6D4'];
 
@@ -36,6 +38,7 @@ function SkeletonCard() {
 }
 
 export default function Dashboard() {
+  const navigate = useNavigate();
   const [kpis, setKpis] = useState(null);
   const [revenueTrend, setRevenueTrend] = useState([]);
   const [productDist, setProductDist] = useState([]);
@@ -195,6 +198,17 @@ export default function Dashboard() {
                 ))}
               </div>
             ) : (
+              <ResponsiveList
+                items={recentOrders.slice(0, 10)}
+                emptyLabel="No recent orders"
+                onOpen={(order) => navigate(`/main/orders?highlight=${order.id}`)}
+                row={(order) => ({
+                  title: order.order_number,
+                  subtitle: `${order.partner_name || order.business_name || 'N/A'} · ${formatDate(order.created_at)}`,
+                  meta: formatCurrency(order.total_amount),
+                  status: <StatusBadge status={order.status} />,
+                })}
+              >
               <DataTable
                 className="dashboard-table-shell border-0 bg-transparent shadow-none"
                 headers={['Order #', 'Stockist', 'Amount', 'Status', 'Date']}
@@ -210,6 +224,7 @@ export default function Dashboard() {
                   </tr>
                 )}
               />
+              </ResponsiveList>
             )}
           </div>
         </div>

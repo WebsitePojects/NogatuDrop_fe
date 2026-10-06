@@ -1,23 +1,19 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { HiSearch, HiTruck, HiLocationMarker, HiCalendar, HiHome } from 'react-icons/hi';
+import { HiSearch, HiTruck, HiLocationMarker, HiCalendar } from 'react-icons/hi';
 import { FiArrowLeft } from 'react-icons/fi';
 import { Spinner } from 'flowbite-react';
-import { GoogleMap, LoadScriptNext, MarkerF } from '@react-google-maps/api';
-import OpenDeliveryMap from '@/components/OpenDeliveryMap';
+import DeliveryMap from '@/components/delivery/DeliveryMap';
+import { VEHICLES } from '@/components/delivery/deliveryIcons';
 import StatusBadge from '@/components/StatusBadge';
 import OrderStatusTimeline from '@/components/OrderStatusTimeline';
 import TrackingPaymentPanel from '@/components/TrackingPaymentPanel';
 import api from '@/services/api';
 import { TRACKING } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
-import { isGoogleMapsFeatureEnabled, shouldAttemptGoogleMaps } from '@/utils/deliveryMapRuntime';
 
 export default function Tracking() {
   const { orderNumber: urlOrderNumber } = useParams();
-  const mapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
-  const mapsFeatureEnabled = isGoogleMapsFeatureEnabled(import.meta.env.VITE_ENABLE_GOOGLE_MAPS);
-  const mapsConfigured = mapsFeatureEnabled && shouldAttemptGoogleMaps(mapsApiKey);
 
   const [query, setQuery] = useState(urlOrderNumber || '');
   const [activeOrderNumber, setActiveOrderNumber] = useState((urlOrderNumber || '').trim().toUpperCase());
@@ -25,7 +21,6 @@ export default function Tracking() {
   const [latestPing, setLatestPing] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [mapLoadFailed, setMapLoadFailed] = useState(false);
   const intervalRef = useRef(null);
 
   const normalizePing = (ping) => {
@@ -73,14 +68,10 @@ export default function Tracking() {
         }
       };
       poll();
-      intervalRef.current = setInterval(poll, 30000);
+      intervalRef.current = setInterval(poll, 20000);
     }
     return () => clearInterval(intervalRef.current);
   }, [trackingData?.status, activeOrderNumber]);
-
-  useEffect(() => {
-    setMapLoadFailed(false);
-  }, [mapsApiKey]);
 
   const handleSearch = (event) => {
     event.preventDefault();
@@ -96,10 +87,6 @@ export default function Tracking() {
     ? { lat: Number(sourceWarehouse.lat), lng: Number(sourceWarehouse.lng) }
     : null;
 
-  const mapCenter = latestPingPoint || sourcePoint || { lat: 14.5995, lng: 120.9842 };
-  const hasMapPoints = Boolean(latestPingPoint || sourcePoint);
-  const canRenderGoogleMap = mapsConfigured && hasMapPoints && !mapLoadFailed;
-  const canRenderOpenMap = hasMapPoints && !canRenderGoogleMap;
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
@@ -166,14 +153,17 @@ export default function Tracking() {
               {[
                 {
                   icon: HiTruck,
-                  label: 'Courier',
-                  value: trackingData.courier || 'Not assigned',
+                  label: 'Delivered by',
+                  value: trackingData.courier
+                    || (trackingData.vehicle_type ? `Nogatu rider · ${VEHICLES[trackingData.vehicle_type]?.label || ''}` : 'Not assigned yet'),
                   color: 'text-blue-500 bg-blue-50',
                 },
                 {
                   icon: HiCalendar,
-                  label: 'Est. Delivery',
-                  value: trackingData.eta ? formatDate(trackingData.eta) : 'TBD',
+                  label: 'Arrives',
+                  value: trackingData.eta_window
+                    ? `in ${trackingData.eta_window.min_minutes}–${trackingData.eta_window.max_minutes} min`
+                    : trackingData.eta ? formatDate(trackingData.eta) : 'Once the rider is on the way',
                   color: 'text-amber-500 bg-amber-50',
                 },
                 {
@@ -205,102 +195,22 @@ export default function Tracking() {
               />
             )}
 
-            {trackingData.status === 'delivering' && (
-              <div className="overflow-hidden rounded-2xl border border-gray-100 bg-white shadow-sm">
-                <div className="flex items-center gap-2 border-b border-gray-100 p-4">
-                  <HiLocationMarker className="h-4 w-4 text-orange-500" />
-                  <span className="text-sm font-semibold text-gray-900">Live Tracking</span>
-                  {latestPingPoint && (
-                    <span className="ml-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-600">
-                      Live
-                    </span>
-                  )}
-                  {sourcePoint && !latestPingPoint && (
-                    <span className="ml-1 rounded-full bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-600">
-                      Origin
-                    </span>
-                  )}
-                </div>
-                <div className="flex items-center justify-center bg-gray-100" style={{ height: '280px' }}>
-                  {hasMapPoints ? (
-                    canRenderGoogleMap ? (
-                      <LoadScriptNext googleMapsApiKey={mapsApiKey} onError={() => setMapLoadFailed(true)}>
-                        <GoogleMap
-                          mapContainerStyle={{ width: '100%', height: '100%' }}
-                          zoom={latestPingPoint && sourcePoint ? 8 : 13}
-                          center={mapCenter}
-                          options={{
-                            streetViewControl: false,
-                            fullscreenControl: false,
-                            mapTypeControl: false,
-                          }}
-                        >
-                          {sourcePoint && (
-                            <MarkerF
-                              position={sourcePoint}
-                              title={sourceWarehouse?.name || 'Origin Warehouse'}
-                            />
-                          )}
-                          {latestPingPoint && (
-                            <MarkerF
-                              position={latestPingPoint}
-                              title={trackingData.courier ? `${trackingData.courier} — Courier` : 'Courier'}
-                            />
-                          )}
-                        </GoogleMap>
-                      </LoadScriptNext>
-                    ) : canRenderOpenMap ? (
-                      <OpenDeliveryMap
-                        center={mapCenter}
-                        zoom={latestPingPoint && sourcePoint ? 8 : 13}
-                        markers={[
-                          ...(sourcePoint ? [{
-                            key: 'source',
-                            position: sourcePoint,
-                            label: sourceWarehouse?.name || 'Origin Warehouse',
-                            description: sourceWarehouse?.location || 'Origin',
-                            color: '#2563eb',
-                          }] : []),
-                          ...(latestPingPoint ? [{
-                            key: 'current',
-                            position: latestPingPoint,
-                            label: activeOrderNumber || 'Current location',
-                            description: trackingData.courier || 'Courier location',
-                            color: '#f97316',
-                          }] : []),
-                        ]}
-                      />
-                    ) : (
-                      <div className="text-center p-4">
-                        <HiLocationMarker className="mx-auto mb-2 h-12 w-12 text-orange-400" />
-                        <p className="text-sm font-medium text-gray-700">Rider is on the way</p>
-                        <p className="mt-0.5 text-xs text-gray-500">
-                          {mapsConfigured && !mapLoadFailed
-                            ? 'Live map unavailable for this route.'
-                            : mapsFeatureEnabled
-                              ? 'Map key unavailable or invalid. Showing coordinates instead.'
-                              : 'Google Maps is disabled here. Showing coordinates instead.'}
-                        </p>
-                        {latestPingPoint && (
-                          <p className="mt-1 font-mono text-xs text-gray-500">
-                            Courier: {latestPingPoint.lat.toFixed(4)}, {latestPingPoint.lng.toFixed(4)}
-                          </p>
-                        )}
-                        {sourcePoint && (
-                          <p className="mt-0.5 font-mono text-xs text-gray-500">
-                            Origin: {sourcePoint.lat.toFixed(4)}, {sourcePoint.lng.toFixed(4)}
-                          </p>
-                        )}
-                      </div>
-                    )
-                  ) : (
-                    <div className="text-center text-gray-500">
-                      <HiTruck className="mx-auto mb-2 h-12 w-12 opacity-30" />
-                      <p className="text-sm">GPS data not available yet</p>
-                    </div>
-                  )}
-                </div>
-              </div>
+            {trackingData.status === 'delivering' && (sourcePoint || latestPingPoint) && (
+              // Public page: the rider and the center only. The line to the buyer's door is never drawn
+              // here, because anyone with the order number can open this page.
+              <DeliveryMap
+                route={{
+                  order_number: activeOrderNumber,
+                  order_status: 'delivering',
+                  vehicle_type: trackingData.vehicle_type || 'motorcycle',
+                  source: sourcePoint ? { ...sourcePoint, name: sourceWarehouse?.name } : null,
+                  rider: latestPingPoint,
+                  rider_pinged_at: latestPing?.pinged_at || null,
+                  eta: trackingData.eta_window || null,
+                }}
+                height={300}
+                riderLabel={`Your rider${trackingData.vehicle_type ? ` · ${VEHICLES[trackingData.vehicle_type]?.label || ''}` : ''}`}
+              />
             )}
           </div>
         )}

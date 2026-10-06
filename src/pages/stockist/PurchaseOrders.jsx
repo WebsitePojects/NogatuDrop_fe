@@ -18,6 +18,8 @@ import StatusBadge from '@/components/StatusBadge';
 import ConfirmModal from '@/components/ConfirmModal';
 import { ToastContainer, useToast } from '@/components/Toast';
 import PageHeader from '@/components/PageHeader';
+import ResponsiveList from '@/components/ResponsiveList';
+import LineItemList from '@/components/LineItemList';
 import { useAuth } from '@/context/AuthContext';
 
 export default function StockistPurchaseOrders() {
@@ -72,6 +74,7 @@ export default function StockistPurchaseOrders() {
   const totalAmount = form.items.reduce((sum, i) => sum + (Number(i.quantity) * Number(i.unit_price) || 0), 0);
 
   const handleCreate = async () => {
+    if (creating) return;
     setCreating(true);
     try {
       await api.post(PURCHASE_ORDERS.CREATE, { ...form, total_amount: totalAmount });
@@ -87,7 +90,7 @@ export default function StockistPurchaseOrders() {
   };
 
   const handleWorkflowAction = async (action) => {
-    if (!selected) return;
+    if (!selected || workflowLoading) return;
     setWorkflowLoading(true);
     try {
       const endpoint = action === 'submit'
@@ -155,54 +158,71 @@ export default function StockistPurchaseOrders() {
           </button>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left text-gray-700 dark:text-[var(--dark-text)]">
-            <thead className="text-xs text-coffee-700 dark:text-[var(--dark-muted)] bg-coffee-50 dark:bg-[var(--dark-card2)] uppercase">
-              <tr>
-                <th className="px-4 py-3">PO #</th>
-                <th className="px-4 py-3">Supplier</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Auto</th>
-                <th className="px-4 py-3">Total</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3 text-right">View</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                Array.from({ length: 4 }).map((_, i) => (
-                  <tr key={i} className="border-b border-gray-100">
-                    {Array.from({ length: 7 }).map((_, j) => (
-                      <td key={j} className="px-4 py-3"><div className="skeleton h-4 w-20 rounded" /></td>
-                    ))}
-                  </tr>
-                ))
-              ) : filtered.length === 0 ? (
-                <tr><td colSpan={7} className="px-4 py-10 text-center text-muted">No purchase orders found</td></tr>
-              ) : (
-                filtered.map((po) => (
-                  <tr key={po.id} className="border-b border-gray-100 hover:bg-coffee-50/50 dark:hover:bg-white/5 cursor-pointer" onClick={() => { setSelected(po); setViewModal(true); }}>
-                    <td className="px-4 py-3 font-medium text-coffee-700 dark:text-[var(--dark-text)]">{po.po_number}</td>
-                    <td className="px-4 py-3">{po.supplier}</td>
-                    <td className="px-4 py-3"><StatusBadge status={po.status} /></td>
-                    <td className="px-4 py-3">
-                      {po.auto_generated ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">Auto</span>
-                      ) : '—'}
-                    </td>
-                    <td className="px-4 py-3 font-medium">{formatCurrency(po.total_amount)}</td>
-                    <td className="px-4 py-3 text-muted">{formatDate(po.created_at)}</td>
-                    <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
-                      <button className="p-1.5 rounded hover:bg-gray-100 dark:bg-gray-700 text-muted" onClick={() => { setSelected(po); setViewModal(true); }}>
-                        <HiOutlineEye className="w-4 h-4" />
-                      </button>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
+        <ResponsiveList
+          items={filtered}
+          getKey={(po) => po.id}
+          loading={loading}
+          emptyLabel="No purchase orders found"
+          onOpen={(po) => { setSelected(po); setViewModal(true); }}
+          row={(po) => ({
+            title: po.po_number,
+            subtitle: `${po.supplier} · ${formatDate(po.created_at)}${po.auto_generated ? ' · Auto' : ''}`,
+            meta: formatCurrency(po.total_amount),
+            status: <StatusBadge status={po.status} />,
+            action: po.status === 'awaiting_owner_approval' || po.status === 'submitted'
+              ? { label: 'Review', tone: 'primary', onClick: () => { setSelected(po); setViewModal(true); } }
+              : null,
+          })}
+        >
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm text-left text-gray-700 dark:text-[var(--dark-text)]">
+              <thead className="text-xs text-coffee-700 dark:text-[var(--dark-muted)] bg-coffee-50 dark:bg-[var(--dark-card2)] uppercase">
+                <tr>
+                  <th className="px-4 py-3">PO #</th>
+                  <th className="px-4 py-3">Supplier</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Auto</th>
+                  <th className="px-4 py-3">Total</th>
+                  <th className="px-4 py-3">Date</th>
+                  <th className="px-4 py-3 text-right">View</th>
+                </tr>
+              </thead>
+              <tbody>
+                {loading ? (
+                  Array.from({ length: 4 }).map((_, i) => (
+                    <tr key={i} className="border-b border-gray-100">
+                      {Array.from({ length: 7 }).map((_, j) => (
+                        <td key={j} className="px-4 py-3"><div className="skeleton h-4 w-20 rounded" /></td>
+                      ))}
+                    </tr>
+                  ))
+                ) : filtered.length === 0 ? (
+                  <tr><td colSpan={7} className="px-4 py-10 text-center text-muted">No purchase orders found</td></tr>
+                ) : (
+                  filtered.map((po) => (
+                    <tr key={po.id} className="border-b border-gray-100 hover:bg-coffee-50/50 dark:hover:bg-white/5 cursor-pointer" onClick={() => { setSelected(po); setViewModal(true); }}>
+                      <td className="px-4 py-3 font-medium text-coffee-700 dark:text-[var(--dark-text)]">{po.po_number}</td>
+                      <td className="px-4 py-3">{po.supplier}</td>
+                      <td className="px-4 py-3"><StatusBadge status={po.status} /></td>
+                      <td className="px-4 py-3">
+                        {po.auto_generated ? (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800">Auto</span>
+                        ) : '—'}
+                      </td>
+                      <td className="px-4 py-3 font-medium">{formatCurrency(po.total_amount)}</td>
+                      <td className="px-4 py-3 text-muted">{formatDate(po.created_at)}</td>
+                      <td className="px-4 py-3 text-right" onClick={(e) => e.stopPropagation()}>
+                        <button className="p-1.5 rounded hover:bg-gray-100 dark:bg-gray-700 text-muted" onClick={() => { setSelected(po); setViewModal(true); }}>
+                          <HiOutlineEye className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </ResponsiveList>
       </Card>
 
       {/* View Modal */}
@@ -222,7 +242,15 @@ export default function StockistPurchaseOrders() {
                 <>
                   <hr className="border-gray-100" />
                   <p className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)]">Items</p>
-                  <table className="w-full text-sm">
+                  <LineItemList
+                    lines={selected.items.map((item, i) => ({
+                      key: i,
+                      title: item.product?.name || `Product #${item.product_id}`,
+                      caption: `${item.quantity} × ${formatCurrency(item.unit_price)}`,
+                      value: formatCurrency(item.subtotal),
+                    }))}
+                  />
+                  <table className="hidden w-full text-sm md:table">
                     <thead><tr className="text-xs text-muted uppercase"><th className="text-left py-2">Product</th><th className="text-right py-2">Qty</th><th className="text-right py-2">Unit Price</th><th className="text-right py-2">Subtotal</th></tr></thead>
                     <tbody>
                       {selected.items.map((item, i) => (

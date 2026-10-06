@@ -22,6 +22,8 @@ import PageHeader from '@/components/PageHeader';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import { ToastContainer, useToast } from '@/components/Toast';
+import ResponsiveList from '@/components/ResponsiveList';
+import CycleCountItemList from '@/components/CycleCountItemList';
 import { formatDateTime } from '@/utils/formatDate';
 
 export default function MainCycleCounts() {
@@ -63,7 +65,7 @@ export default function MainCycleCounts() {
   };
 
   const handleReview = async () => {
-    if (!reviewTarget) return;
+    if (!reviewTarget || reviewing) return;
     const endpoint = reviewAction === 'approve'
       ? CYCLE_COUNTS.APPROVE(reviewTarget.id)
       : CYCLE_COUNTS.REJECT(reviewTarget.id);
@@ -107,49 +109,62 @@ export default function MainCycleCounts() {
         ) : rows.length === 0 ? (
           <EmptyState icon={HiOutlineClipboardCheck} title="No cycle counts" description="Submitted counts will appear here for review." />
         ) : (
-          <div className="overflow-x-auto">
-            <Table striped>
-              <TableHead>
-                <TableRow>
-                  <TableHeadCell>Count No</TableHeadCell>
-                  <TableHeadCell>Warehouse</TableHeadCell>
-                  <TableHeadCell>Status</TableHeadCell>
-                  <TableHeadCell>Created By</TableHeadCell>
-                  <TableHeadCell>Submitted</TableHeadCell>
-                  <TableHeadCell />
-                </TableRow>
-              </TableHead>
-              <TableBody className="divide-y">
-                {rows.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className="font-mono text-xs">{row.count_number}</TableCell>
-                    <TableCell>{row.warehouse_name}</TableCell>
-                    <TableCell><StatusBadge status={row.status} /></TableCell>
-                    <TableCell>{row.created_by_name}</TableCell>
-                    <TableCell className="text-xs">{row.submitted_at ? formatDateTime(row.submitted_at) : '-'}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button size="xs" color="light" onClick={() => openReview(row, 'approve')}>
-                          <HiOutlineEye className="mr-1 h-3.5 w-3.5" />
-                          View
-                        </Button>
-                        {row.status === 'submitted' && (
-                          <>
-                            <Button size="xs" color="success" onClick={() => openReview(row, 'approve')}>
-                              Approve
-                            </Button>
-                            <Button size="xs" color="failure" onClick={() => openReview(row, 'reject')}>
-                              Reject
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </TableCell>
+          <ResponsiveList
+            items={rows}
+            getKey={(row) => row.id}
+            emptyLabel="No cycle counts"
+            onOpen={(row) => openReview(row, 'approve')}
+            row={(row) => ({
+              title: row.count_number,
+              subtitle: `${row.warehouse_name} · ${row.submitted_at ? formatDateTime(row.submitted_at) : 'Not submitted'}`,
+              status: <StatusBadge status={row.status} />,
+              action: row.status === 'submitted' ? { label: 'Review', tone: 'primary', onClick: () => openReview(row, 'approve') } : null,
+            })}
+          >
+            <div className="overflow-x-auto">
+              <Table striped>
+                <TableHead>
+                  <TableRow>
+                    <TableHeadCell>Count No</TableHeadCell>
+                    <TableHeadCell>Warehouse</TableHeadCell>
+                    <TableHeadCell>Status</TableHeadCell>
+                    <TableHeadCell>Created By</TableHeadCell>
+                    <TableHeadCell>Submitted</TableHeadCell>
+                    <TableHeadCell />
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHead>
+                <TableBody className="divide-y">
+                  {rows.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell className="font-mono text-xs">{row.count_number}</TableCell>
+                      <TableCell>{row.warehouse_name}</TableCell>
+                      <TableCell><StatusBadge status={row.status} /></TableCell>
+                      <TableCell>{row.created_by_name}</TableCell>
+                      <TableCell className="text-xs">{row.submitted_at ? formatDateTime(row.submitted_at) : '-'}</TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button size="xs" color="light" onClick={() => openReview(row, 'approve')}>
+                            <HiOutlineEye className="mr-1 h-3.5 w-3.5" />
+                            View
+                          </Button>
+                          {row.status === 'submitted' && (
+                            <>
+                              <Button size="xs" color="success" onClick={() => openReview(row, 'approve')}>
+                                Approve
+                              </Button>
+                              <Button size="xs" color="failure" onClick={() => openReview(row, 'reject')}>
+                                Reject
+                              </Button>
+                            </>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </ResponsiveList>
         )}
       </Card>
 
@@ -187,7 +202,8 @@ export default function MainCycleCounts() {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
+              <CycleCountItemList items={reviewTarget.items} showReserved />
+              <div className="hidden overflow-x-auto md:block">
                 <Table striped>
                   <TableHead>
                     <TableRow>

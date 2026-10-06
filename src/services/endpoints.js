@@ -208,5 +208,7 @@ export const TRACKING = {
   // POST { customer_phone }: amount + account to pay, only for the buyer's phone.
   PUBLIC_PAYMENT_DETAILS: (orderNumber) => `/tracking/public/${orderNumber}/payment-details`,
   ACTIVE:      '/tracking/active',
+  // Road route, rider trail and arrival window for one order (Super Admin / center / stockist).
+  ROUTE:       (orderId) => `/tracking/${orderId}/route`,
   PING:        (token) => `/tracking/ping/${token}`,
 };

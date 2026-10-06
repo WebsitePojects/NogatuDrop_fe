@@ -1,85 +1,15 @@
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
-import {
-  Button, TextInput, Select, Label, Card, Badge } from 'flowbite-react';
+import { Button, Badge } from 'flowbite-react';
 import { HiOutlinePlus, HiOutlineOfficeBuilding, HiOutlineLocationMarker, HiOutlineUser, HiOutlinePencil, HiOutlineTrash } from 'react-icons/hi';
 import api from '@/services/api';
 import { WAREHOUSES } from '@/services/endpoints';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
-import MapLocationPicker from '@/components/MapLocationPicker';
-import RequiredMark from '@/components/RequiredMark';
+import WarehouseFormModal from '@/components/WarehouseFormModal';
+import useSubmitGuard from '@/hooks/useSubmitGuard';
 import { ToastContainer, useToast } from '@/components/Toast';
-
-const WAREHOUSE_TYPES = ['manufacturer'];
-
-const EMPTY_FORM = {
-  name: '', type: 'city', address: '', city: '', province: '', region: '',
-  capacity: '', manager_name: '', manager_phone: '', lat: '', lng: '',
-};
-
-// Hoisted to module scope — stable identity prevents input focus loss on each keystroke.
-function WarehouseFormFields({ form, fld, setForm }) {
-  return (
-    <div className="grid grid-cols-2 gap-4">
-      <div className="col-span-2">
-        <Label htmlFor="wh_name" className="mb-1">
-          Warehouse Name<RequiredMark />
-        </Label>
-        <TextInput id="wh_name" value={form.name} onChange={fld('name')} placeholder="Metro Manila Hub" required />
-      </div>
-      <div>
-        <Label htmlFor="wh_type" className="mb-1">Type</Label>
-        <Select id="wh_type" value={form.type} onChange={fld('type')}>
-          {WAREHOUSE_TYPES.map((t) => <option key={t} value={t}>{t.charAt(0).toUpperCase() + t.slice(1)}</option>)}
-        </Select>
-      </div>
-      <div>
-        <Label htmlFor="wh_capacity" className="mb-1">Capacity (units)</Label>
-        <TextInput id="wh_capacity" type="number" min="0" value={form.capacity} onChange={fld('capacity')} placeholder="5000" />
-      </div>
-      <div className="col-span-2">
-        <Label htmlFor="wh_address" className="mb-1">Address</Label>
-        <TextInput id="wh_address" value={form.address} onChange={fld('address')} placeholder="123 Main St." />
-      </div>
-      <div>
-        <Label htmlFor="wh_city" className="mb-1">City</Label>
-        <TextInput id="wh_city" value={form.city} onChange={fld('city')} placeholder="Quezon City" />
-      </div>
-      <div>
-        <Label htmlFor="wh_province" className="mb-1">Province</Label>
-        <TextInput id="wh_province" value={form.province} onChange={fld('province')} placeholder="Metro Manila" />
-      </div>
-      <div>
-        <Label htmlFor="wh_manager_name" className="mb-1">Manager Name</Label>
-        <TextInput id="wh_manager_name" value={form.manager_name} onChange={fld('manager_name')} placeholder="Juan Dela Cruz" />
-      </div>
-      <div>
-        <Label htmlFor="wh_manager_phone" className="mb-1">Manager Phone</Label>
-        <TextInput id="wh_manager_phone" value={form.manager_phone} onChange={fld('manager_phone')} placeholder="09xxxxxxxxx" />
-      </div>
-      <div className="col-span-2">
-        <MapLocationPicker
-          lat={form.lat}
-          lng={form.lng}
-          onChange={({ lat, lng }) => setForm((f) => ({ ...f, lat: lat.toFixed(6), lng: lng.toFixed(6) }))}
-          label="Pin Warehouse Location (Philippines)"
-        />
-      </div>
-      <div>
-        <Label htmlFor="wh_lat" className="mb-1">Latitude (optional)</Label>
-        <TextInput id="wh_lat" value={form.lat} onChange={fld('lat')} placeholder="14.5995" />
-        <p className="mt-1 text-xs text-gray-600 dark:text-[var(--dark-muted)]">Auto-filled by the map pin above — edit only if you have exact survey coordinates.</p>
-      </div>
-      <div>
-        <Label htmlFor="wh_lng" className="mb-1">Longitude (optional)</Label>
-        <TextInput id="wh_lng" value={form.lng} onChange={fld('lng')} placeholder="120.9842" />
-        <p className="mt-1 text-xs text-gray-600 dark:text-[var(--dark-muted)]">Used for nearest-stockist auto-assignment on public/mobile orders.</p>
-      </div>
-    </div>
-  );
-}
 
 export default function Warehouses() {
   const { toasts, showToast, dismiss } = useToast();
@@ -87,13 +17,12 @@ export default function Warehouses() {
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState('owned');
 
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
+  // null = form closed, 'new' = add, a warehouse record = edit.
+  const [formTarget, setFormTarget] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [selected, setSelected] = useState(null);
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [submitting, setSubmitting] = useState(false);
+  const { submitting, run } = useSubmitGuard();
 
   const fetchWarehouses = useCallback(async () => {
     setLoading(true);
@@ -109,66 +38,16 @@ export default function Warehouses() {
 
   useEffect(() => { fetchWarehouses(); }, [fetchWarehouses]);
 
-  const openAdd = () => { setForm(EMPTY_FORM); setShowAddModal(true); };
-  const openEdit = (w) => {
-    setSelected(w);
-    setForm({
-      name: w.name, type: w.type, address: w.location || '', city: '',
-      province: '', region: '', capacity: w.capacity_total || '',
-      manager_name: w.manager_name || '', manager_phone: w.manager_phone || '',
-      lat: w.lat || '', lng: w.lng || '',
-    });
-    setShowEditModal(true);
+  const openAdd = () => setFormTarget('new');
+  const openEdit = (w) => { setSelected(w); setFormTarget(w); };
+  const handleSaved = (message) => {
+    showToast(message, 'success');
+    setFormTarget(null);
+    fetchWarehouses();
   };
   const openDetail = (w) => { setSelected(w); setShowDetailModal(true); };
 
-  const handleAdd = async () => {
-    setSubmitting(true);
-    try {
-      await api.post(WAREHOUSES.CREATE, {
-        name: form.name,
-        type: 'manufacturer',
-        location: [form.address, form.city, form.province].filter(Boolean).join(', '),
-        capacity_total: Number(form.capacity) || 100000,
-        manager_name: form.manager_name,
-        manager_phone: form.manager_phone || null,
-        lat: form.lat || null,
-        lng: form.lng || null,
-      });
-      showToast('Warehouse added', 'success');
-      setShowAddModal(false);
-      fetchWarehouses();
-    } catch (err) {
-      showToast(err.response?.data?.message || 'Failed to add warehouse', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleEdit = async () => {
-    setSubmitting(true);
-    try {
-      await api.put(WAREHOUSES.UPDATE(selected.id), {
-        name: form.name,
-        location: [form.address, form.city, form.province].filter(Boolean).join(', '),
-        capacity_total: Number(form.capacity) || 100000,
-        manager_name: form.manager_name,
-        manager_phone: form.manager_phone || null,
-        lat: form.lat || null,
-        lng: form.lng || null,
-      });
-      showToast('Warehouse updated', 'success');
-      setShowEditModal(false);
-      fetchWarehouses();
-    } catch (err) {
-      showToast(err.response?.data?.message || 'Update failed', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    setSubmitting(true);
+  const handleDelete = () => run(async () => {
     try {
       await api.delete(WAREHOUSES.UPDATE(deleteTarget.id));
       showToast('Warehouse removed', 'info');
@@ -176,12 +55,8 @@ export default function Warehouses() {
       fetchWarehouses();
     } catch (err) {
       showToast(err.response?.data?.message || 'Delete failed', 'error');
-    } finally {
-      setSubmitting(false);
     }
-  };
-
-  const fld = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
+  });
 
   const typeBadgeColor = (type) => {
     const m = { provincial: 'warning', city: 'info', hub: 'success', storage: 'gray', region: 'info', manufacturer: 'purple' };
@@ -246,7 +121,7 @@ export default function Warehouses() {
               <div className="space-y-1.5 text-xs text-gray-600 dark:text-[var(--dark-muted)]">
                 <div className="flex items-center gap-1.5">
                   <HiOutlineLocationMarker className="w-3.5 h-3.5 flex-shrink-0" />
-                  <span>{w.location || 'No location'}</span>
+                  <span>{w.address_display || w.location || 'No location'}</span>
                 </div>
                 {w.manager_name && (
                   <div className="flex items-center gap-1.5">
@@ -271,25 +146,15 @@ export default function Warehouses() {
         </div>
       )}
 
-      {/* Add Modal */}
-      <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
-        <ModalHeader>Add Warehouse</ModalHeader>
-        <ModalBody><WarehouseFormFields form={form} fld={fld} setForm={setForm} /></ModalBody>
-        <ModalFooter>
-          <Button color="warning" onClick={handleAdd} disabled={submitting}>Add Warehouse</Button>
-          <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
-        </ModalFooter>
-      </Modal>
-
-      {/* Edit Modal */}
-      <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
-        <ModalHeader>Edit Warehouse — {selected?.name}</ModalHeader>
-        <ModalBody><WarehouseFormFields form={form} fld={fld} setForm={setForm} /></ModalBody>
-        <ModalFooter>
-          <Button color="warning" onClick={handleEdit} disabled={submitting}>Save Changes</Button>
-          <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>
-        </ModalFooter>
-      </Modal>
+      {/* Add / edit: mounted only while open so each opening starts from a fresh form */}
+      {formTarget && (
+        <WarehouseFormModal
+          warehouse={formTarget === 'new' ? null : formTarget}
+          createType="manufacturer"
+          onClose={() => setFormTarget(null)}
+          onSaved={handleSaved}
+        />
+      )}
 
       {/* Detail Modal */}
       <Modal show={showDetailModal} onClose={() => setShowDetailModal(false)} size="md" backdropClasses="bg-black/50 backdrop-blur-sm">
@@ -300,12 +165,12 @@ export default function Warehouses() {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Type</p><Badge color={typeBadgeColor(selected.type)}>{typeLabel(selected.type)}</Badge></div>
                 <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Capacity</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.capacity_total ? Number(selected.capacity_total).toLocaleString() + ' units' : '—'}</p></div>
-                <div className="col-span-2"><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Location</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.location || '—'}</p></div>
+                <div className="col-span-2"><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Address</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.address_display || selected.location || '—'}</p></div>
                 <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Manager</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.manager_name || '—'}</p></div>
                 <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Phone</p><p className="font-semibold dark:text-[var(--dark-text)]">{selected.manager_phone || '—'}</p></div>
                 {(selected.lat && selected.lng) && (
                   <div className="col-span-2">
-                    <p className="text-muted text-xs mb-1">Location</p>
+                    <p className="text-muted text-xs mb-1">Map pin</p>
                     <p className="font-mono text-xs">{selected.lat}, {selected.lng}</p>
                     <a
                       href={`https://maps.google.com/?q=${selected.lat},${selected.lng}`}

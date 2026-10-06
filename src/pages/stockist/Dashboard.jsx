@@ -12,6 +12,7 @@ import {
 import KpiCard from '@/components/KpiCard';
 import StatusBadge from '@/components/StatusBadge';
 import { ToastContainer, useToast } from '@/components/Toast';
+import ResponsiveList from '@/components/ResponsiveList';
 import api from '@/services/api';
 import { ORDERS, INVENTORY } from '@/services/endpoints';
 import { formatCurrency } from '@/utils/formatCurrency';
@@ -279,38 +280,52 @@ export default function StockistDashboard() {
               )}
             </div>
           ) : (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left py-2.5 px-4 text-xs font-semibold text-muted uppercase tracking-wide">Order #</th>
-                  <th className="text-left py-2.5 px-4 text-xs font-semibold text-muted uppercase tracking-wide">Total</th>
-                  <th className="text-left py-2.5 px-4 text-xs font-semibold text-muted uppercase tracking-wide">Status</th>
-                  <th className="text-left py-2.5 px-4 text-xs font-semibold text-muted uppercase tracking-wide">Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentOrders.map((order) => (
-                  <tr
-                    key={order.id}
-                    className="border-b border-gray-50 hover:bg-amber-50/40 cursor-pointer transition-colors"
-                    onClick={() => navigate('/stockist/orders')}
-                  >
-                    <td className="py-2.5 px-4 font-mono font-semibold text-xs text-strong">
-                      #{order.order_number || order.id}
-                    </td>
-                    <td className="py-2.5 px-4 font-semibold text-strong">
-                      {formatCurrency(order.total_amount)}
-                    </td>
-                    <td className="py-2.5 px-4">
-                      <StatusBadge status={order.status} />
-                    </td>
-                    <td className="py-2.5 px-4 text-muted text-xs">
-                      {formatDate(order.created_at)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="px-4 md:px-0">
+              <ResponsiveList
+                items={recentOrders}
+                getKey={(order) => order.id}
+                onOpen={() => navigate('/stockist/orders')}
+                row={(order) => ({
+                  title: `#${order.order_number || order.id}`,
+                  subtitle: formatDate(order.created_at),
+                  meta: formatCurrency(order.total_amount),
+                  status: <StatusBadge status={order.status} />,
+                })}
+              >
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-gray-100">
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-muted uppercase tracking-wide">Order #</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-muted uppercase tracking-wide">Total</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-muted uppercase tracking-wide">Status</th>
+                      <th className="text-left py-2.5 px-4 text-xs font-semibold text-muted uppercase tracking-wide">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recentOrders.map((order) => (
+                      <tr
+                        key={order.id}
+                        className="border-b border-gray-50 hover:bg-amber-50/40 cursor-pointer transition-colors"
+                        onClick={() => navigate('/stockist/orders')}
+                      >
+                        <td className="py-2.5 px-4 font-mono font-semibold text-xs text-strong">
+                          #{order.order_number || order.id}
+                        </td>
+                        <td className="py-2.5 px-4 font-semibold text-strong">
+                          {formatCurrency(order.total_amount)}
+                        </td>
+                        <td className="py-2.5 px-4">
+                          <StatusBadge status={order.status} />
+                        </td>
+                        <td className="py-2.5 px-4 text-muted text-xs">
+                          {formatDate(order.created_at)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </ResponsiveList>
+            </div>
           )}
         </Card>
       </div>

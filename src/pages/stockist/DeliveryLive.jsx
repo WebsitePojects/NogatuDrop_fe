@@ -1,13 +1,11 @@
-import DeliveryLiveMapBoard from '@/components/DeliveryLiveMapBoard';
+import LiveDeliveryBoard from '@/components/delivery/LiveDeliveryBoard';
 
 export default function StockistDeliveryLive() {
   return (
-    <DeliveryLiveMapBoard
-      title="Stockist Live Delivery Map"
-      summary="Provincial, city, and staff view of active deliveries inside the current Stockist scope."
-      badgeLabel="Stockist Portal"
-      accent="green"
-      orderLinkBuilder={(orderId) => `/stockist/orders?id=${orderId}`}
+    <LiveDeliveryBoard
+      title="Live Deliveries"
+      summary="Riders carrying your orders right now, the road they are taking and when they should arrive."
+      orderLinkBuilder={(orderId) => `/stockist/orders?highlight=${orderId}`}
     />
   );
 }

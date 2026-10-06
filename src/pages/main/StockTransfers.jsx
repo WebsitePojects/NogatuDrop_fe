@@ -15,6 +15,8 @@ import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
 import { ToastContainer, useToast } from '@/components/Toast';
+import ResponsiveList from '@/components/ResponsiveList';
+import LineItemList from '@/components/LineItemList';
 
 const STATUSES = ['all', 'pending', 'in_transit', 'completed', 'cancelled'];
 
@@ -90,6 +92,7 @@ export default function StockTransfers() {
   const updateItem = (i, key, val) => setItems((prev) => prev.map((it, idx) => idx === i ? { ...it, [key]: val } : it));
 
   const handleAdd = async () => {
+    if (submitting) return;
     setSubmitting(true);
     try {
       await api.post(STOCK_TRANSFERS.CREATE, {
@@ -107,7 +110,7 @@ export default function StockTransfers() {
   };
 
   const executeAction = async () => {
-    if (!confirmTarget) return;
+    if (!confirmTarget || actionLoading) return;
     setActionLoading(true);
     try {
       const { action, transfer } = confirmTarget;
@@ -145,55 +148,74 @@ export default function StockTransfers() {
         <Tabs onActiveTabChange={(i) => { setActiveTab(i); setPage(1); }}>
           {STATUSES.map((s) => (
             <TabItem key={s} title={s.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase())}>
-              <div className="overflow-x-auto">
-                <Table striped>
-                  <TableHead>
-                    <TableRow>
-                      <TableHeadCell>Transfer #</TableHeadCell>
-                      <TableHeadCell>From</TableHeadCell>
-                      <TableHeadCell>To</TableHeadCell>
-                      <TableHeadCell>Status</TableHeadCell>
-                      <TableHeadCell>Items</TableHeadCell>
-                      <TableHeadCell>Date</TableHeadCell>
-                      <TableHeadCell>Actions</TableHeadCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody className="divide-y">
-                    {loading ? (
-                      Array.from({ length: 6 }).map((_, i) => (
-                        <TableRow key={i}>
-                          {Array.from({ length: 7 }).map((__, j) => (
-                            <TableCell key={j}><div className="skeleton h-4 w-full rounded" /></TableCell>
-                          ))}
-                        </TableRow>
-                      ))
-                    ) : transfers.length === 0 ? (
+              <ResponsiveList
+                items={transfers}
+                getKey={(t) => t.id}
+                loading={loading}
+                emptyLabel="No transfers found"
+                onOpen={(t) => openDetail(t)}
+                row={(t) => ({
+                  title: t.transfer_number || `TRF-${t.id}`,
+                  subtitle: `${t.from_warehouse_name} → ${t.to_warehouse_name} · ${formatDate(t.created_at)}`,
+                  meta: t.items_count != null ? `${t.items_count} items` : null,
+                  status: <StatusBadge status={t.status} />,
+                  action: t.status === 'pending'
+                    ? { label: 'Mark In Transit', tone: 'primary', onClick: () => setConfirmTarget({ action: 'in_transit', transfer: t }) }
+                    : t.status === 'in_transit'
+                      ? { label: 'Mark Complete', tone: 'primary', onClick: () => setConfirmTarget({ action: 'complete', transfer: t }) }
+                      : null,
+                })}
+              >
+                <div className="overflow-x-auto">
+                  <Table striped>
+                    <TableHead>
                       <TableRow>
-                        <TableCell colSpan={7} className="text-center text-muted py-10">No transfers found</TableCell>
+                        <TableHeadCell>Transfer #</TableHeadCell>
+                        <TableHeadCell>From</TableHeadCell>
+                        <TableHeadCell>To</TableHeadCell>
+                        <TableHeadCell>Status</TableHeadCell>
+                        <TableHeadCell>Items</TableHeadCell>
+                        <TableHeadCell>Date</TableHeadCell>
+                        <TableHeadCell>Actions</TableHeadCell>
                       </TableRow>
-                    ) : (
-                      transfers.map((t) => (
-                        <TableRow key={t.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(t)}>
-                          <TableCell className="font-mono font-medium text-xs text-gray-900 dark:text-[var(--dark-text)]">{t.transfer_number || `TRF-${t.id}`}</TableCell>
-                          <TableCell className="text-xs">{t.from_warehouse_name}</TableCell>
-                          <TableCell className="text-xs">
-                            <span className="flex items-center gap-1">
-                              <HiOutlineArrowRight className="w-3 h-3 text-muted" />
-                              {t.to_warehouse_name}
-                            </span>
-                          </TableCell>
-                          <TableCell><StatusBadge status={t.status} /></TableCell>
-                          <TableCell>{t.items_count ?? '—'}</TableCell>
-                          <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{formatDate(t.created_at)}</TableCell>
-                          <TableCell onClick={(e) => e.stopPropagation()}>
-                            <Button size="xs" color="light" onClick={() => openDetail(t)}>View</Button>
-                          </TableCell>
+                    </TableHead>
+                    <TableBody className="divide-y">
+                      {loading ? (
+                        Array.from({ length: 6 }).map((_, i) => (
+                          <TableRow key={i}>
+                            {Array.from({ length: 7 }).map((__, j) => (
+                              <TableCell key={j}><div className="skeleton h-4 w-full rounded" /></TableCell>
+                            ))}
+                          </TableRow>
+                        ))
+                      ) : transfers.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={7} className="text-center text-muted py-10">No transfers found</TableCell>
                         </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
+                      ) : (
+                        transfers.map((t) => (
+                          <TableRow key={t.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(t)}>
+                            <TableCell className="font-mono font-medium text-xs text-gray-900 dark:text-[var(--dark-text)]">{t.transfer_number || `TRF-${t.id}`}</TableCell>
+                            <TableCell className="text-xs">{t.from_warehouse_name}</TableCell>
+                            <TableCell className="text-xs">
+                              <span className="flex items-center gap-1">
+                                <HiOutlineArrowRight className="w-3 h-3 text-muted" />
+                                {t.to_warehouse_name}
+                              </span>
+                            </TableCell>
+                            <TableCell><StatusBadge status={t.status} /></TableCell>
+                            <TableCell>{t.items_count ?? '—'}</TableCell>
+                            <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{formatDate(t.created_at)}</TableCell>
+                            <TableCell onClick={(e) => e.stopPropagation()}>
+                              <Button size="xs" color="light" onClick={() => openDetail(t)}>View</Button>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+              </ResponsiveList>
               {totalPages > 1 && (
                 <div className="flex justify-center mt-4">
                   <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} showIcons />
@@ -385,7 +407,12 @@ export default function StockTransfers() {
                   <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
                     <h3 className="text-sm font-bold tracking-wider text-gray-700 dark:text-gray-300 uppercase">Transfer Items</h3>
                   </div>
-                  <div className="overflow-x-auto">
+                  <div className="px-5 md:hidden">
+                    <LineItemList
+                      lines={selected.items.map((it, i) => ({ key: i, title: it.product_name, value: `× ${it.quantity}` }))}
+                    />
+                  </div>
+                  <div className="hidden overflow-x-auto md:block">
                     <table className="w-full text-left text-sm text-gray-600 dark:text-gray-400 tracking-wide">
                       <thead className="bg-gray-50 dark:bg-gray-800/50 text-xs text-gray-600 dark:text-gray-400 uppercase font-semibold">
                         <tr>

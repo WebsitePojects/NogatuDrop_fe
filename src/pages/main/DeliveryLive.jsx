@@ -1,13 +1,11 @@
-import DeliveryLiveMapBoard from '@/components/DeliveryLiveMapBoard';
+import LiveDeliveryBoard from '@/components/delivery/LiveDeliveryBoard';
 
 export default function MainDeliveryLive() {
   return (
-    <DeliveryLiveMapBoard
-      title="National Live Delivery Map"
-      summary="Super Admin view of all active delivery routes with live GPS movement between source and destination points."
-      badgeLabel="Main System"
-      accent="orange"
-      orderLinkBuilder={(orderId) => `/main/orders?id=${orderId}`}
+    <LiveDeliveryBoard
+      title="Live Delivery Map"
+      summary="Every rider on the road, with the road they are taking and when they should arrive."
+      orderLinkBuilder={(orderId) => `/main/orders?highlight=${orderId}`}
     />
   );
 }

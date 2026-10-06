@@ -8,6 +8,7 @@ import { FiUser } from 'react-icons/fi';
 import ConfirmModal from '@/components/ConfirmModal';
 import StatusBadge from '@/components/StatusBadge';
 import { ToastContainer, useToast } from '@/components/Toast';
+import ResponsiveList from '@/components/ResponsiveList';
 import api from '@/services/api';
 import { USERS } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
@@ -87,6 +88,7 @@ export default function StockistUsers() {
       showToast('Password is required', 'warning');
       return;
     }
+    if (submitting) return;
     setSubmitting(true);
     try {
       const payload = { ...form, role_slug: editing?.role_slug || 'staff', partner_id: currentUser?.partner_id };
@@ -108,7 +110,7 @@ export default function StockistUsers() {
   };
 
   const handleDelete = async () => {
-    if (!deleteTarget) return;
+    if (!deleteTarget || deleting) return;
     setDeleting(true);
     try {
       await api.delete(USERS.DELETE(deleteTarget.id));
@@ -191,58 +193,70 @@ export default function StockistUsers() {
             )}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 dark:bg-[var(--dark-card2)] border-b border-gray-100 dark:border-[var(--dark-border)]">
-                <tr>
-                  {['Name', 'Email', 'Phone', 'Role', 'Status', 'Last Login', ''].map((h) => (
-                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wide whitespace-nowrap">
-                      {h}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {filtered.map((u) => {
-                  const name = u.name || `${u.first_name || ''} ${u.last_name || ''}`.trim() || '-';
-                  return (
-                    <tr key={u.id} className="border-b border-gray-50 hover:bg-amber-50/30 transition-colors">
-                      <td className="px-4 py-3 font-semibold text-strong">{name}</td>
-                      <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-sm">{u.email}</td>
-                      <td className="px-4 py-3 text-muted text-sm">{u.phone || '-'}</td>
-                      <td className="px-4 py-3">
-                        <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
-                          {roleLabel(u.role_slug)}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <StatusBadge status={u.status || 'active'} />
-                      </td>
-                      <td className="px-4 py-3 text-xs text-muted">
-                        {u.last_login ? formatDate(u.last_login) : 'Never'}
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => openEdit(u)}
-                            className="p-1.5 text-muted hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                          >
-                            <HiPencil className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={() => setDeleteTarget(u)}
-                            className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
-                          >
-                            Remove
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <ResponsiveList
+            items={filtered}
+            getKey={(u) => u.id}
+            onOpen={(u) => openEdit(u)}
+            row={(u) => ({
+              title: u.name || `${u.first_name || ''} ${u.last_name || ''}`.trim() || '-',
+              subtitle: `${roleLabel(u.role_slug)} · ${u.email}`,
+              status: <StatusBadge status={u.status || 'active'} />,
+              action: { label: 'Remove', tone: 'danger', onClick: () => setDeleteTarget(u) },
+            })}
+          >
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 dark:bg-[var(--dark-card2)] border-b border-gray-100 dark:border-[var(--dark-border)]">
+                  <tr>
+                    {['Name', 'Email', 'Phone', 'Role', 'Status', 'Last Login', ''].map((h) => (
+                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-muted uppercase tracking-wide whitespace-nowrap">
+                        {h}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filtered.map((u) => {
+                    const name = u.name || `${u.first_name || ''} ${u.last_name || ''}`.trim() || '-';
+                    return (
+                      <tr key={u.id} className="border-b border-gray-50 hover:bg-amber-50/30 transition-colors">
+                        <td className="px-4 py-3 font-semibold text-strong">{name}</td>
+                        <td className="px-4 py-3 text-gray-600 dark:text-[var(--dark-muted)] text-sm">{u.email}</td>
+                        <td className="px-4 py-3 text-muted text-sm">{u.phone || '-'}</td>
+                        <td className="px-4 py-3">
+                          <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-100 text-blue-700">
+                            {roleLabel(u.role_slug)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          <StatusBadge status={u.status || 'active'} />
+                        </td>
+                        <td className="px-4 py-3 text-xs text-muted">
+                          {u.last_login ? formatDate(u.last_login) : 'Never'}
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            <button
+                              onClick={() => openEdit(u)}
+                              className="p-1.5 text-muted hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            >
+                              <HiPencil className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => setDeleteTarget(u)}
+                              className="text-xs text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 font-medium px-2 py-1 rounded-lg hover:bg-red-50 transition-colors"
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </ResponsiveList>
         )}
       </div>
 

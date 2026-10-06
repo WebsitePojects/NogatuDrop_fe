@@ -14,6 +14,10 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { formatDate } from '@/utils/formatDate';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
+import ResponsiveList from '@/components/ResponsiveList';
+
+// ResponsiveList needs a stable key and these report rows carry no id.
+const withIndex = (rows) => rows.map((row, _k) => ({ ...row, _k }));
 
 const CHART_COLORS = ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#06B6D4', '#F97316'];
 
@@ -83,30 +87,48 @@ function RevenueTab() {
       </div>
       <Card>
         <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-3">Revenue by Stockist</h3>
-        <div className="overflow-x-auto">
-          <Table striped>
-            <TableHead>
-              <TableRow>
-                <TableHeadCell>Stockist</TableHeadCell>
-                <TableHeadCell>Total Orders</TableHeadCell>
-                <TableHeadCell>Total Revenue</TableHeadCell>
-                <TableHeadCell>Avg Order Value</TableHeadCell>
-              </TableRow>
-            </TableHead>
-            <TableBody className="divide-y">
-              {byStockist.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="text-center text-muted py-8">No data</TableCell></TableRow>
-              ) : byStockist.map((r, i) => (
-                <TableRow key={i}>
-                  <TableCell className="font-medium">{r.partner_name || r.business_name}</TableCell>
-                  <TableCell>{r.total_orders}</TableCell>
-                  <TableCell className="font-semibold text-amber-700">{formatCurrency(r.total_revenue)}</TableCell>
-                  <TableCell>{formatCurrency(r.avg_order_value || r.total_revenue / r.total_orders)}</TableCell>
+        <ResponsiveList
+          items={withIndex(byStockist)}
+          getKey={(r) => r._k}
+          loading={loading}
+          emptyLabel="No data"
+          row={(r) => ({
+            title: r.partner_name || r.business_name,
+            subtitle: `${r.total_orders} orders`,
+            meta: formatCurrency(r.total_revenue),
+            details: [
+              ['Stockist', r.partner_name || r.business_name],
+              ['Total orders', r.total_orders],
+              ['Total revenue', formatCurrency(r.total_revenue)],
+              ['Avg order value', formatCurrency(r.avg_order_value || r.total_revenue / r.total_orders)],
+            ],
+          })}
+        >
+          <div className="overflow-x-auto">
+            <Table striped>
+              <TableHead>
+                <TableRow>
+                  <TableHeadCell>Stockist</TableHeadCell>
+                  <TableHeadCell>Total Orders</TableHeadCell>
+                  <TableHeadCell>Total Revenue</TableHeadCell>
+                  <TableHeadCell>Avg Order Value</TableHeadCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHead>
+              <TableBody className="divide-y">
+                {byStockist.length === 0 ? (
+                  <TableRow><TableCell colSpan={4} className="text-center text-muted py-8">No data</TableCell></TableRow>
+                ) : byStockist.map((r, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-medium">{r.partner_name || r.business_name}</TableCell>
+                    <TableCell>{r.total_orders}</TableCell>
+                    <TableCell className="font-semibold text-amber-700">{formatCurrency(r.total_revenue)}</TableCell>
+                    <TableCell>{formatCurrency(r.avg_order_value || r.total_revenue / r.total_orders)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </ResponsiveList>
       </Card>
     </div>
   );
@@ -213,30 +235,48 @@ function ProductsTab() {
       </div>
       <Card>
         <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-3">Product Performance</h3>
-        <div className="overflow-x-auto">
-          <Table striped>
-            <TableHead>
-              <TableRow>
-                <TableHeadCell>Product</TableHeadCell>
-                <TableHeadCell>Category</TableHeadCell>
-                <TableHeadCell>Qty Sold</TableHeadCell>
-                <TableHeadCell>Revenue</TableHeadCell>
-              </TableRow>
-            </TableHead>
-            <TableBody className="divide-y">
-              {data.length === 0 ? (
-                <TableRow><TableCell colSpan={4} className="text-center text-muted py-8">No data</TableCell></TableRow>
-              ) : data.map((p, i) => (
-                <TableRow key={i}>
-                  <TableCell className="font-medium">{p.product_name || p.name}</TableCell>
-                  <TableCell>{p.category || '—'}</TableCell>
-                  <TableCell>{p.total_qty || 0}</TableCell>
-                  <TableCell>{formatCurrency(p.total_revenue || 0)}</TableCell>
+        <ResponsiveList
+          items={withIndex(data)}
+          getKey={(p) => p._k}
+          loading={loading}
+          emptyLabel="No data"
+          row={(p) => ({
+            title: p.product_name || p.name,
+            subtitle: `${p.category || '—'} · ${p.total_qty || 0} sold`,
+            meta: formatCurrency(p.total_revenue || 0),
+            details: [
+              ['Product', p.product_name || p.name],
+              ['Category', p.category || '—'],
+              ['Qty sold', p.total_qty || 0],
+              ['Revenue', formatCurrency(p.total_revenue || 0)],
+            ],
+          })}
+        >
+          <div className="overflow-x-auto">
+            <Table striped>
+              <TableHead>
+                <TableRow>
+                  <TableHeadCell>Product</TableHeadCell>
+                  <TableHeadCell>Category</TableHeadCell>
+                  <TableHeadCell>Qty Sold</TableHeadCell>
+                  <TableHeadCell>Revenue</TableHeadCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHead>
+              <TableBody className="divide-y">
+                {data.length === 0 ? (
+                  <TableRow><TableCell colSpan={4} className="text-center text-muted py-8">No data</TableCell></TableRow>
+                ) : data.map((p, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-medium">{p.product_name || p.name}</TableCell>
+                    <TableCell>{p.category || '—'}</TableCell>
+                    <TableCell>{p.total_qty || 0}</TableCell>
+                    <TableCell>{formatCurrency(p.total_revenue || 0)}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </ResponsiveList>
       </Card>
     </div>
   );
@@ -285,38 +325,58 @@ function MovementsTab() {
       </div>
       <Card>
         <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-3">Stock Movement Log</h3>
-        <div className="overflow-x-auto">
-          <Table striped>
-            <TableHead>
-              <TableRow>
-                <TableHeadCell>Date</TableHeadCell>
-                <TableHeadCell>Product</TableHeadCell>
-                <TableHeadCell>Warehouse</TableHeadCell>
-                <TableHeadCell>Type</TableHeadCell>
-                <TableHeadCell>Quantity</TableHeadCell>
-              </TableRow>
-            </TableHead>
-            <TableBody className="divide-y">
-              {data.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted py-8">No data</TableCell></TableRow>
-              ) : data.slice(0, 50).map((m, i) => (
-                <TableRow key={i}>
-                  <TableCell className="text-xs">{formatDate(m.created_at)}</TableCell>
-                  <TableCell className="font-medium">{m.product_name}</TableCell>
-                  <TableCell className="text-xs">{m.warehouse_name}</TableCell>
-                  <TableCell>
-                    <span className="badge-pending text-xs">{m.movement_type}</span>
-                  </TableCell>
-                  <TableCell>
-                    <span className={`font-bold ${m.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      {m.quantity > 0 ? '+' : ''}{m.quantity}
-                    </span>
-                  </TableCell>
+        <ResponsiveList
+          items={withIndex(data.slice(0, 50))}
+          getKey={(m) => m._k}
+          loading={loading}
+          emptyLabel="No data"
+          row={(m) => ({
+            title: m.product_name,
+            subtitle: `${m.warehouse_name} · ${formatDate(m.created_at)}`,
+            meta: `${m.quantity > 0 ? '+' : ''}${m.quantity}`,
+            status: <span className="badge-pending text-xs">{m.movement_type}</span>,
+            details: [
+              ['Date', formatDate(m.created_at)],
+              ['Product', m.product_name],
+              ['Warehouse', m.warehouse_name],
+              ['Type', m.movement_type],
+              ['Quantity', `${m.quantity > 0 ? '+' : ''}${m.quantity}`],
+            ],
+          })}
+        >
+          <div className="overflow-x-auto">
+            <Table striped>
+              <TableHead>
+                <TableRow>
+                  <TableHeadCell>Date</TableHeadCell>
+                  <TableHeadCell>Product</TableHeadCell>
+                  <TableHeadCell>Warehouse</TableHeadCell>
+                  <TableHeadCell>Type</TableHeadCell>
+                  <TableHeadCell>Quantity</TableHeadCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHead>
+              <TableBody className="divide-y">
+                {data.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted py-8">No data</TableCell></TableRow>
+                ) : data.slice(0, 50).map((m, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="text-xs">{formatDate(m.created_at)}</TableCell>
+                    <TableCell className="font-medium">{m.product_name}</TableCell>
+                    <TableCell className="text-xs">{m.warehouse_name}</TableCell>
+                    <TableCell>
+                      <span className="badge-pending text-xs">{m.movement_type}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span className={`font-bold ${m.quantity > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                        {m.quantity > 0 ? '+' : ''}{m.quantity}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </ResponsiveList>
       </Card>
     </div>
   );
@@ -355,32 +415,51 @@ function StockistsTab() {
       </ChartCard>
       <Card>
         <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-3">Stockist Performance</h3>
-        <div className="overflow-x-auto">
-          <Table striped>
-            <TableHead>
-              <TableRow>
-                <TableHeadCell>Stockist</TableHeadCell>
-                <TableHeadCell>Level</TableHeadCell>
-                <TableHeadCell>Total Orders</TableHeadCell>
-                <TableHeadCell>Revenue</TableHeadCell>
-                <TableHeadCell>Last Order</TableHeadCell>
-              </TableRow>
-            </TableHead>
-            <TableBody className="divide-y">
-              {data.length === 0 ? (
-                <TableRow><TableCell colSpan={5} className="text-center text-muted py-8">No data</TableCell></TableRow>
-              ) : data.map((r, i) => (
-                <TableRow key={i}>
-                  <TableCell className="font-medium">{r.partner_name || r.business_name}</TableCell>
-                  <TableCell className="text-xs capitalize">{(r.stockist_level || '').replace(/_/g, ' ')}</TableCell>
-                  <TableCell>{r.total_orders}</TableCell>
-                  <TableCell className="font-semibold text-amber-700">{formatCurrency(r.total_revenue)}</TableCell>
-                  <TableCell className="text-xs text-muted">{r.last_order_at ? formatDate(r.last_order_at) : '—'}</TableCell>
+        <ResponsiveList
+          items={withIndex(data)}
+          getKey={(r) => r._k}
+          loading={loading}
+          emptyLabel="No data"
+          row={(r) => ({
+            title: r.partner_name || r.business_name,
+            subtitle: `${(r.stockist_level || '').replace(/_/g, ' ')} · Last order ${r.last_order_at ? formatDate(r.last_order_at) : '—'}`,
+            meta: formatCurrency(r.total_revenue),
+            details: [
+              ['Stockist', r.partner_name || r.business_name],
+              ['Level', (r.stockist_level || '').replace(/_/g, ' ') || '—'],
+              ['Total orders', r.total_orders],
+              ['Revenue', formatCurrency(r.total_revenue)],
+              ['Last order', r.last_order_at ? formatDate(r.last_order_at) : '—'],
+            ],
+          })}
+        >
+          <div className="overflow-x-auto">
+            <Table striped>
+              <TableHead>
+                <TableRow>
+                  <TableHeadCell>Stockist</TableHeadCell>
+                  <TableHeadCell>Level</TableHeadCell>
+                  <TableHeadCell>Total Orders</TableHeadCell>
+                  <TableHeadCell>Revenue</TableHeadCell>
+                  <TableHeadCell>Last Order</TableHeadCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+              </TableHead>
+              <TableBody className="divide-y">
+                {data.length === 0 ? (
+                  <TableRow><TableCell colSpan={5} className="text-center text-muted py-8">No data</TableCell></TableRow>
+                ) : data.map((r, i) => (
+                  <TableRow key={i}>
+                    <TableCell className="font-medium">{r.partner_name || r.business_name}</TableCell>
+                    <TableCell className="text-xs capitalize">{(r.stockist_level || '').replace(/_/g, ' ')}</TableCell>
+                    <TableCell>{r.total_orders}</TableCell>
+                    <TableCell className="font-semibold text-amber-700">{formatCurrency(r.total_revenue)}</TableCell>
+                    <TableCell className="text-xs text-muted">{r.last_order_at ? formatDate(r.last_order_at) : '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </ResponsiveList>
       </Card>
     </div>
   );
@@ -454,32 +533,47 @@ function InventoryTab() {
         {lowStock.length === 0 ? (
           <p className="text-sm text-muted">All items are adequately stocked</p>
         ) : (
-          <div className="overflow-x-auto">
-            <Table striped>
-              <TableHead>
-                <TableRow>
-                  <TableHeadCell>Product</TableHeadCell>
-                  <TableHeadCell>Warehouse</TableHeadCell>
-                  <TableHeadCell>Stock</TableHeadCell>
-                  <TableHeadCell>Status</TableHeadCell>
-                </TableRow>
-              </TableHead>
-              <TableBody className="divide-y">
-                {lowStock.map((i) => (
-                  <TableRow key={i.id}>
-                    <TableCell className="font-medium">{i.product_name}</TableCell>
-                    <TableCell className="text-xs">{i.warehouse_name}</TableCell>
-                    <TableCell className="font-bold">{i.current_stock}</TableCell>
-                    <TableCell>
-                      <span className={i.status === 'out_of_stock' ? 'badge-rejected' : 'badge-pending'}>
-                        {i.status?.replace(/_/g, ' ')}
-                      </span>
-                    </TableCell>
+          <ResponsiveList
+            items={withIndex(lowStock)}
+            getKey={(i) => i._k}
+            row={(i) => ({
+              title: i.product_name,
+              subtitle: i.warehouse_name,
+              meta: `${i.current_stock} in stock`,
+              status: (
+                <span className={i.status === 'out_of_stock' ? 'badge-rejected' : 'badge-pending'}>
+                  {i.status?.replace(/_/g, ' ')}
+                </span>
+              ),
+            })}
+          >
+            <div className="overflow-x-auto">
+              <Table striped>
+                <TableHead>
+                  <TableRow>
+                    <TableHeadCell>Product</TableHeadCell>
+                    <TableHeadCell>Warehouse</TableHeadCell>
+                    <TableHeadCell>Stock</TableHeadCell>
+                    <TableHeadCell>Status</TableHeadCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHead>
+                <TableBody className="divide-y">
+                  {lowStock.map((i) => (
+                    <TableRow key={i.id}>
+                      <TableCell className="font-medium">{i.product_name}</TableCell>
+                      <TableCell className="text-xs">{i.warehouse_name}</TableCell>
+                      <TableCell className="font-bold">{i.current_stock}</TableCell>
+                      <TableCell>
+                        <span className={i.status === 'out_of_stock' ? 'badge-rejected' : 'badge-pending'}>
+                          {i.status?.replace(/_/g, ' ')}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </ResponsiveList>
         )}
       </Card>
     </div>

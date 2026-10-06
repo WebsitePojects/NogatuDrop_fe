@@ -10,6 +10,7 @@ import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
 import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
+import ResponsiveList from '@/components/ResponsiveList';
 
 const EMPTY_FORM = {
   name: '',
@@ -135,6 +136,7 @@ export default function Couriers() {
   };
 
   const handleAdd = async () => {
+    if (submitting) return;
     if (!form.name.trim() || !form.code.trim()) {
       showToast('Courier name and code are required', 'warning');
       return;
@@ -157,6 +159,7 @@ export default function Couriers() {
   };
 
   const handleEdit = async () => {
+    if (submitting) return;
     if (!form.name.trim() || !form.code.trim()) {
       showToast('Courier name and code are required', 'warning');
       return;
@@ -179,6 +182,7 @@ export default function Couriers() {
   };
 
   const handleDelete = async () => {
+    if (submitting) return;
     setSubmitting(true);
     try {
       await api.delete(COURIERS.DELETE(deleteTarget.id));
@@ -212,7 +216,7 @@ export default function Couriers() {
       <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-[var(--dark-card2)] border border-amber-200 dark:border-[var(--dark-border)] rounded-xl mb-5">
         <HiInformationCircle className="w-5 h-5 text-amber-700 dark:text-amber-500 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-amber-800 dark:text-amber-300">
-          Couriers are third-party delivery partners (J&T, LBC, Flash Express, etc.) assigned to orders when generating delivery magic links.
+          Couriers are third-party delivery partners (J&T, LBC, Flash Express, etc.) used when a courier carries an order. Their riders use the same Rider Link as Nogatu riders.
           No employed riders — all deliveries are via courier partnerships.
         </p>
       </div>
@@ -225,66 +229,83 @@ export default function Couriers() {
             ))}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table striped>
-              <TableHead>
-                <TableRow>
-                  <TableHeadCell>Name</TableHeadCell>
-                  <TableHeadCell>Code</TableHeadCell>
-                  <TableHeadCell>Contact</TableHeadCell>
-                  <TableHeadCell>Tracking URL</TableHeadCell>
-                  <TableHeadCell>Status</TableHeadCell>
-                  <TableHeadCell>Actions</TableHeadCell>
-                </TableRow>
-              </TableHead>
-              <TableBody className="divide-y">
-                {couriers.length === 0 ? (
+          <ResponsiveList
+            items={couriers}
+            getKey={(c) => c.id}
+            emptyLabel="No couriers added"
+            onOpen={(c) => openEdit(c)}
+            row={(c) => ({
+              title: c.name,
+              subtitle: [c.code, c.contact_person].filter(Boolean).join(' · ') || '—',
+              status: (
+                <span className={c.is_active !== false ? 'badge-active' : 'badge-inactive'}>
+                  {c.is_active !== false ? 'Active' : 'Inactive'}
+                </span>
+              ),
+              action: { label: 'Delete', tone: 'danger', onClick: () => setDeleteTarget(c) },
+            })}
+          >
+            <div className="overflow-x-auto">
+              <Table striped>
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={6}>
-                      <EmptyState
-                        icon={HiOutlineTruck}
-                        title="No couriers added"
-                        description="Add courier partners to assign to deliveries"
-                        actionLabel="Add Courier"
-                        onAction={openAdd}
-                      />
-                    </TableCell>
+                    <TableHeadCell>Name</TableHeadCell>
+                    <TableHeadCell>Code</TableHeadCell>
+                    <TableHeadCell>Contact</TableHeadCell>
+                    <TableHeadCell>Tracking URL</TableHeadCell>
+                    <TableHeadCell>Status</TableHeadCell>
+                    <TableHeadCell>Actions</TableHeadCell>
                   </TableRow>
-                ) : (
-                  couriers.map((c) => (
-                    <TableRow key={c.id} className="hover:bg-amber-50/30">
-                      <TableCell className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{c.name}</TableCell>
-                      <TableCell className="font-mono text-xs">{c.code || '—'}</TableCell>
-                      <TableCell className="text-xs">
-                        <div>{c.contact_person || '—'}</div>
-                        {c.contact_phone && <div className="text-muted">{c.contact_phone}</div>}
-                      </TableCell>
-                      <TableCell className="text-xs">
-                        {c.tracking_url_template ? (
-                          <span className="text-amber-700 dark:text-amber-400 font-mono truncate max-w-xs block">{c.tracking_url_template}</span>
-                        ) : '—'}
-                      </TableCell>
-                      <TableCell>
-                        <span className={c.is_active !== false ? 'badge-active' : 'badge-inactive'}>
-                          {c.is_active !== false ? 'Active' : 'Inactive'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button size="xs" color="light" onClick={() => openEdit(c)}>
-                            <HiOutlinePencil className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button size="xs" color="failure" outline onClick={() => setDeleteTarget(c)}>
-                            <HiOutlineTrash className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
+                </TableHead>
+                <TableBody className="divide-y">
+                  {couriers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6}>
+                        <EmptyState
+                          icon={HiOutlineTruck}
+                          title="No couriers added"
+                          description="Add courier partners to assign to deliveries"
+                          actionLabel="Add Courier"
+                          onAction={openAdd}
+                        />
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  ) : (
+                    couriers.map((c) => (
+                      <TableRow key={c.id} className="hover:bg-amber-50/30">
+                        <TableCell className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{c.name}</TableCell>
+                        <TableCell className="font-mono text-xs">{c.code || '—'}</TableCell>
+                        <TableCell className="text-xs">
+                          <div>{c.contact_person || '—'}</div>
+                          {c.contact_phone && <div className="text-muted">{c.contact_phone}</div>}
+                        </TableCell>
+                        <TableCell className="text-xs">
+                          {c.tracking_url_template ? (
+                            <span className="text-amber-700 dark:text-amber-400 font-mono truncate max-w-xs block">{c.tracking_url_template}</span>
+                          ) : '—'}
+                        </TableCell>
+                        <TableCell>
+                          <span className={c.is_active !== false ? 'badge-active' : 'badge-inactive'}>
+                            {c.is_active !== false ? 'Active' : 'Inactive'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button size="xs" color="light" onClick={() => openEdit(c)}>
+                              <HiOutlinePencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button size="xs" color="failure" outline onClick={() => setDeleteTarget(c)}>
+                              <HiOutlineTrash className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </ResponsiveList>
         )}
       </Card>
 

@@ -12,6 +12,7 @@ import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
 import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
+import ResponsiveList from '@/components/ResponsiveList';
 import useSubmitGuard from '@/hooks/useSubmitGuard';
 
 const ROLES = [
@@ -290,66 +291,80 @@ export default function Users() {
           </Select>
         </div>
 
-        <div className="overflow-x-auto">
-          <Table striped>
-            <TableHead>
-              <TableRow>
-                <TableHeadCell>Name</TableHeadCell>
-                <TableHeadCell>Email</TableHeadCell>
-                <TableHeadCell>Phone</TableHeadCell>
-                <TableHeadCell>Role</TableHeadCell>
-                <TableHeadCell>Stockist</TableHeadCell>
-                <TableHeadCell>Warehouse</TableHeadCell>
-                <TableHeadCell>Status</TableHeadCell>
-                <TableHeadCell>Last Login</TableHeadCell>
-                <TableHeadCell>Actions</TableHeadCell>
-              </TableRow>
-            </TableHead>
-            <TableBody className="divide-y">
-              {loading ? (
-                Array.from({ length: 8 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 9 }).map((__, j) => (
-                      <TableCell key={j}><div className="skeleton h-4 w-full rounded" /></TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : users.length === 0 ? (
+        <ResponsiveList
+          items={users}
+          getKey={(u) => u.id}
+          loading={loading}
+          emptyLabel="No users found"
+          onOpen={(u) => openDetail(u)}
+          row={(u) => ({
+            title: u.name,
+            subtitle: `${ROLES.find((r) => r.value === u.role_slug)?.label || u.role_slug} · ${u.email}`,
+            status: <StatusBadge status={u.status || (u.is_active ? 'active' : 'inactive')} />,
+            action: { label: 'Edit', onClick: () => openEdit(u) },
+          })}
+        >
+          <div className="overflow-x-auto">
+            <Table striped>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={9}>
-                    <EmptyState icon={HiOutlineUsers} title="No users found" description="Add user accounts to manage access" actionLabel="Add User" onAction={openAdd} />
-                  </TableCell>
+                  <TableHeadCell>Name</TableHeadCell>
+                  <TableHeadCell>Email</TableHeadCell>
+                  <TableHeadCell>Phone</TableHeadCell>
+                  <TableHeadCell>Role</TableHeadCell>
+                  <TableHeadCell>Stockist</TableHeadCell>
+                  <TableHeadCell>Warehouse</TableHeadCell>
+                  <TableHeadCell>Status</TableHeadCell>
+                  <TableHeadCell>Last Login</TableHeadCell>
+                  <TableHeadCell>Actions</TableHeadCell>
                 </TableRow>
-              ) : (
-                users.map((u) => (
-                  <TableRow key={u.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(u)}>
-                    <TableCell className="font-medium text-gray-900 dark:text-[var(--dark-text)]">{u.name}</TableCell>
-                    <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">
-                      {u.email}
-                      {u.username && <span className="block font-mono text-[11px] text-gray-500 dark:text-[var(--dark-muted)]">@{u.username}</span>}
-                    </TableCell>
-                    <TableCell className="text-xs">{u.phone || '—'}</TableCell>
-                    <TableCell>{roleBadge(u.role_slug)}</TableCell>
-                    <TableCell className="text-xs">{u.partner_name || '—'}</TableCell>
-                    <TableCell className="text-xs">{u.warehouse_name || '—'}</TableCell>
-                    <TableCell><StatusBadge status={u.status || (u.is_active ? 'active' : 'inactive')} /></TableCell>
-                    <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{u.last_login_at ? formatDate(u.last_login_at) : 'Never'}</TableCell>
-                    <TableCell onClick={(e) => e.stopPropagation()}>
-                      <div className="flex gap-1">
-                        <Button size="xs" color="light" onClick={() => openEdit(u)}>
-                          <HiOutlinePencil className="w-3.5 h-3.5" />
-                        </Button>
-                        <Button size="xs" color="failure" outline onClick={() => setDeleteTarget(u)}>
-                          <HiOutlineTrash className="w-3.5 h-3.5" />
-                        </Button>
-                      </div>
+              </TableHead>
+              <TableBody className="divide-y">
+                {loading ? (
+                  Array.from({ length: 8 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 9 }).map((__, j) => (
+                        <TableCell key={j}><div className="skeleton h-4 w-full rounded" /></TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : users.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9}>
+                      <EmptyState icon={HiOutlineUsers} title="No users found" description="Add user accounts to manage access" actionLabel="Add User" onAction={openAdd} />
                     </TableCell>
                   </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                ) : (
+                  users.map((u) => (
+                    <TableRow key={u.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(u)}>
+                      <TableCell className="font-medium text-gray-900 dark:text-[var(--dark-text)]">{u.name}</TableCell>
+                      <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">
+                        {u.email}
+                        {u.username && <span className="block font-mono text-[11px] text-gray-500 dark:text-[var(--dark-muted)]">@{u.username}</span>}
+                      </TableCell>
+                      <TableCell className="text-xs">{u.phone || '—'}</TableCell>
+                      <TableCell>{roleBadge(u.role_slug)}</TableCell>
+                      <TableCell className="text-xs">{u.partner_name || '—'}</TableCell>
+                      <TableCell className="text-xs">{u.warehouse_name || '—'}</TableCell>
+                      <TableCell><StatusBadge status={u.status || (u.is_active ? 'active' : 'inactive')} /></TableCell>
+                      <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{u.last_login_at ? formatDate(u.last_login_at) : 'Never'}</TableCell>
+                      <TableCell onClick={(e) => e.stopPropagation()}>
+                        <div className="flex gap-1">
+                          <Button size="xs" color="light" onClick={() => openEdit(u)}>
+                            <HiOutlinePencil className="w-3.5 h-3.5" />
+                          </Button>
+                          <Button size="xs" color="failure" outline onClick={() => setDeleteTarget(u)}>
+                            <HiOutlineTrash className="w-3.5 h-3.5" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </ResponsiveList>
         {totalPages > 1 && (
           <div className="flex justify-center mt-4">
             <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} showIcons />

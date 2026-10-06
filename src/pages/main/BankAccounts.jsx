@@ -10,6 +10,7 @@ import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
 import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
+import ResponsiveList from '@/components/ResponsiveList';
 
 const EMPTY_FORM = {
   bank_name: '', account_name: '', account_number: '', warehouse_id: '',
@@ -108,6 +109,7 @@ export default function BankAccounts() {
   };
 
   const handleAdd = async () => {
+    if (submitting) return;
     setSubmitting(true);
     try {
       await api.post(BANK_ACCOUNTS.CREATE, form);
@@ -122,6 +124,7 @@ export default function BankAccounts() {
   };
 
   const handleEdit = async () => {
+    if (submitting) return;
     setSubmitting(true);
     try {
       await api.put(BANK_ACCOUNTS.UPDATE(selected.id), form);
@@ -136,6 +139,7 @@ export default function BankAccounts() {
   };
 
   const handleDelete = async () => {
+    if (submitting) return;
     setSubmitting(true);
     try {
       await api.delete(BANK_ACCOUNTS.DELETE(deleteTarget.id));
@@ -179,67 +183,84 @@ export default function BankAccounts() {
             ))}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table striped>
-              <TableHead>
-                <TableRow>
-                  <TableHeadCell>Bank Name</TableHeadCell>
-                  <TableHeadCell>Account Name</TableHeadCell>
-                  <TableHeadCell>Account Number</TableHeadCell>
-                  <TableHeadCell>Warehouse</TableHeadCell>
-                  <TableHeadCell>Default</TableHeadCell>
-                  <TableHeadCell>Status</TableHeadCell>
-                  <TableHeadCell>Actions</TableHeadCell>
-                </TableRow>
-              </TableHead>
-              <TableBody className="divide-y">
-                {accounts.length === 0 ? (
+          <ResponsiveList
+            items={accounts}
+            getKey={(a) => a.id}
+            emptyLabel="No bank accounts"
+            onOpen={(a) => openEdit(a)}
+            row={(a) => ({
+              title: a.bank_name,
+              subtitle: `${a.account_name} · ${a.account_number}${a.is_default ? ' · Default' : ''}`,
+              status: (
+                <span className={a.is_active !== false ? 'badge-active' : 'badge-inactive'}>
+                  {a.is_active !== false ? 'Active' : 'Inactive'}
+                </span>
+              ),
+              action: { label: 'Delete', tone: 'danger', onClick: () => setDeleteTarget(a) },
+            })}
+          >
+            <div className="overflow-x-auto">
+              <Table striped>
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={7}>
-                      <EmptyState
-                        icon={HiOutlineCurrencyDollar}
-                        title="No bank accounts"
-                        description="Add bank accounts to route payment instructions"
-                        actionLabel="Add Account"
-                        onAction={openAdd}
-                      />
-                    </TableCell>
+                    <TableHeadCell>Bank Name</TableHeadCell>
+                    <TableHeadCell>Account Name</TableHeadCell>
+                    <TableHeadCell>Account Number</TableHeadCell>
+                    <TableHeadCell>Warehouse</TableHeadCell>
+                    <TableHeadCell>Default</TableHeadCell>
+                    <TableHeadCell>Status</TableHeadCell>
+                    <TableHeadCell>Actions</TableHeadCell>
                   </TableRow>
-                ) : (
-                  accounts.map((a) => (
-                    <TableRow key={a.id} className="hover:bg-amber-50/30">
-                      <TableCell className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{a.bank_name}</TableCell>
-                      <TableCell>{a.account_name}</TableCell>
-                      <TableCell className="font-mono text-sm">{a.account_number}</TableCell>
-                      <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{a.warehouse_name || <span className="text-gray-600 dark:text-[var(--dark-muted)]">Default</span>}</TableCell>
-                      <TableCell>
-                        {a.is_default ? (
-                          <span className="badge-paid">Default</span>
-                        ) : (
-                          <span className="text-muted text-xs">—</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <span className={a.is_active !== false ? 'badge-active' : 'badge-inactive'}>
-                          {a.is_active !== false ? 'Active' : 'Inactive'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex gap-1">
-                          <Button size="xs" color="light" onClick={() => openEdit(a)}>
-                            <HiOutlinePencil className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button size="xs" color="failure" outline onClick={() => setDeleteTarget(a)}>
-                            <HiOutlineTrash className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
+                </TableHead>
+                <TableBody className="divide-y">
+                  {accounts.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={7}>
+                        <EmptyState
+                          icon={HiOutlineCurrencyDollar}
+                          title="No bank accounts"
+                          description="Add bank accounts to route payment instructions"
+                          actionLabel="Add Account"
+                          onAction={openAdd}
+                        />
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                  ) : (
+                    accounts.map((a) => (
+                      <TableRow key={a.id} className="hover:bg-amber-50/30">
+                        <TableCell className="font-semibold text-gray-900 dark:text-[var(--dark-text)]">{a.bank_name}</TableCell>
+                        <TableCell>{a.account_name}</TableCell>
+                        <TableCell className="font-mono text-sm">{a.account_number}</TableCell>
+                        <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{a.warehouse_name || <span className="text-gray-600 dark:text-[var(--dark-muted)]">Default</span>}</TableCell>
+                        <TableCell>
+                          {a.is_default ? (
+                            <span className="badge-paid">Default</span>
+                          ) : (
+                            <span className="text-muted text-xs">—</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <span className={a.is_active !== false ? 'badge-active' : 'badge-inactive'}>
+                            {a.is_active !== false ? 'Active' : 'Inactive'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-1">
+                            <Button size="xs" color="light" onClick={() => openEdit(a)}>
+                              <HiOutlinePencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button size="xs" color="failure" outline onClick={() => setDeleteTarget(a)}>
+                              <HiOutlineTrash className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </ResponsiveList>
         )}
       </Card>
 

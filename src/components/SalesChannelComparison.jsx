@@ -3,6 +3,7 @@ import { Card, Table, TableBody, TableCell, TableHead, TableHeadCell, TableRow }
 import { ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import api from '@/services/api';
 import { REPORTS } from '@/services/endpoints';
+import ResponsiveList from '@/components/ResponsiveList';
 import { formatCurrency } from '@/utils/formatCurrency';
 import { useTheme } from '@/context/ThemeContext';
 
@@ -15,6 +16,8 @@ const SLOTS = {
   dark: ['#4F8AD0', '#C96F24', '#9474DA'],
 };
 const OTHER_KEY = 'influencer:__other';
+// Sentinel row key for the totals line the phone list appends after the real channels.
+const ALL_CHANNELS_KEY = '__all';
 
 function daysOfMonth(month) {
   const [year, mon] = month.split('-').map(Number);
@@ -108,52 +111,77 @@ export default function SalesChannelComparison({ month }) {
       </div>
 
       <Card>
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableHeadCell>Channel</TableHeadCell>
-                <TableHeadCell className="text-right">Orders</TableHeadCell>
-                <TableHeadCell className="text-right">Paid</TableHeadCell>
-                <TableHeadCell className="text-right">Boxes</TableHeadCell>
-                <TableHeadCell className="text-right">Gross sales</TableHeadCell>
-                <TableHeadCell className="text-right">Paid revenue</TableHeadCell>
-                <TableHeadCell className="text-right">Avg. order</TableHeadCell>
-                <TableHeadCell>Share of sales</TableHeadCell>
-              </TableRow>
-            </TableHead>
-            <TableBody className="divide-y">
-              {channels.map((c) => (
-                <TableRow key={c.channel}>
-                  <TableCell>
-                    <span className="flex items-center gap-2 font-medium text-gray-900 dark:text-[var(--dark-text)]">
-                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: colorFor(c.channel) }} aria-hidden="true" />
-                      {c.label}
-                    </span>
-                    {c.excluded_orders > 0 && <span className="block pl-[18px] text-xs text-muted">{c.excluded_orders} cancelled or rejected</span>}
-                  </TableCell>
-                  <TableCell className="text-right tabular-nums">{c.orders}</TableCell>
-                  <TableCell className="text-right tabular-nums">{c.paid_orders}</TableCell>
-                  <TableCell className="text-right tabular-nums">{c.units}</TableCell>
-                  <TableCell className="text-right font-semibold tabular-nums">{formatCurrency(c.gross_sales)}</TableCell>
-                  <TableCell className="text-right tabular-nums">{formatCurrency(c.paid_sales)}</TableCell>
-                  <TableCell className="text-right tabular-nums">{c.orders ? formatCurrency(c.average_order_value) : '—'}</TableCell>
-                  <TableCell><ShareBar pct={c.share_pct} color={colorFor(c.channel)} /></TableCell>
+        <ResponsiveList
+          items={[...channels, { channel: ALL_CHANNELS_KEY, label: 'All public sales', ...totals }]}
+          getKey={(c) => c.channel}
+          row={(c) => {
+            const isTotal = c.channel === ALL_CHANNELS_KEY;
+            const average = c.orders
+              ? formatCurrency(isTotal ? Math.round((c.gross_sales / c.orders) * 100) / 100 : c.average_order_value)
+              : '—';
+            return {
+              title: c.label,
+              subtitle: `${c.orders} orders · ${c.units} boxes${!isTotal && c.excluded_orders > 0 ? ` · ${c.excluded_orders} cancelled or rejected` : ''}`,
+              meta: formatCurrency(c.gross_sales),
+              details: [
+                ['Orders', c.orders],
+                ['Paid', c.paid_orders],
+                ['Boxes', c.units],
+                ['Gross sales', formatCurrency(c.gross_sales)],
+                ['Paid revenue', formatCurrency(c.paid_sales)],
+                ['Avg. order', average],
+                ...(isTotal ? [] : [['Share of sales', <ShareBar key="share" pct={c.share_pct} color={colorFor(c.channel)} />]]),
+              ],
+            };
+          }}
+        >
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableHeadCell>Channel</TableHeadCell>
+                  <TableHeadCell className="text-right">Orders</TableHeadCell>
+                  <TableHeadCell className="text-right">Paid</TableHeadCell>
+                  <TableHeadCell className="text-right">Boxes</TableHeadCell>
+                  <TableHeadCell className="text-right">Gross sales</TableHeadCell>
+                  <TableHeadCell className="text-right">Paid revenue</TableHeadCell>
+                  <TableHeadCell className="text-right">Avg. order</TableHeadCell>
+                  <TableHeadCell>Share of sales</TableHeadCell>
                 </TableRow>
-              ))}
-              <TableRow className="font-semibold">
-                <TableCell>All public sales</TableCell>
-                <TableCell className="text-right tabular-nums">{totals.orders}</TableCell>
-                <TableCell className="text-right tabular-nums">{totals.paid_orders}</TableCell>
-                <TableCell className="text-right tabular-nums">{totals.units}</TableCell>
-                <TableCell className="text-right tabular-nums">{formatCurrency(totals.gross_sales)}</TableCell>
-                <TableCell className="text-right tabular-nums">{formatCurrency(totals.paid_sales)}</TableCell>
-                <TableCell className="text-right tabular-nums">{totals.orders ? formatCurrency(Math.round((totals.gross_sales / totals.orders) * 100) / 100) : '—'}</TableCell>
-                <TableCell />
-              </TableRow>
-            </TableBody>
-          </Table>
-        </div>
+              </TableHead>
+              <TableBody className="divide-y">
+                {channels.map((c) => (
+                  <TableRow key={c.channel}>
+                    <TableCell>
+                      <span className="flex items-center gap-2 font-medium text-gray-900 dark:text-[var(--dark-text)]">
+                        <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ backgroundColor: colorFor(c.channel) }} aria-hidden="true" />
+                        {c.label}
+                      </span>
+                      {c.excluded_orders > 0 && <span className="block pl-[18px] text-xs text-muted">{c.excluded_orders} cancelled or rejected</span>}
+                    </TableCell>
+                    <TableCell className="text-right tabular-nums">{c.orders}</TableCell>
+                    <TableCell className="text-right tabular-nums">{c.paid_orders}</TableCell>
+                    <TableCell className="text-right tabular-nums">{c.units}</TableCell>
+                    <TableCell className="text-right font-semibold tabular-nums">{formatCurrency(c.gross_sales)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{formatCurrency(c.paid_sales)}</TableCell>
+                    <TableCell className="text-right tabular-nums">{c.orders ? formatCurrency(c.average_order_value) : '—'}</TableCell>
+                    <TableCell><ShareBar pct={c.share_pct} color={colorFor(c.channel)} /></TableCell>
+                  </TableRow>
+                ))}
+                <TableRow className="font-semibold">
+                  <TableCell>All public sales</TableCell>
+                  <TableCell className="text-right tabular-nums">{totals.orders}</TableCell>
+                  <TableCell className="text-right tabular-nums">{totals.paid_orders}</TableCell>
+                  <TableCell className="text-right tabular-nums">{totals.units}</TableCell>
+                  <TableCell className="text-right tabular-nums">{formatCurrency(totals.gross_sales)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{formatCurrency(totals.paid_sales)}</TableCell>
+                  <TableCell className="text-right tabular-nums">{totals.orders ? formatCurrency(Math.round((totals.gross_sales / totals.orders) * 100) / 100) : '—'}</TableCell>
+                  <TableCell />
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+        </ResponsiveList>
       </Card>
 
       <Card>

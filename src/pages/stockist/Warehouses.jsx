@@ -6,7 +6,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { Card, Button, Badge } from 'flowbite-react';
 import {
   HiOutlineOfficeBuilding, HiOutlineLocationMarker, HiOutlineUser,
-  HiOutlinePhone, HiOutlineMail, HiOutlineEye, HiOutlineRefresh,
+  HiOutlinePhone, HiOutlineMail, HiOutlineRefresh, HiOutlinePlus, HiOutlinePencil,
 } from 'react-icons/hi';
 import api from '@/services/api';
 import { WAREHOUSES, INVENTORY, MOBILE_INVENTORY } from '@/services/endpoints';
@@ -14,9 +14,15 @@ import { formatDate } from '@/utils/formatDate';
 import StatusBadge from '@/components/StatusBadge';
 import { ToastContainer, useToast } from '@/components/Toast';
 import PageHeader from '@/components/PageHeader';
+import WarehouseFormModal from '@/components/WarehouseFormModal';
+import ResponsiveList from '@/components/ResponsiveList';
+import { useAuth } from '@/context/AuthContext';
+import { PERMISSIONS, can } from '@/utils/permissions';
 
 export default function StockistWarehouses() {
   const { toasts, showToast, dismiss } = useToast();
+  const { user } = useAuth();
+  const canManageWarehouses = can(user?.role_slug, PERMISSIONS.WAREHOUSES_MANAGE);
   const [warehouses, setWarehouses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [activeView, setActiveView] = useState('owned');
@@ -24,6 +30,8 @@ export default function StockistWarehouses() {
   const [viewModal, setViewModal] = useState(false);
   const [warehouseInventory, setWarehouseInventory] = useState([]);
   const [invLoading, setInvLoading] = useState(false);
+  // null = form closed, 'new' = add, a warehouse record = edit.
+  const [formTarget, setFormTarget] = useState(null);
 
   const fetchWarehouses = useCallback(async () => {
     setLoading(true);
@@ -57,6 +65,16 @@ export default function StockistWarehouses() {
     }
   };
 
+  const handleSaved = (message) => {
+    showToast(message, 'success');
+    setFormTarget(null);
+    setViewModal(false);
+    fetchWarehouses();
+  };
+
+  // Only the Stockist's own warehouses can be added or edited; Affiliated Network rows are read-only.
+  const canEditSelected = canManageWarehouses && activeView === 'owned' && selected?.record_kind === 'warehouse';
+
   const capacityPct = (wh) => wh.capacity_total > 0
     ? Math.min(100, Math.round((wh.capacity_used / wh.capacity_total) * 100))
     : 0;
@@ -69,6 +87,9 @@ export default function StockistWarehouses() {
         title="Warehouses"
         subtitle="Your warehouses and the direct Stockist network supplied by your branch"
         actions={[
+          ...(canManageWarehouses && activeView === 'owned'
+            ? [{ label: 'Add Warehouse', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: () => setFormTarget('new') }]
+            : []),
           {
             label: 'Refresh',
             icon: <HiOutlineRefresh className="w-4 h-4" />,
@@ -105,7 +126,10 @@ export default function StockistWarehouses() {
             <HiOutlineOfficeBuilding className="w-8 h-8 text-amber-400" />
           </div>
           <h3 className="text-base font-semibold text-strong mb-1">No {activeView === 'owned' ? 'Warehouses' : 'Affiliated Stockists'} Found</h3>
-          <p className="text-sm text-muted">{activeView === 'owned' ? 'Assign a warehouse to this Stockist account.' : 'No direct downstream Stockists are linked to this branch yet.'}</p>
+          <p className="text-sm text-muted">{activeView === 'owned' ? (canManageWarehouses ? 'Add your first warehouse to start receiving stock.' : 'Assign a warehouse to this Stockist account.') : 'No direct downstream Stockists are linked to this branch yet.'}</p>
+          {activeView === 'owned' && canManageWarehouses && (
+            <button type="button" onClick={() => setFormTarget('new')} className="brand-btn brand-btn--primary mt-4 min-h-[44px]">Add Warehouse</button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -139,7 +163,7 @@ export default function StockistWarehouses() {
                 {/* Location */}
                 <div className="flex items-center gap-1.5 text-sm text-gray-600 dark:text-[var(--dark-muted)] mb-3">
                   <HiOutlineLocationMarker className="w-4 h-4 flex-shrink-0" />
-                  <span className="truncate">{wh.location}</span>
+                  <span className="truncate">{wh.address_display || wh.location}</span>
                 </div>
 
                 {/* Capacity bar */}
@@ -200,7 +224,7 @@ export default function StockistWarehouses() {
                 </div>
                 <div>
                   <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)] uppercase tracking-wide mb-0.5">Location</p>
-                  <p className="font-medium text-gray-900 dark:text-[var(--dark-text)]">{selected.location}</p>
+                  <p className="font-medium text-gray-900 dark:text-[var(--dark-text)]">{selected.address_display || selected.location}</p>
                 </div>
                 <div>
                   <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)] uppercase tracking-wide mb-0.5">Capacity</p>
@@ -250,6 +274,22 @@ export default function StockistWarehouses() {
               {/* Inventory table */}
               <div>
                 <p className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-3">Current Inventory</p>
+                <ResponsiveList
+                  items={warehouseInventory}
+                  loading={invLoading}
+                  emptyLabel="No inventory records"
+                  row={(inv) => ({
+                    title: inv.product_name || inv.product?.name,
+                    subtitle: `Reserved ${(inv.reserved_stock || 0).toLocaleString()}`,
+                    meta: (inv.current_stock || 0).toLocaleString(),
+                    status: <StatusBadge status={inv.status} />,
+                    details: [
+                      ['On hand', (inv.current_stock || 0).toLocaleString()],
+                      ['Reserved for orders', (inv.reserved_stock || 0).toLocaleString()],
+                      ['Status', <StatusBadge key="s" status={inv.status} />],
+                    ],
+                  })}
+                >
                 <div className="overflow-x-auto border border-gray-100 dark:border-[var(--dark-border)] rounded-lg">
                   <table className="w-full text-sm">
                     <thead className="bg-coffee-50 dark:bg-[var(--dark-card)]">
@@ -281,14 +321,29 @@ export default function StockistWarehouses() {
                     </tbody>
                   </table>
                 </div>
+                </ResponsiveList>
               </div>
             </>
           )}
         </ModalBody>
         <ModalFooter>
+          {canEditSelected && (
+            <Button color="warning" onClick={() => { setViewModal(false); setFormTarget(selected); }}>
+              <HiOutlinePencil className="w-4 h-4 mr-1" /> Edit
+            </Button>
+          )}
           <Button color="light" onClick={() => setViewModal(false)}>Close</Button>
         </ModalFooter>
       </Modal>
+
+      {/* Add / edit: mounted only while open so each opening starts from a fresh form */}
+      {formTarget && (
+        <WarehouseFormModal
+          warehouse={formTarget === 'new' ? null : formTarget}
+          onClose={() => setFormTarget(null)}
+          onSaved={handleSaved}
+        />
+      )}
 
       <ToastContainer toasts={toasts} dismiss={dismiss} />
     </div>

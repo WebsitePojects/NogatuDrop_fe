@@ -11,6 +11,7 @@ import {
   HiChevronDown, HiOutlineDocumentReport,
 } from 'react-icons/hi';
 import NotificationDrawer from '@/components/NotificationDrawer';
+import MobileTabBar from '@/components/MobileTabBar';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
@@ -18,6 +19,14 @@ import useNotificationDrawer from '@/hooks/useNotificationDrawer';
 import useResponsiveSidebar from '@/hooks/useResponsiveSidebar';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
+
+// Phone tab bar for Super Admin: the screens checked every day; everything else is under Menu.
+const MAIN_TABS = [
+  { path: '/main/dashboard', label: 'Home', icon: HiOutlineHome },
+  { path: '/main/orders', label: 'Orders', icon: HiOutlineShoppingCart },
+  { path: '/main/delivery/live', label: 'Live', icon: HiOutlineTruck },
+  { path: '/main/inventory', label: 'Stock', icon: HiOutlineCube },
+];
 
 const NAV_GROUPS = [
   {
@@ -220,6 +229,7 @@ export default function MainLayout() {
               onClick={toggleTheme}
               className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
               title={dark ? 'Light mode' : 'Dark mode'}
+              aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
             >
               {dark ? <HiOutlineSun className="w-5 h-5" /> : <HiOutlineMoon className="w-5 h-5" />}
             </button>
@@ -227,6 +237,7 @@ export default function MainLayout() {
             {/* Notifications */}
             <button
               onClick={() => setNotifOpen(true)}
+              aria-label={count > 0 ? `Notifications, ${count} unread` : 'Notifications'}
               className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-600 dark:text-gray-300"
               aria-label="Notifications"
             >
@@ -269,6 +280,7 @@ export default function MainLayout() {
         >
           <Outlet />
         </main>
+        <MobileTabBar items={MAIN_TABS} onMenu={() => setSidebarOpen(true)} />
       </div>
 
       <NotificationDrawer isOpen={notifOpen} onClose={() => setNotifOpen(false)} />

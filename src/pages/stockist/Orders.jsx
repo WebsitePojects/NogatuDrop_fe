@@ -7,9 +7,6 @@ import {
   HiX,
   HiCheckCircle,
   HiExclamationCircle,
-  HiOutlinePaperAirplane,
-  HiOutlineClipboardCopy,
-  HiOutlineCheck,
   HiOutlineExternalLink,
   HiOutlinePhotograph,
   HiOutlineClock,
@@ -32,6 +29,8 @@ import { isCenterStaff } from '@/utils/partnerLevel';
 import OrderPricingBreakdown from '@/components/OrderPricingBreakdown';
 import { extractUploadErrorMessage } from '@/utils/uploadError';
 import useSubmitGuard from '@/hooks/useSubmitGuard';
+import RiderLinkPanel from '@/components/delivery/RiderLinkPanel';
+import ResponsiveList from '@/components/ResponsiveList';
 
 const STATUS_STEPS = ['pending', 'approved', 'delivering', 'delivered'];
 const TAB_STATUSES = {
@@ -193,6 +192,16 @@ function OrderTable({ list, onOpenDetail, highlightId }) {
   }
 
   return (
+    <ResponsiveList
+      items={list}
+      onOpen={onOpenDetail}
+      row={(order) => ({
+        title: order.order_number,
+        subtitle: `${order.is_public ? (order.customer_name || 'Store buyer') : (order.placed_by_name || order.partner_name || 'Stockist')} · ${formatDate(order.created_at)}`,
+        meta: formatCurrency(order.total_amount),
+        status: <StatusBadge status={order.status} />,
+      })}
+    >
     <div className="overflow-x-auto rounded-2xl border border-gray-100 bg-white shadow-sm dark:border-[var(--dark-border)] dark:bg-[var(--dark-card)]">
       <table className="w-full text-sm">
         <thead className="bg-gray-50 dark:bg-[var(--dark-card2)]">
@@ -203,7 +212,7 @@ function OrderTable({ list, onOpenDetail, highlightId }) {
             <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Total</th>
             <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Payment</th>
             <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Proof</th>
-            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Delivery Link</th>
+            <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Rider Link</th>
             <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Status</th>
             <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Date</th>
             <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-gray-600 dark:text-[var(--dark-muted)]">Actions</th>
@@ -282,6 +291,7 @@ function OrderTable({ list, onOpenDetail, highlightId }) {
         </tbody>
       </table>
     </div>
+    </ResponsiveList>
   );
 }
 
@@ -318,8 +328,6 @@ export default function StockistOrders() {
   const [rejecting, setRejecting] = useState(false);
   const [rejectReason, setRejectReason] = useState('');
   const [verifyingPayment, setVerifyingPayment] = useState(false);
-  const [deliveryLinkInfo, setDeliveryLinkInfo] = useState(null);
-  const [copiedOrderId, setCopiedOrderId] = useState(null);
 
   const fetchOrders = useCallback(async () => {
     setLoading(true);
@@ -357,44 +365,12 @@ export default function StockistOrders() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [highlightId]);
 
-  const hydrateDeliveryLinkForOrder = useCallback(async (orderLike) => {
-    if (!orderLike?.id || !isFulfilledByViewer(orderLike, viewerRole, centerStaff)) {
-      setDeliveryLinkInfo(null);
-      return;
-    }
-
-    const paymentKey = toStatusKey(orderLike.payment_status);
-    const statusKey = toStatusKey(orderLike.status);
-    if (!['paid', 'verified'].includes(paymentKey) || ['delivered', 'cancelled', 'rejected'].includes(statusKey)) {
-      setDeliveryLinkInfo(null);
-      return;
-    }
-
-    try {
-      const { data } = await api.get(DELIVERY_TOKENS.BY_ORDER(orderLike.id));
-      const existingLink = data?.data?.magic_link || null;
-      if (existingLink) {
-        setDeliveryLinkInfo({
-          orderId: orderLike.id,
-          magicLink: existingLink,
-          expiresAt: data.data?.expires_at || null,
-        });
-      } else {
-        setDeliveryLinkInfo(null);
-      }
-    } catch {
-      setDeliveryLinkInfo(null);
-    }
-  }, [viewerRole, centerStaff]);
-
   const openDetail = async (order) => {
     setSelectedOrder(order);
     setDetailLoading(true);
     setBankAccount(null);
     setDeliveryProof(null);
     setDeliveryProofLoading(false);
-    setDeliveryLinkInfo(null);
-    setCopiedOrderId(null);
 
     try {
       const { data } = await api.get(ORDERS.BY_ID(order.id));
@@ -409,8 +385,6 @@ export default function StockistOrders() {
           setBankAccount(null);
         }
       }
-
-      await hydrateDeliveryLinkForOrder(detail);
 
       if (['delivering', 'delivered'].includes(toStatusKey(detail?.status))) {
         setDeliveryProofLoading(true);
@@ -434,8 +408,6 @@ export default function StockistOrders() {
     setSelectedOrder(null);
     setDeliveryProof(null);
     setDeliveryProofLoading(false);
-    setDeliveryLinkInfo(null);
-    setCopiedOrderId(null);
   };
 
   const handleCancel = () => runAction(async () => {
@@ -516,28 +488,8 @@ export default function StockistOrders() {
     setVerifyingPayment(true);
     try {
       await api.patch(ORDERS.VERIFY_PAYMENT(selectedOrder.id));
-
-      let generatedLink = null;
-      try {
-        const { data } = await api.post(DELIVERY_TOKENS.GENERATE, { order_id: selectedOrder.id });
-        generatedLink = data?.data?.magic_link || null;
-        if (generatedLink) {
-          setDeliveryLinkInfo({
-            orderId: selectedOrder.id,
-            magicLink: generatedLink,
-            expiresAt: data.data?.expires_at || null,
-          });
-        }
-      } catch {
-        generatedLink = null;
-      }
-
-      showToast(
-        generatedLink
-          ? 'Payment verified and delivery link generated.'
-          : 'Payment verified. Generate the delivery link if needed.',
-        'success'
-      );
+      // The Rider Link waits for the vehicle choice in the Delivery section.
+      showToast('Payment verified. Pick the vehicle and create the Rider Link in the Delivery section.', 'success');
 
       await fetchOrders();
       await openDetail({ id: selectedOrder.id });
@@ -547,55 +499,6 @@ export default function StockistOrders() {
       setVerifyingPayment(false);
     }
   });
-
-  const handleGenerateDelivery = () => runAction(async () => {
-    if (!selectedOrder?.id) return;
-    setVerifyingPayment(true);
-    try {
-      const { data } = await api.post(DELIVERY_TOKENS.GENERATE, { order_id: selectedOrder.id });
-      const generatedLink = data?.data?.magic_link || null;
-      if (generatedLink) {
-        setDeliveryLinkInfo({
-          orderId: selectedOrder.id,
-          magicLink: generatedLink,
-          expiresAt: data.data?.expires_at || null,
-        });
-      }
-      showToast('Delivery link generated. Copy it below and send it to the delivery team.', 'success');
-      await fetchOrders();
-      await openDetail({ id: selectedOrder.id });
-    } catch (error) {
-      showToast(error?.response?.data?.message || 'Failed to generate delivery link', 'error');
-    } finally {
-      setVerifyingPayment(false);
-    }
-  });
-
-  const handleCopyDeliveryLink = async () => {
-    const link = deliveryLinkInfo?.magicLink;
-    if (!link || !selectedOrder?.id) return;
-
-    try {
-      if (navigator?.clipboard?.writeText) {
-        await navigator.clipboard.writeText(link);
-      } else {
-        const textArea = document.createElement('textarea');
-        textArea.value = link;
-        textArea.style.position = 'fixed';
-        textArea.style.opacity = '0';
-        document.body.appendChild(textArea);
-        textArea.focus();
-        textArea.select();
-        document.execCommand('copy');
-        document.body.removeChild(textArea);
-      }
-
-      setCopiedOrderId(String(selectedOrder.id));
-      showToast('Delivery link copied.', 'success');
-    } catch {
-      showToast('Failed to copy link. Please copy it manually.', 'error');
-    }
-  };
 
   const filteredOrders = useMemo(() => {
     const statuses = TAB_STATUSES[activeTab];
@@ -629,7 +532,6 @@ export default function StockistOrders() {
   const selectedStatusKey = toStatusKey(detail?.status);
   const selectedPaymentKey = toStatusKey(detail?.payment_status);
   const isPaymentVerified = ['paid', 'verified'].includes(selectedPaymentKey);
-  const isTerminalStatus = ['delivered', 'cancelled', 'rejected'].includes(selectedStatusKey);
   const canReviewPendingChildOrder = Boolean(detail?.status === 'pending' && isChildManagedOrder);
   const canVerifyChildPayment = Boolean(
     canVerifyPayment
@@ -638,15 +540,9 @@ export default function StockistOrders() {
     && isChildManagedOrder
     && detail?.payment_proof_url
   );
-  const canGenerateChildDeliveryLink = Boolean(isChildManagedOrder && isPaymentVerified && !isTerminalStatus);
+  const canManageRiderLink = Boolean(isChildManagedOrder && can(user?.role_slug, PERMISSIONS.DELIVERY_TOKENS_CREATE));
   const canCancelOwnPendingOrder = Boolean(detail?.status === 'pending' && isOwnOrder);
   const canUploadOwnPaymentProof = Boolean(detail?.status === 'approved' && !isPaymentVerified && isOwnOrder);
-  const hasActiveDetailLink = Boolean(
-    detail
-    && deliveryLinkInfo
-    && String(deliveryLinkInfo.orderId) === String(detail.id)
-    && deliveryLinkInfo.magicLink
-  );
 
   return (
     <div className="min-h-screen bg-[#FFF8F0] p-4 md:p-6 dark:bg-[var(--dark-bg)]">
@@ -912,55 +808,19 @@ export default function StockistOrders() {
                   {!detail.payment_proof_url
                     ? 'Waiting for the payment receipt. The order cancels itself if nothing is paid by the deadline.'
                     : canVerifyPayment
-                      ? 'The receipt is in. Check it against your account, verify payment, then create the delivery link.'
-                      : 'The receipt is in. Nogatu is checking the payment; the delivery link button appears here once it is confirmed.'}
+                      ? 'The receipt is in. Check it against your account, verify payment, then create the Rider Link below.'
+                      : 'The receipt is in. Nogatu is checking the payment; the Rider Link appears here once it is confirmed.'}
                 </div>
               ) : null}
 
-              {hasActiveDetailLink && (
-                <div className="rounded-xl border border-purple-200 bg-purple-50 p-5 dark:border-purple-500/20 dark:bg-purple-500/10">
-                  <div className="mb-3">
-                    <p className="text-xs font-semibold uppercase tracking-[0.18em] text-purple-900 dark:text-purple-200">
-                      Delivery Magic Link
-                    </p>
-                    <p className="text-sm text-purple-700/80 dark:text-purple-200/80">
-                      Send this to the rider (Viber, SMS or Messenger). They open it on their phone, share their location while driving, and upload a photo at the door to mark the order delivered. No login needed; the link stops working after delivery or 48 hours.
-                    </p>
-                  </div>
-                  <div className="flex flex-col gap-3 md:flex-row md:items-center">
-                    <input
-                      type="text"
-                      readOnly
-                      value={deliveryLinkInfo.magicLink}
-                      className="w-full rounded-xl border border-purple-200 bg-white px-3 py-2 text-xs font-mono text-gray-700 dark:border-purple-500/20 dark:bg-[var(--dark-card2)] dark:text-[var(--dark-text)]"
-                    />
-                    <Button color="purple" onClick={handleCopyDeliveryLink}>
-                      {String(copiedOrderId) === String(detail.id) ? (
-                        <>
-                          <HiOutlineCheck className="mr-2 h-4 w-4" />
-                          Copied
-                        </>
-                      ) : (
-                        <>
-                          <HiOutlineClipboardCopy className="mr-2 h-4 w-4" />
-                          Copy Link
-                        </>
-                      )}
-                    </Button>
-                  </div>
-                  {deliveryLinkInfo.expiresAt && (
-                    <p className="mt-3 text-xs text-purple-700/80 dark:text-purple-200/80">
-                      Expires: {formatDateTime(deliveryLinkInfo.expiresAt)}
-                    </p>
-                  )}
-                </div>
-              )}
+              {/* Delivery: vehicle, Rider Link and the live map (shared with the Super Admin screen). */}
+              <RiderLinkPanel order={detail} canManage={canManageRiderLink} notify={showToast} />
 
               {(deliveryProofLoading || deliveryProof || ['delivering', 'delivered'].includes(selectedStatusKey)) && (
                 <ProofOfDeliveryPanel
                   proof={deliveryProof}
                   loading={deliveryProofLoading}
-                  emptyMessage="The rider has not submitted proof of delivery yet. The map becomes live after the delivery magic link starts sending GPS pings."
+                  emptyMessage="The rider has not submitted proof of delivery yet. The map above goes live once the rider opens the Rider Link."
                 />
               )}
             </>
@@ -986,12 +846,6 @@ export default function StockistOrders() {
                   <Button color="success" onClick={handleVerifyPayment} isProcessing={verifyingPayment} disabled={verifyingPayment} className="bg-emerald-600 text-white font-bold shadow-sm ring-2 ring-emerald-700 hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 disabled:opacity-60">
                     <HiCheckCircle className="mr-2 h-4 w-4" />
                     Verify Payment
-                  </Button>
-                )}
-                {canGenerateChildDeliveryLink && (
-                  <Button color="purple" onClick={handleGenerateDelivery} isProcessing={verifyingPayment} disabled={verifyingPayment}>
-                    <HiOutlinePaperAirplane className="mr-2 h-4 w-4 rotate-45" />
-                    {hasActiveDetailLink ? 'Regenerate Delivery Link' : 'Generate Delivery Link'}
                   </Button>
                 )}
                 {canCancelOwnPendingOrder && (

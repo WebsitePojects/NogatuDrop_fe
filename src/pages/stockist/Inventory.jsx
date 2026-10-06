@@ -9,6 +9,7 @@ import { ToastContainer, useToast } from '@/components/Toast';
 import api from '@/services/api';
 import { INVENTORY, STOCK_ADJUSTMENTS, WAREHOUSES, PRODUCTS } from '@/services/endpoints';
 import QuickStockModal from '@/components/QuickStockModal';
+import ResponsiveList from '@/components/ResponsiveList';
 import { INVENTORY_BADGE } from '@/utils/constants';
 import { formatDate } from '@/utils/formatDate';
 
@@ -87,7 +88,7 @@ export default function StockistInventory() {
   };
 
   const handleAdjustSubmit = async () => {
-    if (!adjustModal) return;
+    if (!adjustModal || submitting) return;
     if (!adjustForm.requested_qty || !adjustForm.reason.trim()) {
       showToast('Please fill in all fields', 'warning');
       return;
@@ -207,67 +208,96 @@ export default function StockistInventory() {
           </div>
         ) : (
           <>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-gray-50 dark:bg-[var(--dark-card)] border-b border-gray-100 dark:border-[var(--dark-border)]">
-                  <tr>
-                    {['Product', 'Batch', 'Expiry', 'On Hand', 'Reserved', 'Available', 'Status', ''].map(h => (
-                      <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide whitespace-nowrap">
-                        {h}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {inventory.map(item => {
-                    const avail = available(item);
-                    const badgeKey = item.status?.toLowerCase();
-                    const badge = INVENTORY_BADGE[badgeKey] || INVENTORY_BADGE['in_stock'];
-                    return (
-                      <tr key={item.id} className="border-b border-gray-50 dark:border-[var(--dark-border)] hover:bg-amber-50/30 dark:hover:bg-[var(--dark-card2)] transition-colors">
-                        <td className="px-4 py-3">
-                          <p className="font-semibold text-gray-800 dark:text-[var(--dark-text)] text-sm">
-                            {item.product?.name || item.product_name || `Item #${item.id}`}
-                          </p>
-                          {item.product?.sku && (
-                            <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)] font-mono">{item.product.sku}</p>
-                          )}
-                        </td>
-                        <td className="px-4 py-3 text-xs text-gray-500 dark:text-[var(--dark-muted)] font-mono">
-                          {item.batch_number || '—'}
-                        </td>
-                        <td className="px-4 py-3 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
-                          {item.expiry_date ? formatDate(item.expiry_date) : '—'}
-                        </td>
-                        <td className={`px-4 py-3 text-sm ${stockStatusColor(item.status)}`}>
-                          {item.current_stock ?? 0}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-amber-600 font-medium">
-                          {item.reserved_stock || 0}
-                        </td>
-                        <td className={`px-4 py-3 text-sm font-semibold ${avail <= 0 ? 'text-red-600' : 'text-emerald-600'}`}>
-                          {avail}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`text-xs px-2 py-1 rounded-full font-medium ${badge.bg} ${badge.text}`}>
-                            {badge.label}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <button
-                            onClick={() => openAdjust(item)}
-                            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
-                          >
-                            <HiAdjustments className="w-3.5 h-3.5" />
-                            Request Adjustment
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
+            <ResponsiveList
+              items={inventory}
+              getKey={(item) => item.id}
+              emptyLabel="No inventory found"
+              row={(item) => {
+                const badge = INVENTORY_BADGE[item.status?.toLowerCase()] || INVENTORY_BADGE['in_stock'];
+                const statusChip = (
+                  <span className={`text-xs px-2 py-1 rounded-full font-medium ${badge.bg} ${badge.text}`}>{badge.label}</span>
+                );
+                return {
+                  title: item.product?.name || item.product_name || `Item #${item.id}`,
+                  subtitle: `${available(item)} available${item.batch_number ? ` · Batch ${item.batch_number}` : ''}`,
+                  meta: `${item.current_stock ?? 0} on hand`,
+                  status: statusChip,
+                  details: [
+                    ['Product', item.product?.name || item.product_name || `Item #${item.id}`],
+                    ['SKU', item.product?.sku || item.sku || '—'],
+                    ['Batch', item.batch_number || '—'],
+                    ['Expiry', item.expiry_date ? formatDate(item.expiry_date) : '—'],
+                    ['On hand', item.current_stock ?? 0],
+                    ['Reserved', item.reserved_stock || 0],
+                    ['Available', available(item)],
+                    ['Status', statusChip],
+                  ],
+                  action: { label: 'Request Adjustment', onClick: () => openAdjust(item) },
+                };
+              }}
+            >
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 dark:bg-[var(--dark-card)] border-b border-gray-100 dark:border-[var(--dark-border)]">
+                    <tr>
+                      {['Product', 'Batch', 'Expiry', 'On Hand', 'Reserved', 'Available', 'Status', ''].map(h => (
+                        <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-500 dark:text-[var(--dark-muted)] uppercase tracking-wide whitespace-nowrap">
+                          {h}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {inventory.map(item => {
+                      const avail = available(item);
+                      const badgeKey = item.status?.toLowerCase();
+                      const badge = INVENTORY_BADGE[badgeKey] || INVENTORY_BADGE['in_stock'];
+                      return (
+                        <tr key={item.id} className="border-b border-gray-50 dark:border-[var(--dark-border)] hover:bg-amber-50/30 dark:hover:bg-[var(--dark-card2)] transition-colors">
+                          <td className="px-4 py-3">
+                            <p className="font-semibold text-gray-800 dark:text-[var(--dark-text)] text-sm">
+                              {item.product?.name || item.product_name || `Item #${item.id}`}
+                            </p>
+                            {item.product?.sku && (
+                              <p className="text-xs text-gray-400 dark:text-[var(--dark-muted)] font-mono">{item.product.sku}</p>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-500 dark:text-[var(--dark-muted)] font-mono">
+                            {item.batch_number || '—'}
+                          </td>
+                          <td className="px-4 py-3 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
+                            {item.expiry_date ? formatDate(item.expiry_date) : '—'}
+                          </td>
+                          <td className={`px-4 py-3 text-sm ${stockStatusColor(item.status)}`}>
+                            {item.current_stock ?? 0}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-amber-600 font-medium">
+                            {item.reserved_stock || 0}
+                          </td>
+                          <td className={`px-4 py-3 text-sm font-semibold ${avail <= 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+                            {avail}
+                          </td>
+                          <td className="px-4 py-3">
+                            <span className={`text-xs px-2 py-1 rounded-full font-medium ${badge.bg} ${badge.text}`}>
+                              {badge.label}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <button
+                              onClick={() => openAdjust(item)}
+                              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                            >
+                              <HiAdjustments className="w-3.5 h-3.5" />
+                              Request Adjustment
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </ResponsiveList>
 
             {/* Pagination */}
             <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-gray-100 dark:border-[var(--dark-border)]">

@@ -10,6 +10,7 @@ import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import { ToastContainer, useToast } from '@/components/Toast';
 import QuickStockModal from '@/components/QuickStockModal';
+import ResponsiveList from '@/components/ResponsiveList';
 import useSubmitGuard from '@/hooks/useSubmitGuard';
 
 const STOCK_STATUS_COLOR = {
@@ -237,72 +238,87 @@ export default function Inventory() {
         </div>
 
         {/* Table */}
-        <div className="overflow-x-auto">
-          <Table striped>
-            <TableHead>
-              <TableRow>
-                <TableHeadCell>Product</TableHeadCell>
-                <TableHeadCell>Warehouse</TableHeadCell>
-                <TableHeadCell>Batch</TableHeadCell>
-                <TableHeadCell>Expiry</TableHeadCell>
-                <TableHeadCell>Stock</TableHeadCell>
-                <TableHeadCell>Reserved</TableHeadCell>
-                <TableHeadCell>Available</TableHeadCell>
-                <TableHeadCell>Status</TableHeadCell>
-                <TableHeadCell>Actions</TableHeadCell>
-              </TableRow>
-            </TableHead>
-            <TableBody className="divide-y">
-              {loading ? (
-                Array.from({ length: 8 }).map((_, i) => (
-                  <TableRow key={i}>
-                    {Array.from({ length: 9 }).map((__, j) => (
-                      <TableCell key={j}><div className="skeleton h-4 w-full rounded" /></TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : items.length === 0 ? (
+        <ResponsiveList
+          items={items}
+          getKey={(item) => item.id}
+          loading={loading}
+          emptyLabel="No inventory records"
+          onOpen={(item) => openDetail(item)}
+          row={(item) => ({
+            title: item.product_name,
+            subtitle: `${item.warehouse_name} · ${Math.max(0, (item.current_stock || 0) - (item.reserved_stock || 0))} available`,
+            meta: `${item.current_stock ?? 0} in stock`,
+            status: stockStatusBadge(item),
+            action: { label: 'Adjust', onClick: () => openAdjust(item) },
+          })}
+        >
+          <div className="overflow-x-auto">
+            <Table striped>
+              <TableHead>
                 <TableRow>
-                  <TableCell colSpan={9}>
-                    <EmptyState
-                      icon={HiOutlineAdjustments}
-                      title="No inventory records"
-                      description="Add inventory items to get started"
-                      actionLabel="Add Stock"
-                      onAction={() => setShowQuickStock(true)}
-                    />
-                  </TableCell>
+                  <TableHeadCell>Product</TableHeadCell>
+                  <TableHeadCell>Warehouse</TableHeadCell>
+                  <TableHeadCell>Batch</TableHeadCell>
+                  <TableHeadCell>Expiry</TableHeadCell>
+                  <TableHeadCell>Stock</TableHeadCell>
+                  <TableHeadCell>Reserved</TableHeadCell>
+                  <TableHeadCell>Available</TableHeadCell>
+                  <TableHeadCell>Status</TableHeadCell>
+                  <TableHeadCell>Actions</TableHeadCell>
                 </TableRow>
-              ) : (
-                items.map((item) => {
-                  const avail = Math.max(0, (item.current_stock || 0) - (item.reserved_stock || 0));
-                  return (
-                    <TableRow key={item.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(item)}>
-                      <TableCell className="font-medium text-strong">{item.product_name}</TableCell>
-                      <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{item.warehouse_name}</TableCell>
-                      <TableCell className="text-xs font-mono">{item.batch_number || '—'}</TableCell>
-                      <TableCell className="text-xs">{item.expiry_date ? formatDate(item.expiry_date) : '—'}</TableCell>
-                      <TableCell className="font-semibold">{item.current_stock ?? 0}</TableCell>
-                      <TableCell className="text-amber-700">{item.reserved_stock ?? 0}</TableCell>
-                      <TableCell className={avail === 0 ? 'text-red-600 font-bold' : 'text-green-700 font-semibold'}>{avail}</TableCell>
-                      <TableCell>{stockStatusBadge(item)}</TableCell>
-                      <TableCell onClick={(e) => e.stopPropagation()}>
-                        <div className="flex gap-1">
-                          <Button size="xs" color="light" onClick={() => openEdit(item)} title="Edit">
-                            <HiOutlinePencil className="w-3.5 h-3.5" />
-                          </Button>
-                          <Button size="xs" color="warning" onClick={() => openAdjust(item)} title="Adjust">
-                            <HiOutlineAdjustments className="w-3.5 h-3.5" />
-                          </Button>
-                        </div>
-                      </TableCell>
+              </TableHead>
+              <TableBody className="divide-y">
+                {loading ? (
+                  Array.from({ length: 8 }).map((_, i) => (
+                    <TableRow key={i}>
+                      {Array.from({ length: 9 }).map((__, j) => (
+                        <TableCell key={j}><div className="skeleton h-4 w-full rounded" /></TableCell>
+                      ))}
                     </TableRow>
-                  );
-                })
-              )}
-            </TableBody>
-          </Table>
-        </div>
+                  ))
+                ) : items.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={9}>
+                      <EmptyState
+                        icon={HiOutlineAdjustments}
+                        title="No inventory records"
+                        description="Add inventory items to get started"
+                        actionLabel="Add Stock"
+                        onAction={() => setShowQuickStock(true)}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  items.map((item) => {
+                    const avail = Math.max(0, (item.current_stock || 0) - (item.reserved_stock || 0));
+                    return (
+                      <TableRow key={item.id} className="hover:bg-amber-50/30 cursor-pointer" onClick={() => openDetail(item)}>
+                        <TableCell className="font-medium text-strong">{item.product_name}</TableCell>
+                        <TableCell className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">{item.warehouse_name}</TableCell>
+                        <TableCell className="text-xs font-mono">{item.batch_number || '—'}</TableCell>
+                        <TableCell className="text-xs">{item.expiry_date ? formatDate(item.expiry_date) : '—'}</TableCell>
+                        <TableCell className="font-semibold">{item.current_stock ?? 0}</TableCell>
+                        <TableCell className="text-amber-700">{item.reserved_stock ?? 0}</TableCell>
+                        <TableCell className={avail === 0 ? 'text-red-600 font-bold' : 'text-green-700 font-semibold'}>{avail}</TableCell>
+                        <TableCell>{stockStatusBadge(item)}</TableCell>
+                        <TableCell onClick={(e) => e.stopPropagation()}>
+                          <div className="flex gap-1">
+                            <Button size="xs" color="light" onClick={() => openEdit(item)} title="Edit">
+                              <HiOutlinePencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button size="xs" color="warning" onClick={() => openAdjust(item)} title="Adjust">
+                              <HiOutlineAdjustments className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </ResponsiveList>
         <div className="flex flex-wrap items-center justify-between gap-3 mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
           <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-[var(--dark-muted)]">
             <span>Show</span>

@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Spinner } from 'flowbite-react';
 import {
   HiOutlineCheckCircle,
@@ -7,9 +6,7 @@ import {
   HiOutlinePhotograph,
   HiOutlineUser,
 } from 'react-icons/hi';
-import { GoogleMap, LoadScriptNext, MarkerF } from '@react-google-maps/api';
-import OpenDeliveryMap from '@/components/OpenDeliveryMap';
-import { isGoogleMapsFeatureEnabled, shouldAttemptGoogleMaps } from '@/utils/deliveryMapRuntime';
+import DeliveryMap from '@/components/delivery/DeliveryMap';
 import { formatDateTime } from '@/utils/formatDate';
 
 function CoordinateText({ lat, lng }) {
@@ -24,17 +21,8 @@ function CoordinateText({ lat, lng }) {
   );
 }
 
-/**
- * Small inline map showing where the courier was when the POD was submitted.
- * Falls back to OpenDeliveryMap (OpenStreetMap) when Google Maps is not configured,
- * and to coordinate text alone when no coordinates are present.
- */
+/** Where the rider stood when they confirmed delivery, on the same map style as the rest of the app. */
 function PodGpsMap({ lat, lng }) {
-  const mapsApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
-  const mapsFeatureEnabled = isGoogleMapsFeatureEnabled(import.meta.env.VITE_ENABLE_GOOGLE_MAPS);
-  const mapsConfigured = mapsFeatureEnabled && shouldAttemptGoogleMaps(mapsApiKey);
-  const [mapFailed, setMapFailed] = useState(false);
-
   const latNum = Number(lat);
   const lngNum = Number(lng);
   if (!Number.isFinite(latNum) || !Number.isFinite(lngNum)) {
@@ -44,40 +32,11 @@ function PodGpsMap({ lat, lng }) {
       </div>
     );
   }
-
-  const center = { lat: latNum, lng: lngNum };
-
-  if (mapsConfigured && !mapFailed) {
-    return (
-      <div className="overflow-hidden rounded-lg border border-gray-100" style={{ height: 140 }}>
-        <LoadScriptNext googleMapsApiKey={mapsApiKey} onError={() => setMapFailed(true)}>
-          <GoogleMap
-            mapContainerStyle={{ width: '100%', height: '100%' }}
-            zoom={14}
-            center={center}
-            options={{ streetViewControl: false, fullscreenControl: false, mapTypeControl: false, zoomControl: false }}
-          >
-            <MarkerF position={center} title="Delivery GPS location" />
-          </GoogleMap>
-        </LoadScriptNext>
-      </div>
-    );
-  }
-
   return (
-    <div className="overflow-hidden rounded-lg border border-gray-100" style={{ height: 140 }}>
-      <OpenDeliveryMap
-        center={center}
-        zoom={14}
-        markers={[{
-          key: 'pod',
-          position: center,
-          label: 'Delivery location',
-          description: `${latNum.toFixed(5)}, ${lngNum.toFixed(5)}`,
-          color: '#16a34a',
-        }]}
-      />
-    </div>
+    <DeliveryMap
+      route={{ order_status: 'delivered', destination: { lat: latNum, lng: lngNum } }}
+      height={160}
+    />
   );
 }
 

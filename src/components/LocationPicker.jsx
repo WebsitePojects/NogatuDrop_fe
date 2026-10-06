@@ -3,14 +3,11 @@ import L from 'leaflet';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import { FiCrosshair, FiMapPin, FiAlertTriangle } from 'react-icons/fi';
 import { hasLocationConsent } from '@/components/CookieConsent';
+import { PH_CENTER, isInsidePhilippines, OUTSIDE_PH_MESSAGE } from '@/utils/phBounds';
 
-// Geographic centre of the Philippines — default view before a pin is set.
-const PH_CENTER = { lat: 12.8797, lng: 121.774 };
 const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const TILE_ATTR = '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 const NOMINATIM = 'https://nominatim.openstreetmap.org';
-const PH_BOUNDS = { latMin: 4.2, latMax: 21.5, lngMin: 116.0, lngMax: 127.0 };
-const isInPH = (lat, lng) => lat >= PH_BOUNDS.latMin && lat <= PH_BOUNDS.latMax && lng >= PH_BOUNDS.lngMin && lng <= PH_BOUNDS.lngMax;
 const hasPoint = (value) => !!value && Number.isFinite(value.lat) && Number.isFinite(value.lng);
 
 // A real map pin (brand espresso with a white dot) instead of a dot that disappears into the tiles.
@@ -65,8 +62,18 @@ async function geocodeFirst(queries, signal) {
  * `searchQueries` (from utils/publicCustomer geocodeQueries) moves the pin to the buyer's chosen
  * barangay; the buyer then drags it to the exact gate. It changes once per picker choice, never per
  * keystroke, which keeps OpenStreetMap Nominatim's no-autocomplete rule.
+ *
+ * Staff forms (AddressPicker) reuse it with their own wording: `label`, `emptyHint`, and
+ * `showConsentHint={false}` (the privacy-banner note is for public buyers only).
  */
-export default function LocationPicker({ value, onChange, searchQueries = [] }) {
+export default function LocationPicker({
+  value,
+  onChange,
+  searchQueries = [],
+  label = 'Pin your gate (optional)',
+  emptyHint = 'Choose your barangay above and the pin drops there. You can also tap the map or use your live location.',
+  showConsentHint = true,
+}) {
   const [locating, setLocating] = useState(false);
   const [finding, setFinding] = useState(false);
   const [error, setError] = useState('');
@@ -103,7 +110,7 @@ export default function LocationPicker({ value, onChange, searchQueries = [] }) 
   // Reverse-geocode the pin to a readable place name (free OSM Nominatim) so the
   // buyer sees a place, not raw coordinates. Flag pins outside the Philippines.
   const [place, setPlace] = useState('');
-  const outsidePH = hasPoint(value) && !isInPH(value.lat, value.lng);
+  const outsidePH = hasPoint(value) && !isInsidePhilippines(value.lat, value.lng);
   useEffect(() => {
     if (!hasPoint(value)) { setPlace(''); return undefined; }
     const controller = new AbortController();
@@ -145,7 +152,7 @@ export default function LocationPicker({ value, onChange, searchQueries = [] }) 
     <div>
       <div className="mb-2 flex items-center justify-between gap-2">
         <span className="block text-xs font-bold uppercase tracking-wider text-gray-700">
-          Pin your gate (optional)
+          {label}
         </span>
         <button
           type="button"
@@ -158,7 +165,7 @@ export default function LocationPicker({ value, onChange, searchQueries = [] }) 
         </button>
       </div>
 
-      {!consent && (
+      {showConsentHint && !consent && (
         <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-[11px] text-amber-800 dark:bg-amber-900/30 dark:text-amber-300">
           Accept location use in the privacy banner to auto-detect your spot. You can still tap the map to pin it manually.
         </p>
@@ -199,13 +206,13 @@ export default function LocationPicker({ value, onChange, searchQueries = [] }) 
             {place || `Pinned at ${value.lat.toFixed(5)}, ${value.lng.toFixed(5)}`}
           </span>
         ) : (
-          <span>Choose your barangay above and the pin drops there. You can also tap the map or use your live location.</span>
+          <span>{emptyHint}</span>
         )}
       </div>
       {outsidePH && (
-        <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-red-600 dark:text-red-400">
+        <p className="mt-1 flex items-center gap-1 text-[11px] font-semibold text-red-600 dark:text-red-400" role="alert">
           <FiAlertTriangle className="h-3.5 w-3.5" />
-          We only deliver within the Philippines. Tap inside the country to adjust your pin.
+          {OUTSIDE_PH_MESSAGE}
         </p>
       )}
       {error && <p className="mt-1 text-[11px] text-red-600 dark:text-red-400">{error}</p>}

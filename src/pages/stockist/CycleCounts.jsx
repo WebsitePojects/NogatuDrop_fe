@@ -24,6 +24,8 @@ import PageHeader from '@/components/PageHeader';
 import StatusBadge from '@/components/StatusBadge';
 import EmptyState from '@/components/EmptyState';
 import { ToastContainer, useToast } from '@/components/Toast';
+import ResponsiveList from '@/components/ResponsiveList';
+import CycleCountItemList from '@/components/CycleCountItemList';
 import { formatDateTime } from '@/utils/formatDate';
 
 const EMPTY_FORM = { warehouse_id: '', notes: '' };
@@ -78,6 +80,7 @@ export default function StockistCycleCounts() {
       return;
     }
 
+    if (creating) return;
     setCreating(true);
     try {
       await api.post(CYCLE_COUNTS.CREATE, form);
@@ -111,7 +114,7 @@ export default function StockistCycleCounts() {
   };
 
   const saveDraftItems = async () => {
-    if (!detail) return false;
+    if (!detail || savingItems) return false;
     setSavingItems(true);
     try {
       await api.patch(CYCLE_COUNTS.UPDATE_ITEMS(detail.id), {
@@ -135,7 +138,7 @@ export default function StockistCycleCounts() {
   };
 
   const submitCount = async () => {
-    if (!detail) return;
+    if (!detail || submitting) return;
     setSubmitting(true);
     try {
       const saved = await saveDraftItems();
@@ -184,37 +187,50 @@ export default function StockistCycleCounts() {
         ) : rows.length === 0 ? (
           <EmptyState icon={HiOutlineClipboardCheck} title="No cycle counts" description="Create a warehouse count and fill in the actual quantities before submission." />
         ) : (
-          <div className="overflow-x-auto">
-            <Table striped>
-              <TableHead>
-                <TableRow>
-                  <TableHeadCell>Count No</TableHeadCell>
-                  <TableHeadCell>Warehouse</TableHeadCell>
-                  <TableHeadCell>Status</TableHeadCell>
-                  <TableHeadCell>Created</TableHeadCell>
-                  <TableHeadCell>Notes</TableHeadCell>
-                  <TableHeadCell />
-                </TableRow>
-              </TableHead>
-              <TableBody className="divide-y">
-                {rows.map((row) => (
-                  <TableRow key={row.id}>
-                    <TableCell className="font-mono text-xs">{row.count_number}</TableCell>
-                    <TableCell>{row.warehouse_name}</TableCell>
-                    <TableCell><StatusBadge status={row.status} /></TableCell>
-                    <TableCell className="text-xs">{formatDateTime(row.created_at)}</TableCell>
-                    <TableCell className="text-xs text-muted">{row.notes || '-'}</TableCell>
-                    <TableCell>
-                      <Button size="xs" color={row.status === 'draft' ? 'warning' : 'light'} onClick={() => openDetail(row)}>
-                        {row.status === 'draft' ? <HiOutlinePencilAlt className="mr-1 h-3.5 w-3.5" /> : <HiOutlineEye className="mr-1 h-3.5 w-3.5" />}
-                        {row.status === 'draft' ? 'Open' : 'View'}
-                      </Button>
-                    </TableCell>
+          <ResponsiveList
+            items={rows}
+            getKey={(row) => row.id}
+            emptyLabel="No cycle counts"
+            onOpen={(row) => openDetail(row)}
+            row={(row) => ({
+              title: row.count_number,
+              subtitle: `${row.warehouse_name} · ${formatDateTime(row.created_at)}`,
+              status: <StatusBadge status={row.status} />,
+              action: row.status === 'draft' ? { label: 'Continue count', tone: 'primary', onClick: () => openDetail(row) } : null,
+            })}
+          >
+            <div className="overflow-x-auto">
+              <Table striped>
+                <TableHead>
+                  <TableRow>
+                    <TableHeadCell>Count No</TableHeadCell>
+                    <TableHeadCell>Warehouse</TableHeadCell>
+                    <TableHeadCell>Status</TableHeadCell>
+                    <TableHeadCell>Created</TableHeadCell>
+                    <TableHeadCell>Notes</TableHeadCell>
+                    <TableHeadCell />
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                </TableHead>
+                <TableBody className="divide-y">
+                  {rows.map((row) => (
+                    <TableRow key={row.id}>
+                      <TableCell className="font-mono text-xs">{row.count_number}</TableCell>
+                      <TableCell>{row.warehouse_name}</TableCell>
+                      <TableCell><StatusBadge status={row.status} /></TableCell>
+                      <TableCell className="text-xs">{formatDateTime(row.created_at)}</TableCell>
+                      <TableCell className="text-xs text-muted">{row.notes || '-'}</TableCell>
+                      <TableCell>
+                        <Button size="xs" color={row.status === 'draft' ? 'warning' : 'light'} onClick={() => openDetail(row)}>
+                          {row.status === 'draft' ? <HiOutlinePencilAlt className="mr-1 h-3.5 w-3.5" /> : <HiOutlineEye className="mr-1 h-3.5 w-3.5" />}
+                          {row.status === 'draft' ? 'Open' : 'View'}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </ResponsiveList>
         )}
       </Card>
 
@@ -276,7 +292,8 @@ export default function StockistCycleCounts() {
                 </div>
               </div>
 
-              <div className="overflow-x-auto">
+              <CycleCountItemList items={detail.items} editable={detail.status === 'draft'} onChange={updateDetailItem} />
+              <div className="hidden overflow-x-auto md:block">
                 <Table striped>
                   <TableHead>
                     <TableRow>
