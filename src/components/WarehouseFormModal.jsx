@@ -103,7 +103,7 @@ export default function WarehouseFormModal({ warehouse, createType, onClose, onS
               mapLabel="Pin the warehouse on the map"
             />
             <p className="mt-2 text-xs text-gray-600 dark:text-[var(--dark-muted)]">
-              The pin is used to find the nearest Stockist for public and mobile orders and to start delivery routes.
+              Delivery routes start or end at this pin, and store orders go to the nearest fulfillment center by it.
             </p>
           </div>
         </div>
