@@ -632,7 +632,7 @@ export default function Orders() {
                   <Button color="success" onClick={() => { setShowDetail(false); handleApprove(selectedOrder); }} className="font-bold shadow-sm ring-1 ring-emerald-200 dark:ring-emerald-800">
                     <HiOutlineCheck className="w-4 h-4 mr-1.5" /> Approve
                   </Button>
-                  <Button color="failure" outline onClick={() => { setShowDetail(false); handleReject(selectedOrder); }} className="font-bold bg-white text-red-700 border-red-200 hover:bg-red-50 dark:bg-transparent dark:text-red-300 dark:border-red-700">
+                  <Button color="failure" outline onClick={() => { setShowDetail(false); handleReject(selectedOrder); }} className="font-bold">
                     <HiOutlineX className="w-4 h-4 mr-1.5" /> Reject
                   </Button>
                 </>
@@ -642,7 +642,7 @@ export default function Orders() {
                  color={selectedOrder.payment_proof_url ? "success" : "light"}
                  disabled={!selectedOrder.payment_proof_url || actionLoading}
                  onClick={() => handleVerifyPayment(selectedOrder)}
-                 className="bg-emerald-600 text-white font-bold shadow-sm ring-2 ring-emerald-700 hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 disabled:bg-amber-500 disabled:text-amber-950 disabled:opacity-100"
+                 className="font-bold shadow-sm"
                >
                  <HiOutlineCheckCircle className="w-4 h-4 mr-1.5" />
                  {selectedOrder.payment_proof_url
@@ -655,8 +655,9 @@ export default function Orders() {
             <div className="flex items-center gap-2 flex-wrap justify-end">
 
 
-                {!['delivered', 'cancelled', 'rejected'].includes(selectedStatusKey) && (
-                  <Button color="failure" outline onClick={() => { setShowDetail(false); handleCancel(selectedOrder); }} className="font-bold bg-white text-[#8a3b12] border-[#e8c29a] hover:bg-[#fff3e2] dark:bg-transparent dark:text-orange-200 dark:border-orange-800">
+                {/* The server cancels pending orders only (PATCH /orders/:id/cancel); offering it later only ends in an error. */}
+                {selectedStatusKey === 'pending' && (
+                  <Button color="failure" outline onClick={() => { setShowDetail(false); handleCancel(selectedOrder); }} className="font-bold">
                     Cancel Task
                   </Button>
                 )}
@@ -669,7 +670,7 @@ export default function Orders() {
                     Archive
                   </Button>
                 )}
-                <Button color="gray" onClick={() => setShowDetail(false)} className="font-bold shadow-sm bg-[#374151] text-white hover:bg-[#1f2937] dark:bg-gray-700 dark:hover:bg-gray-600">
+                <Button color="gray" onClick={() => setShowDetail(false)} className="font-bold">
                   Close
                 </Button>
             </div>

@@ -843,7 +843,7 @@ export default function StockistOrders() {
                   </Button>
                 )}
                 {canVerifyChildPayment && (
-                  <Button color="success" onClick={handleVerifyPayment} isProcessing={verifyingPayment} disabled={verifyingPayment} className="bg-emerald-600 text-white font-bold shadow-sm ring-2 ring-emerald-700 hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-300 disabled:opacity-60">
+                  <Button color="success" onClick={handleVerifyPayment} isProcessing={verifyingPayment} disabled={verifyingPayment} className="font-bold shadow-sm">
                     <HiCheckCircle className="mr-2 h-4 w-4" />
                     Verify Payment
                   </Button>

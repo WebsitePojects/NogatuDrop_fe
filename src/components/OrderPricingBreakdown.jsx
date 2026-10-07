@@ -30,7 +30,7 @@ export default function OrderPricingBreakdown({ breakdown, fallbackTotal = 0 }) 
   return (
     <section className="overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-50 shadow-sm dark:border-amber-500/20 dark:from-amber-500/10 dark:via-[var(--dark-card)] dark:to-orange-500/5">
       <div className="flex items-center gap-3 border-b border-amber-100 px-4 py-3 dark:border-amber-500/15">
-        <span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-500 text-white shadow-sm shadow-amber-500/25">
+        <span className="grid h-9 w-9 place-items-center rounded-xl bg-amber-500 text-amber-950 shadow-sm shadow-amber-500/25">
           <HiOutlineReceiptTax className="h-5 w-5" />
         </span>
         <div>

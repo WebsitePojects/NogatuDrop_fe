@@ -334,7 +334,7 @@ export default function StockistPurchaseOrders() {
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button className="bg-amber-500 hover:bg-amber-600 text-amber-950" onClick={handleCreate} disabled={creating || form.items.some((item) => !item.product_id || Number(item.quantity) < 1)}>
+          <Button color="warning" onClick={handleCreate} disabled={creating || form.items.some((item) => !item.product_id || Number(item.quantity) < 1)}>
             {creating ? <Spinner size="sm" className="mr-2" /> : null}Submit PO
           </Button>
           <Button color="light" onClick={() => setCreateModal(false)}>Cancel</Button>

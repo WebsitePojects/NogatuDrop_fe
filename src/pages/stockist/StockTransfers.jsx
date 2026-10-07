@@ -410,7 +410,7 @@ export default function StockistStockTransfers() {
         </ModalBody>
         <ModalFooter>
           <Button
-            className="bg-amber-500 hover:bg-amber-600 text-amber-950"
+            color="warning"
             onClick={handleCreate}
             disabled={creating || !form.from_warehouse_id || !form.to_warehouse_id}
           >

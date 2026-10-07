@@ -8,7 +8,6 @@ import { Spinner } from 'flowbite-react';
 import DeliveryMap from '@/components/delivery/DeliveryMap';
 import api from '@/services/api';
 import { DELIVERY_TOKENS, TRACKING } from '@/services/endpoints';
-import { formatCurrency } from '@/utils/formatCurrency';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
@@ -321,17 +320,18 @@ export default function Deliver() {
                 ITEMS
               </div>
               <div className="space-y-1">
+                {/* Orders are paid before they ship, so the rider sees what to hand over, never prices. */}
                 {info.items.map((item, index) => (
                   <div key={index} className="flex justify-between text-sm">
-                    <span className="text-gray-700">{item.product_name} x {item.quantity}</span>
-                    <span className="text-gray-500">
-                      {formatCurrency((item.unit_price || 0) * (item.quantity || 1))}
-                    </span>
+                    <span className="text-gray-700">{item.product_name}</span>
+                    <span className="font-semibold tabular-nums text-gray-900">{item.quantity} {Number(item.quantity) === 1 ? 'box' : 'boxes'}</span>
                   </div>
                 ))}
                 <div className="mt-2 flex justify-between border-t border-gray-100 pt-2 text-sm font-bold">
-                  <span>Total</span>
-                  <span className="text-orange-500">{formatCurrency(info.total_amount)}</span>
+                  <span>Hand over</span>
+                  <span className="tabular-nums">
+                    {info.items.reduce((sum, item) => sum + Number(item.quantity || 0), 0)} boxes · Paid
+                  </span>
                 </div>
               </div>
             </div>
@@ -485,7 +485,7 @@ export default function Deliver() {
           <button
             onClick={handleSubmit}
             disabled={submitting || !photo || !signatureDirty}
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-500 py-3.5 text-sm font-semibold text-white transition-all hover:bg-emerald-600 active:scale-95 disabled:opacity-60"
+            className="flex w-full items-center justify-center gap-2 rounded-xl bg-emerald-700 py-3.5 text-sm font-semibold text-white transition-all hover:bg-emerald-800 active:scale-95 disabled:bg-gray-200 disabled:text-gray-600 disabled:active:scale-100"
           >
             {submitting ? (
               <>

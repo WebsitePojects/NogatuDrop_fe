@@ -448,7 +448,7 @@ export default function StockTransfers() {
                 <Button color="warning" onClick={() => setConfirmTarget({ action: 'in_transit', transfer: selected })} className="font-bold shadow-sm">
                   <HiOutlineTruck className="w-5 h-5 mr-1.5" /> Mark In Transit
                 </Button>
-                <Button color="failure" outline onClick={() => setConfirmTarget({ action: 'cancel', transfer: selected })} className="font-bold bg-white dark:bg-transparent">
+                <Button color="failure" outline onClick={() => setConfirmTarget({ action: 'cancel', transfer: selected })} className="font-bold">
                   Cancel
                 </Button>
               </>

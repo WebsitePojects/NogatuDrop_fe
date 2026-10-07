@@ -115,8 +115,10 @@ test('order details expose a reconciled total breakdown and high-contrast paymen
   assert.equal(pricingBreakdownSource.includes('Total amount'), true);
   assert.equal(mainOrdersSource.includes('<OrderPricingBreakdown'), true);
   assert.equal(stockistOrdersSource.includes('<OrderPricingBreakdown'), true);
-  assert.equal(mainOrdersSource.includes('bg-emerald-600 text-white'), true);
-  assert.equal(stockistOrdersSource.includes('bg-emerald-600 text-white'), true);
+  // Verify Payment takes the theme's success colour (5:1 at rest, hover and press); a hand-painted green
+  // lost its contrast on hover (see buttonColors.test.js).
+  assert.match(mainOrdersSource, /color=\{selectedOrder\.payment_proof_url \? "success" : "light"\}/);
+  assert.match(stockistOrdersSource, /<Button color="success" onClick=\{handleVerifyPayment\}/);
 });
 
 test('warehouse screens use backend-owned My Warehouses and Affiliated Network tabs', () => {

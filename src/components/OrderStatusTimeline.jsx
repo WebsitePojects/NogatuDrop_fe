@@ -134,10 +134,10 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
                   className={[
                     'flex h-9 w-9 items-center justify-center rounded-full border-2 transition-all duration-500',
                     isDone
-                      ? 'border-amber-400 bg-amber-400 text-white shadow-md shadow-amber-200'
+                      ? 'border-amber-400 bg-amber-400 text-amber-950 shadow-md shadow-amber-200'
                       : isCurrent
-                        ? 'border-amber-400 bg-white text-amber-500 shadow-md shadow-amber-100 dark:bg-[var(--dark-card)]'
-                        : 'border-gray-200 bg-gray-50 text-gray-300 dark:border-[var(--dark-border)] dark:bg-[var(--dark-card2)] dark:text-[var(--dark-muted)]',
+                        ? 'border-amber-400 bg-white text-amber-700 shadow-md shadow-amber-100 dark:bg-[var(--dark-card)]'
+                        : 'border-gray-200 bg-gray-50 text-gray-400 dark:border-[var(--dark-border)] dark:bg-[var(--dark-card2)] dark:text-[var(--dark-muted)]',
                   ].join(' ')}
                 >
                   {isDone ? (
@@ -157,9 +157,9 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
                 <span
                   className={[
                     'mt-2 text-center text-[11px] font-semibold leading-tight transition-colors duration-300',
-                    isDone    ? 'text-amber-500'  : '',
+                    isDone    ? 'text-amber-800 dark:text-amber-300'  : '',
                     isCurrent ? 'text-amber-700 dark:text-amber-500'  : '',
-                    isFuture  ? 'text-gray-300 dark:text-[var(--dark-muted)]' : '',
+                    isFuture  ? 'text-gray-500 dark:text-[var(--dark-muted)]' : '',
                   ].join(' ')}
                 >
                   {step.label}
@@ -188,10 +188,10 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
                   className={[
                     'flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full border-2 transition-all duration-500',
                     isDone
-                      ? 'border-amber-400 bg-amber-400 text-white'
+                      ? 'border-amber-400 bg-amber-400 text-amber-950'
                       : isCurrent
-                        ? 'border-amber-400 bg-white text-amber-500 dark:bg-[var(--dark-card)]'
-                        : 'border-gray-200 bg-gray-50 text-gray-300 dark:border-[var(--dark-border)] dark:bg-[var(--dark-card2)] dark:text-[var(--dark-muted)]',
+                        ? 'border-amber-400 bg-white text-amber-700 dark:bg-[var(--dark-card)]'
+                        : 'border-gray-200 bg-gray-50 text-gray-400 dark:border-[var(--dark-border)] dark:bg-[var(--dark-card2)] dark:text-[var(--dark-muted)]',
                   ].join(' ')}
                 >
                   {isDone ? (
@@ -223,9 +223,9 @@ export default function OrderStatusTimeline({ status, paymentStatus, className =
                 <span
                   className={[
                     'text-sm font-semibold leading-tight transition-colors duration-300',
-                    isDone    ? 'text-amber-500'  : '',
+                    isDone    ? 'text-amber-800 dark:text-amber-300'  : '',
                     isCurrent ? 'text-amber-700 dark:text-amber-500'  : '',
-                    isFuture  ? 'text-gray-300 dark:text-[var(--dark-muted)]' : '',
+                    isFuture  ? 'text-gray-500 dark:text-[var(--dark-muted)]' : '',
                   ].join(' ')}
                 >
                   {step.label}

@@ -285,7 +285,7 @@ export default function StockistInventory() {
                           <td className="px-4 py-3">
                             <button
                               onClick={() => openAdjust(item)}
-                              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium transition-colors"
+                              className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 dark:text-blue-300 dark:hover:text-blue-200 font-medium transition-colors"
                             >
                               <HiAdjustments className="w-3.5 h-3.5" />
                               Request Adjustment

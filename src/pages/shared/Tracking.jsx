@@ -115,7 +115,7 @@ export default function Tracking() {
             <button
               type="submit"
               disabled={loading || !query.trim()}
-              className="flex flex-shrink-0 items-center gap-2 rounded-xl bg-amber-500 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-amber-600 disabled:opacity-60"
+              className="flex flex-shrink-0 items-center gap-2 rounded-xl bg-amber-700 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-amber-800 disabled:bg-gray-200 disabled:text-gray-600"
             >
               {loading ? <Spinner size="sm" color="white" /> : <HiSearch className="h-4 w-4" />}
               Track
@@ -164,7 +164,7 @@ export default function Tracking() {
                   value: trackingData.eta_window
                     ? `in ${trackingData.eta_window.min_minutes}–${trackingData.eta_window.max_minutes} min`
                     : trackingData.eta ? formatDate(trackingData.eta) : 'Once the rider is on the way',
-                  color: 'text-amber-500 bg-amber-50',
+                  color: 'text-amber-700 bg-amber-50',
                 },
                 {
                   icon: HiLocationMarker,

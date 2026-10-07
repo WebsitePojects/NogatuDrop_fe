@@ -1629,3 +1629,16 @@ textarea {
 @media (prefers-reduced-motion: reduce) {
   .ncdms-vehicle-badge.is-live::after { animation: none; opacity: 0; }
 }
+
+/* Phones: a row of tabs (order status, report type, ...) stays one swipeable line instead of wrapping into
+   three ragged rows. Only the tab strip scrolls; the page itself never scrolls sideways. */
+@media (max-width: 767px) {
+  [role="tablist"] {
+    flex-wrap: nowrap !important;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  [role="tablist"]::-webkit-scrollbar { display: none; }
+  [role="tablist"] > button { flex: 0 0 auto; white-space: nowrap; }
+}
