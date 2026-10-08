@@ -191,7 +191,7 @@ export default function ProofOfDeliveryPanel({
                 <div>
                   <span className="font-semibold text-gray-900 dark:text-gray-100">Destination:</span>{' '}
                   <span className="text-gray-600 dark:text-gray-300">
-                    {proof.target_warehouse_name || proof.partner_name || proof.customer_name || proof.customer_address || 'Not recorded'}
+                    {proof.customer_address || proof.target_warehouse_name || proof.partner_name || proof.customer_name || 'Not recorded'}
                   </span>
                 </div>
                 {proof.courier_tracking_number && (
