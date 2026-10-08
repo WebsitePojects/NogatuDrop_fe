@@ -13,8 +13,10 @@ import useSubmitGuard from '@/hooks/useSubmitGuard';
  * Payment part of the public tracking page. The amount and the account to pay stay hidden until the
  * buyer enters the phone number used at checkout (management decision 2026-10-05); the server checks it
  * (POST /tracking/public/:orderNumber/payment-details). The same phone then authorises the receipt upload.
+ * When staff raised the delivery fee after the buyer paid (`extraPaymentDue`), the panel opens again for the
+ * difference and a second receipt (management, 2026-10-08).
  */
-export default function TrackingPaymentPanel({ orderNumber, proofUploadedAt, onProofUploaded }) {
+export default function TrackingPaymentPanel({ orderNumber, proofUploadedAt, extraPaymentDue = false, onProofUploaded }) {
   const [phone, setPhone] = useState('');
   const [details, setDetails] = useState(null);
   const [error, setError] = useState('');
@@ -90,7 +92,9 @@ export default function TrackingPaymentPanel({ orderNumber, proofUploadedAt, onP
     });
   };
 
-  const receiptReceived = proofSent || Boolean(proofUploadedAt);
+  const receiptReceived = proofSent || (Boolean(proofUploadedAt) && !extraPaymentDue);
+  const owed = Number(details?.amount_still_owed || 0);
+  const isExtra = owed > 0;
 
   if (!details) {
     return (
@@ -101,7 +105,9 @@ export default function TrackingPaymentPanel({ orderNumber, proofUploadedAt, onP
         <p className="mt-1 text-sm text-amber-900/80">
           {receiptReceived
             ? 'We received your receipt and are checking your payment.'
-            : 'To see the amount and where to pay, enter the mobile number you used when you ordered.'}
+            : extraPaymentDue
+              ? 'Your delivery fee was updated. Enter the mobile number you used when you ordered to see the extra amount and send a second receipt.'
+              : 'To see the amount and where to pay, enter the mobile number you used when you ordered.'}
         </p>
         {!receiptReceived && (
           <form onSubmit={unlock} className="mt-4 flex flex-col gap-3 sm:flex-row">
@@ -119,7 +125,7 @@ export default function TrackingPaymentPanel({ orderNumber, proofUploadedAt, onP
             <button
               type="submit"
               disabled={unlocking.submitting}
-              className="inline-flex min-h-[3rem] items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 text-sm font-semibold text-white transition hover:bg-amber-700 disabled:opacity-60"
+              className="inline-flex min-h-[3rem] items-center justify-center gap-2 rounded-xl bg-amber-700 px-5 text-sm font-semibold text-white transition hover:bg-amber-800 disabled:bg-gray-200 disabled:text-gray-600"
             >
               {unlocking.submitting ? <><Spinner size="sm" light /> Checking…</> : 'Show payment details'}
             </button>
@@ -143,10 +149,15 @@ export default function TrackingPaymentPanel({ orderNumber, proofUploadedAt, onP
           <div className="space-y-3 text-sm">
             <div className="flex items-end justify-between gap-3">
               <div>
-                <p className="text-amber-800">Amount due</p>
-                <p className="text-2xl font-extrabold text-amber-950">{formatCurrency(details.total_amount || 0)}</p>
+                <p className="text-amber-800">{isExtra ? 'Extra amount due' : 'Amount due'}</p>
+                <p className="text-2xl font-extrabold text-amber-950">{formatCurrency(isExtra ? owed : details.total_amount || 0)}</p>
+                {isExtra ? (
+                  <p className="mt-1 text-xs text-amber-900">
+                    The delivery fee was updated, so the new total is {formatCurrency(details.total_amount)}. Please send the difference.
+                  </p>
+                ) : null}
               </div>
-              <button type="button" onClick={() => copy(Number(details.total_amount).toFixed(2), 'amount')} className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-white px-3 py-2 text-xs font-semibold text-amber-900">
+              <button type="button" onClick={() => copy((isExtra ? owed : Number(details.total_amount)).toFixed(2), 'amount')} className="inline-flex items-center gap-1 rounded-full border border-amber-200 bg-white px-3 py-2 text-xs font-semibold text-amber-900">
                 {copied === 'amount' ? <FiCheck aria-hidden="true" /> : <FiCopy aria-hidden="true" />} Copy
               </button>
             </div>
@@ -176,7 +187,7 @@ export default function TrackingPaymentPanel({ orderNumber, proofUploadedAt, onP
 
       {details.payment_due && (
         <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
-          <h2 className="mb-3 text-sm font-bold text-gray-900">Upload your receipt</h2>
+          <h2 className="mb-3 text-sm font-bold text-gray-900">{isExtra ? 'Upload the receipt for the extra amount' : 'Upload your receipt'}</h2>
           {receiptReceived ? (
             <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm text-emerald-800" role="status">
               Receipt received{proofUploadedAt ? ` on ${formatDate(proofUploadedAt, true)}` : ''}. We will confirm your payment shortly.
@@ -204,7 +215,7 @@ export default function TrackingPaymentPanel({ orderNumber, proofUploadedAt, onP
                 type="button"
                 onClick={uploadProof}
                 disabled={uploading.submitting || !proofFile}
-                className="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl bg-amber-600 px-4 text-sm font-semibold text-white transition hover:bg-amber-700 disabled:opacity-60"
+                className="inline-flex min-h-[3rem] w-full items-center justify-center gap-2 rounded-xl bg-amber-700 px-4 text-sm font-semibold text-white transition hover:bg-amber-800 disabled:bg-gray-200 disabled:text-gray-600"
               >
                 {uploading.submitting ? <><Spinner size="sm" light /> Uploading…</> : 'Submit payment proof'}
               </button>

@@ -1,3 +1,4 @@
+import PaymentSteps from '@/components/checkout/PaymentSteps';
 import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { Spinner } from 'flowbite-react';
 import { FiMinus, FiPlus, FiLock, FiTruck, FiShield, FiArrowRight } from 'react-icons/fi';
@@ -369,6 +370,7 @@ export default function InfluencerCheckout({ influencer }) {
                     loadError={paymentOptionsError}
                     onRetry={loadPaymentOptions}
                   />
+                  <div className="mt-3"><PaymentSteps /></div>
                 </div>
               </section>
               {formError && <p className="ck-alert ck-alert-error lg:hidden" role="alert">{formError}</p>}

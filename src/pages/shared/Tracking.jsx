@@ -189,8 +189,9 @@ export default function Tracking() {
               <TrackingPaymentPanel
                 orderNumber={activeOrderNumber}
                 proofUploadedAt={trackingData.payment_proof_uploaded_at}
+                extraPaymentDue={Boolean(trackingData.extra_payment_due)}
                 onProofUploaded={() => setTrackingData((current) => (current
-                  ? { ...current, payment_proof_uploaded_at: new Date().toISOString() }
+                  ? { ...current, payment_proof_uploaded_at: new Date().toISOString(), extra_payment_due: false }
                   : current))}
               />
             )}

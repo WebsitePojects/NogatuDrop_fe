@@ -94,6 +94,7 @@ export const ORDERS = {
   VERIFY_PAYMENT:(id) => `/orders/${id}/verify-payment`,
   ARCHIVE:       (id) => `/orders/${id}/archive`,
   UNARCHIVE:     (id) => `/orders/${id}/unarchive`,
+  SHIPPING_FEE:  (id) => `/orders/${id}/shipping-fee`,
 };
 
 // Philippine address pickers (PSGC). Public, cached for a day by the server.
@@ -117,6 +118,11 @@ export const STOCK_TRANSFERS = {
   CREATE:   '/stock-transfers',
   BY_ID:    (id) => `/stock-transfers/${id}`,
   COMPLETE: (id) => `/stock-transfers/${id}/complete`,
+};
+
+// Store-order territory per Stockist (Super Admin).
+export const TERRITORIES = {
+  BY_PARTNER: (partnerId) => `/partners/${partnerId}/territories`,
 };
 
 export const PURCHASE_ORDERS = {

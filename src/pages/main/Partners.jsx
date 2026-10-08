@@ -1,3 +1,4 @@
+import StockistTerritoryEditor from '@/components/StockistTerritoryEditor';
 import { Modal, ModalHeader, ModalBody, ModalFooter } from '@/components/AnimatedModal';
 import { useState, useEffect, useCallback } from 'react';
 import {
@@ -409,6 +410,7 @@ export default function Partners() {
                 <div><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Status</p><StatusBadge status={selected.status} /></div>
                 <div className="col-span-2"><p className="text-gray-600 dark:text-[var(--dark-muted)] text-xs">Address</p><p className="dark:text-[var(--dark-text)]">{selected.address_display || selected.address || '—'}</p></div>
               </div>
+              {!isCenter(selected) && <StockistTerritoryEditor partnerId={selected.id} />}
             </div>
           )}
         </ModalBody>

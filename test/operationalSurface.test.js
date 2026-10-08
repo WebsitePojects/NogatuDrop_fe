@@ -98,9 +98,10 @@ test('public tracking can continue unpaid orders, with payment details behind th
 
 test('stockist orders split own and child queues while exposing child payment and delivery actions', () => {
   assert.equal(stockistOrdersSource.includes('My City Orders'), true);
-  assert.equal(stockistOrdersSource.includes('Mobile Stockist Orders'), true);
+  // Store orders from the Stockist's territory join the queue it fulfils (management, 2026-10-08).
+  assert.equal(stockistOrdersSource.includes('Mobile Stockist and Store Orders'), true);
   assert.equal(stockistOrdersSource.includes('My Provincial Orders'), true);
-  assert.equal(stockistOrdersSource.includes('Affiliated City Orders'), true);
+  assert.equal(stockistOrdersSource.includes('Affiliated City and Store Orders'), true);
   assert.equal(stockistOrdersSource.includes('Verify Payment'), true);
   // The Rider Link (vehicle, link, live map) is one shared panel on both Orders screens.
   assert.equal(stockistOrdersSource.includes('<RiderLinkPanel'), true);

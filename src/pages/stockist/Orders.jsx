@@ -27,6 +27,7 @@ import { useAuth } from '@/context/AuthContext';
 import { PERMISSIONS, can } from '@/utils/permissions';
 import { isCenterStaff } from '@/utils/partnerLevel';
 import OrderPricingBreakdown from '@/components/OrderPricingBreakdown';
+import OrderFeeAndReceipts from '@/components/OrderFeeAndReceipts';
 import { extractUploadErrorMessage } from '@/utils/uploadError';
 import useSubmitGuard from '@/hooks/useSubmitGuard';
 import RiderLinkPanel from '@/components/delivery/RiderLinkPanel';
@@ -57,6 +58,9 @@ function toStatusKey(value) {
 }
 
 function isManagedChildOrder(order, viewerRole) {
+  // A store order routed to this Stockist's territory is one it fulfils, never one it bought
+  // (management, 2026-10-08).
+  if (Number(order?.is_public)) return ['city_stockist', 'provincial_stockist'].includes(viewerRole);
   const placedByRole = toStatusKey(order?.placed_by_role_slug);
   if (viewerRole === 'city_stockist') {
     return placedByRole === 'mobile_stockist';
@@ -93,22 +97,22 @@ function getSectionTitles(viewerRole, centerStaff) {
   if (viewerRole === 'city_stockist') {
     return {
       page: 'My Orders',
-      intro: 'Orders you placed, and orders from the Mobile Stockists you supply.',
+      intro: 'Orders you placed, orders from the Mobile Stockists you supply, and store orders from your territory.',
       own: 'My City Orders',
-      child: 'Mobile Stockist Orders',
+      child: 'Mobile Stockist and Store Orders',
       ownEmpty: 'You have no orders in this tab yet.',
-      childEmpty: 'No Mobile Stockist orders in this tab yet.',
+      childEmpty: 'Nothing to fulfill in this tab yet.',
     };
   }
 
   if (viewerRole === 'provincial_stockist') {
     return {
       page: 'My Orders',
-      intro: 'Orders you placed, and orders from the City Stockists you supply.',
+      intro: 'Orders you placed, orders from the City Stockists you supply, and store orders from your territory.',
       own: 'My Provincial Orders',
-      child: 'Affiliated City Orders',
+      child: 'Affiliated City and Store Orders',
       ownEmpty: 'You have no orders in this tab yet.',
-      childEmpty: 'No City Stockist orders in this tab yet.',
+      childEmpty: 'Nothing to fulfill in this tab yet.',
     };
   }
 
@@ -539,6 +543,8 @@ export default function StockistOrders() {
     && !isPaymentVerified
     && isChildManagedOrder
     && detail?.payment_proof_url
+    // Store-order money goes to Nogatu, so only Super Admin confirms it (management, 2026-10-08).
+    && !Number(detail?.is_public)
   );
   const canManageRiderLink = Boolean(isChildManagedOrder && can(user?.role_slug, PERMISSIONS.DELIVERY_TOKENS_CREATE));
   const canCancelOwnPendingOrder = Boolean(detail?.status === 'pending' && isOwnOrder);
@@ -741,6 +747,7 @@ export default function StockistOrders() {
                 breakdown={detail.pricing_breakdown}
                 fallbackTotal={detail.total_amount}
               />
+              <OrderFeeAndReceipts order={detail} onChanged={() => openDetail(detail)} />
 
               {detail.payment_proof_url && (
                 <div className="rounded-xl border border-blue-100 bg-blue-50 dark:border-blue-500/20 dark:bg-blue-500/10 p-4 space-y-3">
@@ -807,7 +814,7 @@ export default function StockistOrders() {
                 <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
                   {!detail.payment_proof_url
                     ? 'Waiting for the payment receipt. The order cancels itself if nothing is paid by the deadline.'
-                    : canVerifyPayment
+                    : canVerifyPayment && !Number(detail.is_public)
                       ? 'The receipt is in. Check it against your account, verify payment, then create the Rider Link below.'
                       : 'The receipt is in. Nogatu is checking the payment; the Rider Link appears here once it is confirmed.'}
                 </div>

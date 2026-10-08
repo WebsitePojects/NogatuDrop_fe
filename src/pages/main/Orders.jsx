@@ -23,6 +23,7 @@ import RiderLinkPanel from '@/components/delivery/RiderLinkPanel';
 import ResponsiveList from '@/components/ResponsiveList';
 import { ToastContainer, useToast } from '@/components/Toast';
 import OrderPricingBreakdown from '@/components/OrderPricingBreakdown';
+import OrderFeeAndReceipts from '@/components/OrderFeeAndReceipts';
 
 const STATUSES = ['all', 'pending', 'approved', 'delivering', 'delivered', 'cancelled', 'archived'];
 const toStatusKey = (value) => String(value || '').trim().toLowerCase();
@@ -174,6 +175,14 @@ export default function Orders() {
     } finally {
       setDetailLoading(false);
     }
+  };
+
+  // After a delivery fee change: reload the order (new total, what is owed) without closing the dialog.
+  const refreshSelectedOrder = async () => {
+    if (!selectedOrder?.id) return;
+    const { data } = await api.get(ORDERS.BY_ID(selectedOrder.id));
+    setSelectedOrder(data.data);
+    fetchOrders();
   };
 
   const handleApprove = (order) => {
@@ -541,6 +550,7 @@ export default function Orders() {
                 breakdown={selectedOrder.pricing_breakdown}
                 fallbackTotal={selectedOrder.total_amount}
               />
+              <OrderFeeAndReceipts order={selectedOrder} onChanged={refreshSelectedOrder} />
 
               {/* Extra Details Row: Proof + Deadline */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -640,14 +650,16 @@ export default function Orders() {
               {selectedStatusKey === 'approved' && selectedPaymentStatusKey !== 'paid' && (
                  <Button
                  color={selectedOrder.payment_proof_url ? "success" : "light"}
-                 disabled={!selectedOrder.payment_proof_url || actionLoading}
+                 disabled={!selectedOrder.payment_proof_url || Number(selectedOrder.amount_still_owed) > 0 || actionLoading}
                  onClick={() => handleVerifyPayment(selectedOrder)}
                  className="font-bold shadow-sm"
                >
                  <HiOutlineCheckCircle className="w-4 h-4 mr-1.5" />
-                 {selectedOrder.payment_proof_url
-                   ? (actionLoading ? 'Processing...' : 'Verify Payment')
-                   : 'Waiting for Proof'}
+                 {!selectedOrder.payment_proof_url
+                   ? 'Waiting for Proof'
+                   : Number(selectedOrder.amount_still_owed) > 0
+                     ? 'Waiting for extra receipt'
+                     : (actionLoading ? 'Processing...' : 'Verify Payment')}
                </Button>
               )}
             </div>
