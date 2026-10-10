@@ -9,6 +9,7 @@ import { formatDateTime } from '@/utils/formatDate';
 import PageHeader from '@/components/PageHeader';
 import EmptyState from '@/components/EmptyState';
 import ConfirmModal from '@/components/ConfirmModal';
+import ResponsiveList from '@/components/ResponsiveList';
 import { ToastContainer, useToast } from '@/components/Toast';
 import useSubmitGuard from '@/hooks/useSubmitGuard';
 
@@ -30,6 +31,8 @@ const OUTCOME = {
 };
 
 const pill = (cls, text) => <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ${cls}`}>{text}</span>;
+const outcomeOf = (event) => OUTCOME[event.outcome] || { ...OUTCOME.bad_password, label: event.outcome };
+const flagText = (event) => (event.flags ? event.flags.split(',').map((flag) => FLAG_LABELS[flag] || flag).join(', ') : '');
 const pageCount = (pagination) => pagination?.totalPages || pagination?.pages || 1;
 
 function Skeleton({ columns }) {
@@ -73,6 +76,24 @@ function SignInsTab() {
         </Select>
         <p className="text-xs text-muted">Unusual sign-ins had to enter a code sent to the account email.</p>
       </div>
+      <ResponsiveList
+        items={rows}
+        loading={loading}
+        emptyLabel="No sign-ins match this filter."
+        row={(e) => ({
+          title: e.user_name,
+          subtitle: `${formatDateTime(e.created_at)} · ${e.country || 'Unknown country'}`,
+          status: pill(outcomeOf(e).cls, outcomeOf(e).label),
+          details: [
+            ['Account', e.user_email],
+            ['When', formatDateTime(e.created_at)],
+            ['Result', outcomeOf(e).label],
+            ['Why flagged', flagText(e) || 'Not flagged'],
+            ['Country', e.country || 'Unknown'],
+            ['IP address', e.ip || '—'],
+          ],
+        })}
+      >
       <div className="overflow-x-auto">
         <Table striped>
           <TableHead>
@@ -99,7 +120,7 @@ function SignInsTab() {
                   <span className="block font-medium text-strong">{e.user_name}</span>
                   <span className="block text-xs text-muted">{e.user_email}</span>
                 </TableCell>
-                <TableCell>{pill((OUTCOME[e.outcome] || OUTCOME.bad_password).cls, (OUTCOME[e.outcome] || { label: e.outcome }).label)}</TableCell>
+                <TableCell>{pill(outcomeOf(e).cls, outcomeOf(e).label)}</TableCell>
                 <TableCell>
                   <div className="flex flex-wrap gap-1">
                     {(e.flags ? e.flags.split(',') : []).map((flag) => (
@@ -115,6 +136,7 @@ function SignInsTab() {
           </TableBody>
         </Table>
       </div>
+      </ResponsiveList>
       {totalPages > 1 && (
         <div className="mt-4 flex justify-end">
           <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} showIcons />
@@ -164,6 +186,24 @@ function DevicesTab({ showToast }) {
       <p className="mb-4 text-xs text-muted">
         Devices signed in right now. A session ends by itself after 7 days, or after a day without use.
       </p>
+      <ResponsiveList
+        items={rows}
+        loading={loading}
+        emptyLabel="No one is signed in right now."
+        row={(s) => ({
+          title: s.user_name,
+          subtitle: `Active ${formatDateTime(s.last_seen_at)} · ${s.country || 'Unknown country'}`,
+          details: [
+            ['Account', s.user_email],
+            ['Signed in', formatDateTime(s.created_at)],
+            ['Last active', formatDateTime(s.last_seen_at)],
+            ['Country', s.country || 'Unknown'],
+            ['IP address', s.ip || '—'],
+            ['Device', s.user_agent || '—'],
+          ],
+          action: { label: 'End session', tone: 'danger', disabled: submitting, onClick: () => setTarget(s) },
+        })}
+      >
       <div className="overflow-x-auto">
         <Table striped>
           <TableHead>
@@ -204,6 +244,7 @@ function DevicesTab({ showToast }) {
           </TableBody>
         </Table>
       </div>
+      </ResponsiveList>
       {totalPages > 1 && (
         <div className="mt-4 flex justify-end">
           <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} showIcons />
