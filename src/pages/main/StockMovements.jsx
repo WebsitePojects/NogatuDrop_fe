@@ -41,7 +41,7 @@ const TYPE_LABELS = {
   reserve: 'Reserved',
   release: 'Released',
   adjustment: 'Manual Adjustment',
-  grn: 'Goods Received (GRN)',
+  grn: 'Goods received',
   transfer: 'Warehouse Transfer',
   cycle_count_increase: 'Count Surplus',
   cycle_count_decrease: 'Count Shortage',

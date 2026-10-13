@@ -170,7 +170,7 @@ function TonePill({ label, tone }) {
   };
 
   return (
-    <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${styles[tone] || styles.gray}`}>
+    <span className={`inline-block whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold ${styles[tone] || styles.gray}`}>
       {label}
     </span>
   );

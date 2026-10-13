@@ -424,12 +424,13 @@ export default function Shop() {
           </p>
 
           <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5 space-y-4 mb-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
+            {/* Stacked on phones: a long order number beside the total pushed the total past the card edge. */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Order Number</p>
-                <p className="text-base font-bold font-mono text-amber-900">#{orderNumber}</p>
+                <p className="text-base font-bold font-mono text-amber-900 [overflow-wrap:anywhere]">#{orderNumber}</p>
               </div>
-              <div className="text-right">
+              <div className="sm:text-right">
                 <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Total Due</p>
                 <p className="text-xl font-extrabold text-amber-700">{formatCurrency(paymentTotal)}</p>
                 <p className="text-[11px] text-amber-700">VAT included</p>
@@ -950,7 +951,7 @@ export default function Shop() {
                       </div>
                       <div>
                         <p className="font-bold text-gray-700">Official Product Guarantee</p>
-                        <p className="mt-0.5 leading-relaxed text-[11px]">Direct shipment from accredited municipal/city Stockists to guarantee authentic formulations.</p>
+                        <p className="mt-0.5 leading-relaxed text-[11px]">Shipped by Nogatu Alliance centers and official Stockists. Every product is genuine.</p>
                       </div>
                     </div>
                   </div>
@@ -1110,7 +1111,7 @@ export default function Shop() {
                     <span className="font-extrabold text-amber-700">{formatCurrency(totalDue)}</span>
                   </div>
                   <div className="text-[10px] text-gray-500 leading-normal">
-                    Final warehouse routing is confirmed during checkout.
+                    Shipping is confirmed at checkout, once we have your address.
                   </div>
                   <button
                     type="button"
