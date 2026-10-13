@@ -60,3 +60,11 @@ test('both public checkouts send atomic name and address fields, never the old s
     assert.doesNotMatch(source, /customer_name:|customer_address:/, `${file} must not send the old fields`);
   }
 });
+
+test('checkout email is required and must look like an address', async () => {
+  const { isValidEmail } = await import('../src/utils/publicCustomer.js');
+  for (const ok of ['maria@example.com', ' juan.dela.cruz@gmail.com ', 'a@b.ph']) assert.equal(isValidEmail(ok), true, ok);
+  for (const bad of ['', '   ', 'maria', 'maria@', 'maria@example', '@example.com', 'ma ria@example.com', null, undefined]) {
+    assert.equal(isValidEmail(bad), false, String(bad));
+  }
+});

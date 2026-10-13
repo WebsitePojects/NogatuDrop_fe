@@ -5,6 +5,7 @@ import { DELIVERY_TOKENS } from '@/services/endpoints';
 import useSubmitGuard from '@/hooks/useSubmitGuard';
 import useOrderRoute from '@/hooks/useOrderRoute';
 import DeliveryMap from '@/components/delivery/DeliveryMap';
+import CourierShipmentForm from '@/components/delivery/CourierShipmentForm';
 import { VEHICLES, VEHICLE_ORDER, vehicleSvg } from '@/components/delivery/deliveryIcons';
 import { formatDateTime } from '@/utils/formatDate';
 
@@ -57,16 +58,21 @@ export default function RiderLinkPanel({ order, canManage = false, notify = () =
   const [link, setLink] = useState(null);
   const [vehicle, setVehicle] = useState(null);
   const [copied, setCopied] = useState(false);
+  const [shipment, setShipment] = useState(null); // { courierId, waybill } saved for this order
   const { submitting, run } = useSubmitGuard();
 
   useEffect(() => {
     setLink(null);
     setCopied(false);
+    setShipment(null);
     if (!canManage || !paid || closed || !order?.id) return undefined;
     let active = true;
     api.get(DELIVERY_TOKENS.BY_ORDER(order.id))
       .then(({ data }) => {
-        if (active && data?.data?.magic_link) setLink({ url: data.data.magic_link, expiresAt: data.data.expires_at });
+        if (active && data?.data?.magic_link) {
+          setLink({ url: data.data.magic_link, expiresAt: data.data.expires_at });
+          setShipment({ courierId: data.data.courier_id, waybill: data.data.courier_tracking_number });
+        }
       })
       .catch(() => { /* no link yet, or not allowed: the create button covers both */ });
     return () => { active = false; };
@@ -167,6 +173,16 @@ export default function RiderLinkPanel({ order, canManage = false, notify = () =
               {submitting ? 'Creating…' : vehicle ? `Create Rider Link (${VEHICLES[vehicle].label})` : 'Pick the vehicle first'}
             </button>
           )}
+          <CourierShipmentForm
+            order={order}
+            initial={shipment}
+            vehicle={vehicle}
+            notify={notify}
+            onSaved={(data) => {
+              setLink({ url: data.magic_link, expiresAt: data.expires_at });
+              setShipment({ courierId: data.courier_id, waybill: data.courier_tracking_number });
+            }}
+          />
         </>
       ) : null}
 

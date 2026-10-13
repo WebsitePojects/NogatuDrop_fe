@@ -8,6 +8,7 @@ import { VEHICLES } from '@/components/delivery/deliveryIcons';
 import StatusBadge from '@/components/StatusBadge';
 import OrderStatusTimeline from '@/components/OrderStatusTimeline';
 import TrackingPaymentPanel from '@/components/TrackingPaymentPanel';
+import CourierTrackingCard from '@/components/CourierTrackingCard';
 import api from '@/services/api';
 import { TRACKING } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
@@ -163,7 +164,8 @@ export default function Tracking() {
                   label: 'Arrives',
                   value: trackingData.eta_window
                     ? `in ${trackingData.eta_window.min_minutes}–${trackingData.eta_window.max_minutes} min`
-                    : trackingData.eta ? formatDate(trackingData.eta) : 'Once the rider is on the way',
+                    : trackingData.eta ? formatDate(trackingData.eta)
+                      : trackingData.courier_tracking_number ? "See the courier's page" : 'Once the rider is on the way',
                   color: 'text-amber-700 bg-amber-50',
                 },
                 {
@@ -184,6 +186,12 @@ export default function Tracking() {
                 </div>
               ))}
             </div>
+
+            <CourierTrackingCard
+              courier={trackingData.courier}
+              waybill={trackingData.courier_tracking_number}
+              url={trackingData.courier_tracking_url}
+            />
 
             {trackingData.payment_due && (
               <TrackingPaymentPanel

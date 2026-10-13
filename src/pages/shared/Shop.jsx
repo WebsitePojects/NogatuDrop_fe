@@ -20,6 +20,7 @@ import PhAddressFields from '@/components/PhAddressFields';
 import {
   EMPTY_NAME, EMPTY_ADDRESS, NAME_SUFFIX_OPTIONS,
   nameProblems, addressProblems, toOrderCustomerFields, geocodeQueries,
+  isValidEmail,
 } from '@/utils/publicCustomer';
 import { normalizePaymentProviders } from './paymentProviders.js';
 
@@ -337,6 +338,7 @@ export default function Shop() {
     setFormError('');
     if (nameProblems(customerName).length > 0) { setFormError('Please enter your first and last name (letters only).'); return; }
     if (!customer.phone.trim()) { setFormError('Please enter your phone number.'); return; }
+    if (!isValidEmail(customer.email)) { setFormError('Please enter your email address so we can send your order updates.'); return; }
     const badAddress = addressProblems(deliveryAddress);
     if (badAddress.includes('barangay')) { setFormError('Please choose your region, province, city and barangay.'); return; }
     if (badAddress.length > 0) { setFormError('Please add your house no. and street, and check the postal code.'); return; }
@@ -348,7 +350,7 @@ export default function Shop() {
       const payload = {
         ...toOrderCustomerFields(customerName, deliveryAddress),
         customer_phone: customer.phone,
-        customer_email: customer.email.trim() || undefined,
+        customer_email: customer.email.trim(),
         customer_lat: pinnedLocation?.lat ?? null,
         customer_lng: pinnedLocation?.lng ?? null,
         payment_method: 'bank_transfer',
@@ -760,13 +762,15 @@ export default function Shop() {
 
                     <div>
                       <label htmlFor="customerEmail" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                        Email Address (Optional)
+                        Email Address * <span className="normal-case font-medium text-gray-500">(order updates go here)</span>
                       </label>
                       <div className="relative">
                         <FiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
                         <input
                           id="customerEmail"
                           type="email"
+                          required
+                          autoComplete="email"
                           disabled={submitting}
                           value={customer.email}
                           onChange={e => setCustomer(prev => ({ ...prev, email: e.target.value }))}
