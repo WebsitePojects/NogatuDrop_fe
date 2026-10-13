@@ -269,7 +269,7 @@ export default function Users() {
     <div className="page-enter">
       <PageHeader
         title="Users"
-        subtitle="Manage system user accounts"
+        subtitle="Everyone who can sign in, their role and where they work."
         actions={[{ label: 'Add User', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: openAdd }]}
       />
 

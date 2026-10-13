@@ -207,9 +207,6 @@ export default function StockistCatalog() {
                     <span className={`font-semibold ${isOrderable ? 'text-emerald-700 dark:text-emerald-400' : 'text-rose-600'}`}>
                       {isOrderable ? `${availableQty} available` : 'Unavailable from your route'}
                     </span>
-                    {product.source_warehouse_id ? (
-                      <span className="text-muted">Source #{product.source_warehouse_id}</span>
-                    ) : null}
                   </div>
 
                   {/* Qty stepper — visible on hover/focus */}

@@ -127,7 +127,7 @@ export default function InfluencerReports() {
     <div className="space-y-6">
       <PageHeader
         title="Sales Channels"
-        subtitle="Standard store vs influencer links, month by month. Export the influencer order list to open it in Excel."
+        subtitle="Store sales versus affiliate-link sales, month by month. Download the list for Excel."
       >
         <Button color="warning" onClick={handleExport} disabled={exporting || loading || !month}>
           {exporting ? <Spinner size="sm" className="mr-2" /> : <HiOutlineDownload className="mr-2 h-4 w-4" />}

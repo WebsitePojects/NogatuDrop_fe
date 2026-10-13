@@ -277,7 +277,7 @@ export default function Orders() {
 
   return (
     <div className="page-enter">
-      <PageHeader title="Orders" subtitle="Manage and process all stockist orders" />
+      <PageHeader title="Orders" subtitle="Store orders and Stockist orders: approve, confirm payment and ship." />
 
       <Card className="mb-0">
         {/* Filters */}

@@ -1,6 +1,7 @@
 export const formatDate = (isoString, includeTime = false) => {
   if (!isoString) return 'N/A';
   const date = new Date(isoString);
+  if (Number.isNaN(date.getTime())) return '—';
   const options = {
     year: 'numeric',
     month: 'short',

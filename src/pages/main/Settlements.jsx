@@ -72,7 +72,7 @@ export default function MainSettlements() {
       <ToastContainer toasts={toasts} dismiss={dismiss} />
       <PageHeader
         title="Settlements"
-        subtitle="Paid-order reconciliation with governed export trail"
+        subtitle="Confirmed payments to match against the bank, with a download for accounting."
         actions={[{ label: 'Export CSV', icon: <HiOutlineDownload className="w-4 h-4" />, onClick: downloadCsv, color: 'light' }]}
       />
 

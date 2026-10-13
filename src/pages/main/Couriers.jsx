@@ -205,7 +205,7 @@ export default function Couriers() {
     <div className="page-enter">
       <PageHeader
         title="Couriers"
-        subtitle="Third-party delivery partner management"
+        subtitle="Delivery companies you ship with, such as J&T and LBC."
         actions={[
           { label: 'Tracking Guide', color: 'light', icon: <HiInformationCircle className="w-4 h-4" />, onClick: () => setShowTrackingGuide(true) },
           { label: 'Add Courier', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: openAdd },

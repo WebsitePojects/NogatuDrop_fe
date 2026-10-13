@@ -4,8 +4,8 @@ import { Dropdown } from 'flowbite-react';
 import {
   HiOutlineHome, HiOutlineShoppingCart, HiOutlineCube, HiOutlineCollection,
   HiOutlineAdjustments, HiOutlineOfficeBuilding, HiOutlineTag,
-  HiOutlineSwitchHorizontal, HiOutlineClipboardList, HiOutlineUserGroup,
-  HiOutlineClipboardCheck, HiOutlineCurrencyDollar, HiOutlineTruck,
+  HiOutlineUserGroup,
+  HiOutlineCurrencyDollar, HiOutlineTruck,
   HiOutlineChartBar, HiOutlineUsers, HiOutlineBell, HiOutlineLogout,
   HiOutlineMenuAlt2, HiOutlineX, HiOutlineSun, HiOutlineMoon,
   HiChevronDown, HiOutlineDocumentReport,
@@ -28,6 +28,9 @@ const MAIN_TABS = [
   { path: '/main/inventory', label: 'Stock', icon: HiOutlineCube },
 ];
 
+// Stock Transfers, Purchase Orders and Cycle Counts are left out of the menu (management walkthrough review,
+// 2026-10-13): none is part of the store, Stockist or customer workflow, and none was used after the demo
+// period (last entries June/July). Their pages still open by address, so they can come back with one line.
 const NAV_GROUPS = [
   {
     label: null,
@@ -39,8 +42,6 @@ const NAV_GROUPS = [
     label: 'Operations',
     items: [
       { path: '/main/orders',          label: 'Orders',          icon: HiOutlineShoppingCart },
-      { path: '/main/stock-transfers', label: 'Stock Transfers', icon: HiOutlineSwitchHorizontal },
-      { path: '/main/purchase-orders', label: 'Purchase Orders', icon: HiOutlineClipboardList },
     ],
   },
   {
@@ -53,7 +54,6 @@ const NAV_GROUPS = [
   {
     label: 'Stock Health',
     items: [
-      { path: '/main/cycle-counts', label: 'Cycle Counts', icon: HiOutlineClipboardCheck },
       { path: '/main/inventory',         label: 'Inventory',        icon: HiOutlineCube },
       { path: '/main/stock-movements',   label: 'Stock Movements',  icon: HiOutlineCollection },
       { path: '/main/stock-adjustments', label: 'Adjustments',      icon: HiOutlineAdjustments },

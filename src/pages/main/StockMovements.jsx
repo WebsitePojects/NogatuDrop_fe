@@ -137,7 +137,7 @@ export default function StockMovements() {
     <div className="page-enter">
       <PageHeader
         title="Stock Movements"
-        subtitle="Read-only ledger window for inventory movement review and governed export"
+        subtitle="Every box that came in or went out, and why. Read only."
         actions={[
           { label: 'Export CSV', icon: <HiOutlineDownload className="h-4 w-4" />, onClick: exportCSV, color: 'light' },
         ]}
