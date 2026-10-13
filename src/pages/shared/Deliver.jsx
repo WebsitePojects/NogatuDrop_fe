@@ -151,6 +151,10 @@ export default function Deliver() {
 
     const context = canvas.getContext('2d');
     drawingRef.current = true;
+    // Capture the pointer: when the first stroke removes the hints below the canvas, a page scrolled to the
+    // bottom gets shorter and the canvas slides under the pen. Without capture that fired pointerleave and
+    // ended the signature after its first segment (seen when the photo was added before signing).
+    canvas.setPointerCapture?.(event.pointerId);
     context.beginPath();
     context.moveTo(point.x, point.y);
     event.preventDefault();
@@ -451,15 +455,13 @@ export default function Deliver() {
                 onPointerDown={startSignature}
                 onPointerMove={drawSignature}
                 onPointerUp={endSignature}
-                onPointerLeave={endSignature}
+                onPointerCancel={endSignature}
               />
             </div>
-            {!signatureDirty && (
-              <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
-                <HiPencilAlt className="h-3.5 w-3.5" />
-                Sign with your finger or stylus.
-              </div>
-            )}
+            <div className={`mt-2 flex items-center gap-1.5 text-xs text-gray-500 ${signatureDirty ? 'invisible' : ''}`} aria-hidden={signatureDirty || undefined}>
+              <HiPencilAlt className="h-3.5 w-3.5" />
+              Sign with your finger or stylus.
+            </div>
           </div>
 
           <div>

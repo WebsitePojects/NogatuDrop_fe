@@ -16,6 +16,15 @@ test('rider signature: the canvas is not reset when the signature first becomes 
   assert.match(deliver, /const existing = signatureDirtyRef\.current \?/);
 });
 
+test('rider signature: a stroke continues even if the page moves under the pen', () => {
+  const deliver = read('pages/shared/Deliver.jsx');
+  // Filling the photo first scrolled the page to the bottom; the first stroke removed the hint below the
+  // canvas, the page got shorter, the canvas slid away and pointerleave ended the signature.
+  assert.match(deliver, /setPointerCapture/);
+  assert.doesNotMatch(deliver, /onPointerLeave=\{endSignature\}/);
+  assert.doesNotMatch(deliver, /\{!signatureDirty && \(\s*<div className="mt-2/);
+});
+
 test('store home page shows no placeholder figures or invented testimonials', () => {
   const landing = read('pages/shared/LandingPage.jsx');
   for (const placeholder of ['120k+', '99.4%', '4.8/5', 'TESTIMONIALS', 'Enterprise Storefront', '24/7 Support']) {

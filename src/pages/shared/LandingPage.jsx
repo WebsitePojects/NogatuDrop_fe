@@ -428,7 +428,7 @@ const LandingPage = () => {
 
             {/* Phones: Track order stays one tap away, outside the menu. */}
             <div className="flex items-center gap-3 md:hidden">
-              <Link to="/track" className="nav-ghost-btn rounded-xl px-3 py-2 text-sm">
+              <Link to="/track" className="nav-ghost-btn whitespace-nowrap rounded-xl px-3 py-2 text-sm">
                 Track order
               </Link>
               <button
