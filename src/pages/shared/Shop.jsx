@@ -13,7 +13,7 @@ import { createCheckoutIntent, createIntentHeaders, getCheckoutIntent } from '@/
 import { formatCurrency } from '@/utils/formatCurrency';
 import { getPublicCatalogPrice } from '@/utils/publicCatalogPrice';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
-import { getPublicOrderPricingTotals, VAT_LABEL } from '@/utils/publicCheckoutPricing';
+import { getPublicOrderPricingTotals } from '@/utils/publicCheckoutPricing';
 import { extractUploadErrorMessage } from '@/utils/uploadError';
 import LocationPicker from '@/components/LocationPicker';
 import PhAddressFields from '@/components/PhAddressFields';
@@ -290,7 +290,6 @@ export default function Shop() {
   const cartTotal = cart.reduce((s, i) => s + i.quantity * i.unit_price, 0);
   const pricingTotals = getPublicOrderPricingTotals(cartTotal);
   const shippingFee = pricingTotals.shippingFee;
-  const systemFee = pricingTotals.systemFee;
   const totalDue = pricingTotals.totalDue;
   const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
 
@@ -435,7 +434,6 @@ export default function Shop() {
               <div className="sm:text-right">
                 <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Total Due</p>
                 <p className="text-xl font-extrabold text-amber-700">{formatCurrency(paymentTotal)}</p>
-                <p className="text-[11px] text-amber-700">VAT included</p>
               </div>
             </div>
 
@@ -904,10 +902,6 @@ export default function Shop() {
                         <span className="font-semibold text-gray-800">{formatCurrency(cartTotal)}</span>
                       </div>
                       <div className="flex justify-between text-gray-500 items-center">
-                        <span>{VAT_LABEL}</span>
-                        <span className="font-semibold text-gray-800">{formatCurrency(systemFee)}</span>
-                      </div>
-                      <div className="flex justify-between text-gray-500 items-center">
                         <span>Shipping</span>
                         <span className="font-semibold text-gray-800">{formatCurrency(shippingFee)}</span>
                       </div>
@@ -1100,17 +1094,12 @@ export default function Shop() {
                     <span className="font-extrabold text-gray-900">{formatCurrency(cartTotal)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500 font-medium">{VAT_LABEL}</span>
-                    <span className="font-semibold text-gray-900">{formatCurrency(systemFee)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
                     <span className="text-gray-500 font-medium">Shipping</span>
                     <span className="font-semibold text-gray-900">{formatCurrency(shippingFee)}</span>
                   </div>
                   <div className="flex justify-between text-sm">
                     <div>
                       <span className="font-semibold text-gray-900">Total Due</span>
-                      <p className="text-[10px] text-gray-500">VAT included</p>
                     </div>
                     <span className="font-extrabold text-amber-700">{formatCurrency(totalDue)}</span>
                   </div>

@@ -20,7 +20,7 @@ import {
   FiX,
 } from 'react-icons/fi';
 import { NOGATU_PRODUCT_CATALOG } from '@/utils/nogatuCatalog';
-import { getPublicOrderPricingTotals, VAT_LABEL } from '@/utils/publicCheckoutPricing';
+import { getPublicOrderPricingTotals } from '@/utils/publicCheckoutPricing';
 import { getPublicCatalogPrice } from '@/utils/publicCatalogPrice';
 import { getProductImageSrc } from '@/utils/productImages';
 import api from '@/services/api';
@@ -298,7 +298,6 @@ const LandingPage = () => {
   const subtotal = useMemo(() => cartItems.reduce((sum, item) => sum + item.lineTotal, 0), [cartItems]);
   const pricingTotals = useMemo(() => getPublicOrderPricingTotals(subtotal), [subtotal]);
   const shipping = pricingTotals.shippingFee;
-  const vat = pricingTotals.systemFee;
   const total = pricingTotals.totalDue;
 
   useEffect(() => {
@@ -1015,18 +1014,11 @@ const LandingPage = () => {
                 <span>{formatPeso(subtotal)}</span>
               </div>
               <div className="flex items-center justify-between text-orange-100/80">
-                <span>{VAT_LABEL}</span>
-                <span>{formatPeso(vat)}</span>
-              </div>
-              <div className="flex items-center justify-between text-orange-100/80">
                 <span>Shipping</span>
                 <span>{formatPeso(shipping)}</span>
               </div>
               <div className="mt-2 flex items-center justify-between border-t border-orange-100/18 pt-2 text-base font-bold text-orange-50">
-                <div>
-                  <span>Total</span>
-                  <p className="text-[11px] font-medium text-orange-200/60">VAT included</p>
-                </div>
+                <span>Total</span>
                 <span>{formatPeso(total)}</span>
               </div>
             </div>

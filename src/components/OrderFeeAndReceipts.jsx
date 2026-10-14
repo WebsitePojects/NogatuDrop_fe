@@ -76,7 +76,7 @@ export default function OrderFeeAndReceipts({ order, onChanged }) {
               <p className="tabular-nums text-lg font-extrabold text-gray-900 dark:text-white">
                 {previewTotal == null ? '—' : formatCurrency(previewTotal)}
               </p>
-              <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">Now {formatCurrency(order.total_amount)}. VAT stays the same.</p>
+              <p className="text-xs text-gray-600 dark:text-[var(--dark-muted)]">Now {formatCurrency(order.total_amount)}.</p>
             </div>
           </div>
           <div>
