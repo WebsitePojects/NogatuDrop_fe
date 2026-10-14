@@ -543,11 +543,11 @@ const LandingPage = () => {
                 <div className="pointer-events-none absolute -left-8 top-8 h-32 w-32 rounded-full border-2 border-[#d9771f]/30" />
                 <div className="pointer-events-none absolute bottom-6 right-6 h-24 w-24 rotate-12 rounded-[28%] border border-[#a45317]/30" />
                 {productsLoading && !selectedProduct ? (
-                  <div className="flex h-48 items-center justify-center">
+                  <div className="relative z-10 flex h-48 items-center justify-center">
                     <span className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-[#d9771f]/30 border-t-[#d9771f]" />
                   </div>
                 ) : selectedProduct ? (
-                <div className="grid gap-4">
+                <div className="relative z-10 grid gap-4">
                   <div className="hero-feature-card rounded-2xl p-4">
                     <div className="featured-product-shell">
                       <div className="featured-copy">
