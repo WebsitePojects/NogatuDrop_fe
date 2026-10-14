@@ -1297,7 +1297,7 @@ textarea {
 .featured-product-shell {
   display: grid;
   gap: 1rem;
-  grid-template-rows: minmax(184px, 184px) minmax(220px, 220px);
+  grid-template-rows: auto auto;
 }
 
 .featured-copy {
@@ -1545,7 +1545,7 @@ textarea {
   }
 
   .featured-product-shell {
-    grid-template-rows: minmax(172px, 172px) minmax(180px, 180px);
+    grid-template-rows: auto auto;
   }
 
   .featured-copy {
