@@ -358,9 +358,12 @@ export default function Couriers() {
               <li>Save it as Tracking URL Template.</li>
             </ol>
             <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-4">
-              <p className="text-xs font-semibold text-amber-800 mb-1">Example</p>
+              <p className="text-xs font-semibold text-amber-800 mb-1">J&amp;T Express (checked October 2026)</p>
               <p className="text-xs font-mono text-amber-700 break-all">
-                https://www.jtexpress.ph/index/query/gzquery.html?bills={'{tracking_number}'}
+                https://www.jtexpress.ph/track-and-trace?waybillNo={'{tracking_number}'}
+              </p>
+              <p className="mt-1 text-xs text-amber-700">
+                Couriers change these links. After saving, open one order&apos;s tracking button to check it still lands on the parcel.
               </p>
             </div>
             <div className="flex justify-end gap-2">
