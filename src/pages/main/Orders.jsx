@@ -604,7 +604,12 @@ export default function Orders() {
               </div>
 
               {/* Delivery: vehicle, Rider Link and the live map (shared with the stockist portal). */}
-              <RiderLinkPanel order={selectedOrder} canManage={isSuperAdmin} notify={showToast} />
+              <RiderLinkPanel
+                order={selectedOrder}
+                canManage={isSuperAdmin}
+                notify={showToast}
+                onDelivered={() => { openDetail(selectedOrder); fetchOrders(); }}
+              />
 
               {/* Cancellation string */}
               {selectedOrder.cancellation_reason && (
@@ -628,7 +633,7 @@ export default function Orders() {
                   proof={deliveryProof}
                   loading={deliveryProofLoading}
                   title="Proof of Delivery Review"
-                  emptyMessage="The rider has not submitted proof of delivery yet. The office can review the photo, signature, and GPS here as soon as the rider completes the Rider Link."
+                  emptyMessage="No rider proof yet. With a Rider Link, the photo, signature and GPS show here once the rider confirms. Parcels sent by courier (J&T, LBC) are confirmed from the courier's page and have no rider proof."
                 />
               )}
             </div>

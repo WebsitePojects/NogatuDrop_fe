@@ -171,7 +171,8 @@ export default function Tracking() {
                 {
                   icon: HiLocationMarker,
                   label: 'Last Update',
-                  value: latestPing?.pinged_at ? formatDate(latestPing.pinged_at, true) : 'N/A',
+                  value: latestPing?.pinged_at ? formatDate(latestPing.pinged_at, true)
+                    : trackingData.courier_tracking_number ? "On the courier's page" : 'N/A',
                   color: 'text-emerald-500 bg-emerald-50',
                 },
               ].map(({ icon: Icon, label, value, color }) => (
@@ -204,7 +205,9 @@ export default function Tracking() {
               />
             )}
 
-            {trackingData.status === 'delivering' && (sourcePoint || latestPingPoint) && (
+            {/* A courier parcel is followed on the courier's page (the card above); our map would only show
+                a rider who is not ours (management, 2026-10-27). */}
+            {trackingData.status === 'delivering' && !trackingData.courier_tracking_number && (sourcePoint || latestPingPoint) && (
               // Public page: the rider and the center only. The line to the buyer's door is never drawn
               // here, because anyone with the order number can open this page.
               <DeliveryMap

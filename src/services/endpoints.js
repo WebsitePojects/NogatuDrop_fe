@@ -171,6 +171,7 @@ export const DELIVERY_TOKENS = {
   POD_BY_ORDER: (orderId) => `/delivery-tokens/pods/by-order/${orderId}`,
   INFO:      (token) => `/delivery-tokens/deliver/${token}`,
   COMPLETE:  (token) => `/delivery-tokens/deliver/${token}/complete`,
+  COURIER_DELIVERED: (orderId) => `/delivery-tokens/by-order/${orderId}/courier-delivered`,
 };
 
 export const MOBILE_STOCKISTS = {

@@ -821,13 +821,18 @@ export default function StockistOrders() {
               ) : null}
 
               {/* Delivery: vehicle, Rider Link and the live map (shared with the Super Admin screen). */}
-              <RiderLinkPanel order={detail} canManage={canManageRiderLink} notify={showToast} />
+              <RiderLinkPanel
+                order={detail}
+                canManage={canManageRiderLink}
+                notify={showToast}
+                onDelivered={() => { openDetail(detail); fetchOrders(); }}
+              />
 
               {(deliveryProofLoading || deliveryProof || ['delivering', 'delivered'].includes(selectedStatusKey)) && (
                 <ProofOfDeliveryPanel
                   proof={deliveryProof}
                   loading={deliveryProofLoading}
-                  emptyMessage="The rider has not submitted proof of delivery yet. The map above goes live once the rider opens the Rider Link."
+                  emptyMessage="No rider proof yet. With a Rider Link, the photo, signature and GPS show here once the rider confirms. Parcels sent by courier (J&T, LBC) are confirmed from the courier's page and have no rider proof."
                 />
               )}
             </>
