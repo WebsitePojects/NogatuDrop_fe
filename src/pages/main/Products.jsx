@@ -243,7 +243,7 @@ export default function Products() {
     <div className="page-enter">
       <PageHeader
         title="Products"
-        subtitle="Manage the Nogatu catalog with cleaner merchandising cards, clearer pricing hierarchy, and a more polished product detail workflow."
+        subtitle="The products buyers and Stockists can order, with their prices and photos."
         actions={[{ label: 'Add Product', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: openAdd }]}
       />
 

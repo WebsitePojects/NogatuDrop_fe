@@ -69,7 +69,7 @@ export default function Warehouses() {
     <div className="page-enter">
       <PageHeader
         title="Warehouses"
-        subtitle="Manage the main warehouse and inspect the Provincial Stockist network"
+        subtitle="The centers that hold stock, and the Stockist warehouses they supply."
         actions={activeView === 'owned' ? [{ label: 'Add Warehouse', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: openAdd }] : []}
       />
 

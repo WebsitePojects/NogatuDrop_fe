@@ -52,7 +52,7 @@ export default function StockistSettlements() {
       <ToastContainer toasts={toasts} dismiss={dismiss} />
       <PageHeader
         title="Settlements"
-        subtitle="Track reconciliations and export the signed settlement history for your territory"
+        subtitle="Your confirmed payments, with a download for your records."
         actions={[{ label: 'Export CSV', icon: <HiOutlineDownload className="h-4 w-4" />, onClick: downloadCsv, color: 'light' }]}
       />
 

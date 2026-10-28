@@ -14,6 +14,7 @@ import { maxOrderableQuantity, clampQuantity } from '@/utils/publicOrderLimits';
 import {
   EMPTY_NAME, EMPTY_ADDRESS, NAME_SUFFIX_OPTIONS,
   nameProblems, addressProblems, toOrderCustomerFields, formatPersonName, geocodeQueries,
+  isValidEmail,
 } from '@/utils/publicCustomer';
 import useSubmitGuard from '@/hooks/useSubmitGuard';
 import LocationPicker from '@/components/LocationPicker';
@@ -191,6 +192,7 @@ export default function InfluencerCheckout({ influencer }) {
   const setContactPart = (key) => (e) => setContact((c) => ({ ...c, [key]: e.target.value }));
 
   const phoneValid = PHONE_PATTERN.test(contact.phone.replace(/[\s-]/g, ''));
+  const emailValid = isValidEmail(contact.email);
   const badName = touched ? nameProblems(name) : [];
   const badAddress = touched ? addressProblems(address) : [];
   const invalidAddress = Object.fromEntries(badAddress.map((key) => [key, true]));
@@ -212,6 +214,7 @@ export default function InfluencerCheckout({ influencer }) {
     const badNameNow = nameProblems(name);
     if (badNameNow.length > 0) { fail('Please enter your first and last name (letters only).', `ck-${badNameNow[0]}`); return; }
     if (!phoneValid) { fail('Please enter a valid mobile number, e.g. 0917 123 4567.', 'ck-phone'); return; }
+    if (!emailValid) { fail('Please enter your email address so we can send your order updates.', 'ck-email'); return; }
     const missingAddress = addressProblems(address);
     if (missingAddress.includes('barangay')) {
       const firstEmpty = ['regionCode', 'provinceKey', 'cityCode'].find((key) => !address[key]);
@@ -227,7 +230,7 @@ export default function InfluencerCheckout({ influencer }) {
       const payload = {
         ...toOrderCustomerFields(name, address),
         customer_phone: contact.phone.replace(/[\s-]/g, ''),
-        customer_email: contact.email.trim() || undefined,
+        customer_email: contact.email.trim(),
         customer_lat: pinnedLocation?.lat ?? null,
         customer_lng: pinnedLocation?.lng ?? null,
         payment_method: 'bank_transfer',
@@ -336,8 +339,8 @@ export default function InfluencerCheckout({ influencer }) {
                   <Field id="ck-phone" label="Mobile number" required hint="We text delivery updates here. You also need it to upload your receipt." className="col-span-2 sm:col-span-3">
                     <input id="ck-phone" className="ck-input" type="tel" autoComplete="tel" inputMode="tel" value={contact.phone} onChange={setContactPart('phone')} aria-invalid={(touched && !phoneValid) || undefined} placeholder="0917 123 4567" />
                   </Field>
-                  <Field id="ck-email" label="Email" hint="Optional, for order updates." className="col-span-2 sm:col-span-3">
-                    <input id="ck-email" className="ck-input" type="email" autoComplete="email" inputMode="email" value={contact.email} onChange={setContactPart('email')} placeholder="juan@example.com" />
+                  <Field id="ck-email" label="Email" required hint="We email your order updates here." className="col-span-2 sm:col-span-3">
+                    <input id="ck-email" className="ck-input" type="email" autoComplete="email" inputMode="email" value={contact.email} onChange={setContactPart('email')} aria-invalid={(touched && !emailValid) || undefined} placeholder="juan@example.com" />
                   </Field>
                 </div>
               </section>

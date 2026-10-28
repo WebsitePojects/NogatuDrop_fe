@@ -21,11 +21,16 @@ const withIndex = (rows) => rows.map((row, _k) => ({ ...row, _k }));
 
 const CHART_COLORS = ['#F59E0B', '#3B82F6', '#10B981', '#8B5CF6', '#EF4444', '#06B6D4', '#F97316'];
 
-function ChartCard({ title, children, loading }) {
+// An empty chart draws a bare grid (or a grey block for bars), which reads as broken; say so in words.
+function ChartCard({ title, children, loading, empty = false }) {
   return (
     <Card>
       <h3 className="text-sm font-semibold text-gray-700 dark:text-[var(--dark-text)] mb-4">{title}</h3>
-      {loading ? <div className="skeleton h-52 w-full rounded-lg" /> : children}
+      {loading ? <div className="skeleton h-52 w-full rounded-lg" /> : empty ? (
+        <div className="flex h-[200px] items-center justify-center rounded-lg border border-dashed border-gray-200 text-sm text-gray-600 dark:border-white/10 dark:text-[var(--dark-muted)]">
+          No data for these dates yet
+        </div>
+      ) : children}
     </Card>
   );
 }
@@ -62,7 +67,7 @@ function RevenueTab() {
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ChartCard title="Revenue Over Time" loading={loading}>
+        <ChartCard title="Revenue Over Time" loading={loading} empty={!trend.some((r) => Number(r.revenue) > 0)}>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={trend} margin={{ left: 8, right: 14, top: 14, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3e8d6" />
@@ -73,7 +78,7 @@ function RevenueTab() {
             </LineChart>
           </ResponsiveContainer>
         </ChartCard>
-        <ChartCard title="Revenue by Warehouse" loading={loading}>
+        <ChartCard title="Revenue by Warehouse" loading={loading} empty={!byWarehouse.some((r) => Number(r.revenue) > 0)}>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={byWarehouse} margin={{ left: 8, right: 14, top: 14, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3e8d6" />
@@ -153,7 +158,7 @@ function OrdersTab() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ChartCard title="Orders by Status" loading={loading}>
+        <ChartCard title="Orders by Status" loading={loading} empty={!byStatus?.length}>
           {byStatus.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
@@ -166,7 +171,7 @@ function OrdersTab() {
             </ResponsiveContainer>
           ) : <EmptyState icon={HiOutlineChartBar} title="No order data" description="" />}
         </ChartCard>
-        <ChartCard title="Orders Over Time" loading={loading}>
+        <ChartCard title="Orders Over Time" loading={loading} empty={!trend?.length}>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={trend} margin={{ left: 8, right: 14, top: 14, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3e8d6" />
@@ -210,7 +215,7 @@ function ProductsTab() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ChartCard title="Top 10 Products by Quantity Sold" loading={loading}>
+        <ChartCard title="Top 10 Products by Quantity Sold" loading={loading} empty={!top?.length}>
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={top} layout="vertical" margin={{ left: 60, right: 10, top: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3e8d6" />
@@ -221,7 +226,7 @@ function ProductsTab() {
             </BarChart>
           </ResponsiveContainer>
         </ChartCard>
-        <ChartCard title="Products by Category" loading={loading}>
+        <ChartCard title="Products by Category" loading={loading} empty={!byCategory?.length}>
           <ResponsiveContainer width="100%" height={220}>
             <PieChart>
               <Pie data={byCategory} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={80} paddingAngle={3}>
@@ -309,7 +314,7 @@ function MovementsTab() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ChartCard title="Movement Type Distribution" loading={loading}>
+        <ChartCard title="Movement Type Distribution" loading={loading} empty={!byType?.length}>
           {byType.length > 0 ? (
             <ResponsiveContainer width="100%" height={200}>
               <PieChart>
@@ -400,7 +405,7 @@ function StockistsTab() {
 
   return (
     <div className="space-y-4">
-      <ChartCard title="Top Stockists by Order Volume" loading={loading}>
+      <ChartCard title="Top Stockists by Order Volume" loading={loading} empty={!data?.length}>
         {data.length > 0 ? (
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={data.slice(0, 10)} margin={{ left: 8, right: 14, top: 14, bottom: 0 }}>
@@ -499,7 +504,7 @@ function InventoryTab() {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        <ChartCard title="Stock Levels by Warehouse" loading={loading}>
+        <ChartCard title="Stock Levels by Warehouse" loading={loading} empty={!byWarehouse?.length}>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={byWarehouse} margin={{ left: 8, right: 14, top: 14, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f3e8d6" />
@@ -586,7 +591,7 @@ export default function Reports() {
     <div className="page-enter">
       <PageHeader
         title="Reports"
-        subtitle="Comprehensive system analytics and reports"
+        subtitle="Sales, orders, products and stock over any dates you choose."
         actions={[
           { label: 'Export PDF', icon: <HiOutlineDownload className="w-4 h-4" />, onClick: () => window.print(), color: 'light' },
         ]}

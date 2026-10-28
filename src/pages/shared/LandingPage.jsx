@@ -36,7 +36,6 @@ const NAV_LINKS = [
   { id: 'shop', label: 'Shop' },
   { id: 'story', label: 'Story' },
   { id: 'certifications', label: 'Certifications' },
-  { id: 'reviews', label: 'Reviews' },
   { id: 'contact', label: 'Contact' },
 ];
 
@@ -158,54 +157,35 @@ function mapDbProductToCard(product, catalogFallbacks = []) {
   };
 }
 
+// Statements the store can stand behind. The earlier hero figures (monthly orders, fulfilment rate,
+// Stockist rating) were template placeholders, not Nogatu data (management walkthrough review, 2026-10-13).
 const METRICS = [
-  { value: '120k+', label: 'Monthly Orders' },
-  { value: '99.4%', label: 'Fulfillment SLA' },
-  { value: '48h', label: 'Metro Delivery' },
-  { value: '4.8/5', label: 'Stockist Rating' },
+  { value: 'Official', label: 'Nogatu Alliance store' },
+  { value: 'Live', label: 'Order tracking' },
+  { value: 'Direct', label: 'Pay Nogatu accounts only' },
+  { value: 'Nationwide', label: 'Delivery' },
 ];
 
 const HIGHLIGHTS = [
   {
     icon: <FiShield className="text-xl text-orange-300" />,
-    title: 'Enterprise Safety',
-    detail: 'Secure checkout, encrypted transactions, and fraud monitoring by default.',
+    title: 'Safe Payment',
+    detail: 'Pay into an official Nogatu bank or GCash account and upload the receipt. We confirm it before we ship.',
   },
   {
     icon: <FiTruck className="text-xl text-orange-300" />,
-    title: 'Fast Logistics',
-    detail: 'Reliable nationwide shipping with warehouse-aware stock availability.',
+    title: 'Nearest Center',
+    detail: 'Your order ships from the Nogatu center closest to your address, using the stock it has today.',
   },
   {
     icon: <FiClock className="text-xl text-orange-300" />,
-    title: '24/7 Support',
-    detail: 'Dedicated service channels for retail customers and wholesale stockists.',
+    title: 'Live Tracking',
+    detail: 'Every order gets a tracking link. Follow its status, and the rider on a map once it is on the way.',
   },
   {
     icon: <FiGlobe className="text-xl text-orange-300" />,
-    title: 'Omnichannel Ready',
-    detail: 'Designed for marketplace, social commerce, and direct website checkout.',
-  },
-];
-
-const TESTIMONIALS = [
-  {
-    name: 'Carmela T.',
-    role: 'Restaurant Owner',
-    quote:
-      'NogatuDrop made our beverage procurement consistent and fast. The quality and service are excellent.',
-  },
-  {
-    name: 'Jiro M.',
-    role: 'Corporate Buyer',
-    quote:
-      'The storefront is easy to use, checkout is smooth, and delivery updates are very reliable for our branches.',
-  },
-  {
-    name: 'Elaine R.',
-    role: 'Retail Stockist',
-    quote:
-      'Our repeat orders improved after switching to Nogatu products. Customers love the taste and branding.',
+    title: 'Genuine Products',
+    detail: 'Every product comes straight from Nogatu Alliance and its official Stockists.',
   },
 ];
 
@@ -400,12 +380,12 @@ const LandingPage = () => {
             <div className="flex items-center gap-3">
               <img
                 src={BRAND_LOGO}
-                alt="NogatuDrop"
+                alt="Nogatu Alliance"
                 className="h-10 w-10 rounded-full border border-orange-200/40 object-cover"
               />
               <div>
-                <p className="text-xs uppercase tracking-[0.28em] text-orange-200/70">NogatuDrop</p>
-                <p className="text-sm font-semibold text-orange-50">Enterprise Storefront</p>
+                <p className="text-xs uppercase tracking-[0.28em] text-orange-200/70">Nogatu Alliance</p>
+                <p className="text-sm font-semibold text-orange-50">Official Store</p>
               </div>
             </div>
 
@@ -447,7 +427,7 @@ const LandingPage = () => {
 
             {/* Phones: Track order stays one tap away, outside the menu. */}
             <div className="flex items-center gap-3 md:hidden">
-              <Link to="/track" className="nav-ghost-btn rounded-xl px-3 py-2 text-sm">
+              <Link to="/track" className="nav-ghost-btn whitespace-nowrap rounded-xl px-3 py-2 text-sm">
                 Track order
               </Link>
               <button
@@ -780,17 +760,16 @@ const LandingPage = () => {
           <div className="relative z-10 mx-auto grid w-[min(1180px,100%)] gap-6 lg:grid-cols-[0.9fr_1.1fr]">
             <div ref={setRevealRef(20)} className="reveal-block story-card rounded-3xl border p-8 text-[#542d0a]">
               <p className="text-xs uppercase tracking-[0.2em] text-[#8e5f3c]">Brand Story</p>
-              <h3 className="font-heading mt-2 text-3xl">From Functional Drinks to Enterprise Commerce</h3>
+              <h3 className="font-heading mt-2 text-3xl">Wellness Drinks from Nogatu Alliance</h3>
               <p className="mt-4 text-sm leading-relaxed text-[#542d0a]">
-                NogatuDrop evolved from a product-first distributor into a full digital commerce platform. This landing
-                experience mirrors that growth through strategic merchandising, trust-building signals, and frictionless
-                checkout design.
+                Nogatu Alliance makes coffee, chocolate, barley and supplement drinks for everyday wellness. This is
+                our official online store: order here, pay Nogatu directly, and we deliver from the center nearest you.
               </p>
               <div className="mt-6 space-y-3">
                 {[
-                  'Warehouse synchronized stock data',
-                  'Order and tracking pipeline integration',
-                  'B2B and retail customer journey support',
+                  'The stock you see is what our centers have today',
+                  'Every order comes with its own tracking link',
+                  'Sold by Nogatu Alliance and its official Stockists',
                 ].map((point) => (
                   <div key={point} className="flex items-start gap-2 text-sm font-medium text-[#703b0c]">
                     <FiCheck className="mt-0.5 shrink-0 text-[#b9651e]" />
@@ -825,31 +804,6 @@ const LandingPage = () => {
                     <h4 className="text-lg font-semibold text-orange-50">{item.title}</h4>
                   </div>
                   <p className="text-sm leading-relaxed text-orange-100/90">{item.detail}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section id="reviews" className="relative px-4 py-16 sm:px-6 lg:px-8 bg-gradient-to-b from-[#7f4f13] via-[#a66a1a] to-[#d69527]">
-          <div className="section-pattern reviews-pattern pointer-events-none mix-blend-overlay opacity-30" />
-          <div className="relative z-10 mx-auto w-[min(1180px,100%)]">
-            <div ref={setRevealRef(22)} className="reveal-block mb-8 text-center">
-              <p className="text-xs font-bold uppercase tracking-[0.22em] text-[#ffdfa0]">Testimonials</p>
-              <h3 className="font-heading mt-2 text-3xl text-[#ffeec9] drop-shadow-md sm:text-4xl">Trusted by Stockists and Retail Buyers</h3>
-            </div>
-            <div className="grid gap-5 md:grid-cols-3">
-              {TESTIMONIALS.map((testimonial, index) => (
-                <article
-                  key={testimonial.name}
-                  ref={setRevealRef(23 + index)}
-                  className="reveal-block testimonial-card flex flex-col justify-between rounded-2xl border p-6 bg-[#321c0f]/95 backdrop-blur shadow-[0_8px_30px_rgba(0,0,0,0.12)]"
-                >
-                  <p className="text-sm italic leading-relaxed text-orange-50/90">"{testimonial.quote}"</p>
-                  <div className="mt-5 border-t border-orange-100/20 pt-4">
-                    <p className="font-bold text-orange-100">{testimonial.name}</p>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-orange-200/80">{testimonial.role}</p>
-                  </div>
                 </article>
               ))}
             </div>
@@ -943,14 +897,14 @@ const LandingPage = () => {
         <div className="relative mx-auto grid w-[min(1180px,100%)] gap-8 lg:grid-cols-[1.1fr_0.8fr_0.8fr_1fr]">
           <div>
             <div className="flex items-center gap-3">
-              <img src={BRAND_LOGO} alt="NogatuDrop" className="h-12 w-12 rounded-2xl object-cover" />
+              <img src={BRAND_LOGO} alt="Nogatu Alliance" className="h-12 w-12 rounded-2xl object-cover" />
               <div>
                 <p className="text-lg font-bold text-white">Nogatu Alliance</p>
-                <p className="text-xs uppercase tracking-[0.22em] text-orange-300/70">Enterprise Commerce</p>
+                <p className="text-xs uppercase tracking-[0.22em] text-orange-300/70">Official Store</p>
               </div>
             </div>
             <p className="mt-4 max-w-xs text-sm leading-7 text-orange-100/72">
-              Empowering people through high-quality health and wellness products with a warmer, more polished buying experience for every Stockist and retail customer.
+              Health and wellness drinks for every home, from Nogatu Alliance and its official Stockists.
             </p>
           </div>
 

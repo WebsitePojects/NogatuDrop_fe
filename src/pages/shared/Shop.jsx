@@ -20,6 +20,7 @@ import PhAddressFields from '@/components/PhAddressFields';
 import {
   EMPTY_NAME, EMPTY_ADDRESS, NAME_SUFFIX_OPTIONS,
   nameProblems, addressProblems, toOrderCustomerFields, geocodeQueries,
+  isValidEmail,
 } from '@/utils/publicCustomer';
 import { normalizePaymentProviders } from './paymentProviders.js';
 
@@ -336,6 +337,7 @@ export default function Shop() {
     setFormError('');
     if (nameProblems(customerName).length > 0) { setFormError('Please enter your first and last name (letters only).'); return; }
     if (!customer.phone.trim()) { setFormError('Please enter your phone number.'); return; }
+    if (!isValidEmail(customer.email)) { setFormError('Please enter your email address so we can send your order updates.'); return; }
     const badAddress = addressProblems(deliveryAddress);
     if (badAddress.includes('barangay')) { setFormError('Please choose your region, province, city and barangay.'); return; }
     if (badAddress.length > 0) { setFormError('Please add your house no. and street, and check the postal code.'); return; }
@@ -347,7 +349,7 @@ export default function Shop() {
       const payload = {
         ...toOrderCustomerFields(customerName, deliveryAddress),
         customer_phone: customer.phone,
-        customer_email: customer.email.trim() || undefined,
+        customer_email: customer.email.trim(),
         customer_lat: pinnedLocation?.lat ?? null,
         customer_lng: pinnedLocation?.lng ?? null,
         payment_method: 'bank_transfer',
@@ -423,12 +425,13 @@ export default function Shop() {
           </p>
 
           <div className="rounded-2xl border border-amber-100 bg-amber-50 p-5 space-y-4 mb-5">
-            <div className="flex items-center justify-between gap-3">
-              <div>
+            {/* Stacked on phones: a long order number beside the total pushed the total past the card edge. */}
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
                 <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Order Number</p>
-                <p className="text-base font-bold font-mono text-amber-900">#{orderNumber}</p>
+                <p className="text-base font-bold font-mono text-amber-900 [overflow-wrap:anywhere]">#{orderNumber}</p>
               </div>
-              <div className="text-right">
+              <div className="sm:text-right">
                 <p className="text-xs font-semibold uppercase tracking-wide text-amber-700">Total Due</p>
                 <p className="text-xl font-extrabold text-amber-700">{formatCurrency(paymentTotal)}</p>
               </div>
@@ -757,13 +760,15 @@ export default function Shop() {
 
                     <div>
                       <label htmlFor="customerEmail" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                        Email Address (Optional)
+                        Email Address * <span className="normal-case font-medium text-gray-500">(order updates go here)</span>
                       </label>
                       <div className="relative">
                         <FiMail className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
                         <input
                           id="customerEmail"
                           type="email"
+                          required
+                          autoComplete="email"
                           disabled={submitting}
                           value={customer.email}
                           onChange={e => setCustomer(prev => ({ ...prev, email: e.target.value }))}
@@ -944,7 +949,7 @@ export default function Shop() {
                       </div>
                       <div>
                         <p className="font-bold text-gray-700">Official Product Guarantee</p>
-                        <p className="mt-0.5 leading-relaxed text-[11px]">Direct shipment from accredited municipal/city Stockists to guarantee authentic formulations.</p>
+                        <p className="mt-0.5 leading-relaxed text-[11px]">Shipped by Nogatu Alliance centers and official Stockists. Every product is genuine.</p>
                       </div>
                     </div>
                   </div>
@@ -1099,7 +1104,7 @@ export default function Shop() {
                     <span className="font-extrabold text-amber-700">{formatCurrency(totalDue)}</span>
                   </div>
                   <div className="text-[10px] text-gray-500 leading-normal">
-                    Final warehouse routing is confirmed during checkout.
+                    Shipping is confirmed at checkout, once we have your address.
                   </div>
                   <button
                     type="button"

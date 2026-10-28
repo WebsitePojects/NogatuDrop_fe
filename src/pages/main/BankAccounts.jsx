@@ -162,7 +162,7 @@ export default function BankAccounts() {
     <div className="page-enter">
       <PageHeader
         title="Bank Accounts"
-        subtitle="Payment routing accounts for order approvals"
+        subtitle="The accounts buyers and Stockists pay into, per center."
         actions={[{ label: 'Add Account', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: openAdd }]}
       />
 

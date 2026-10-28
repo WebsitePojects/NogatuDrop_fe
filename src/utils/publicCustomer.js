@@ -8,6 +8,10 @@ export const NAME_SUFFIX_OPTIONS = ['Jr.', 'Sr.', 'II', 'III', 'IV', 'V'];
 // Same rule as the server: letters in any script plus the separators real Filipino names use.
 export const PERSON_NAME_PATTERN = /^\p{L}[\p{L}\p{M} .'’-]*$/u;
 export const POSTAL_CODE_PATTERN = /^\d{4}$/;
+// Required at checkout (management, 2026-10-14): order status emails go to this address. The server
+// checks it properly; this only catches typos such as a missing @ or domain before the order is sent.
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+export const isValidEmail = (value) => EMAIL_PATTERN.test(String(value || '').trim());
 // The province choice for cities that belong to no province (all of Metro Manila).
 export const INDEPENDENT_PROVINCE = 'independent';
 

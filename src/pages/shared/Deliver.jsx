@@ -35,6 +35,10 @@ export default function Deliver() {
   const [success, setSuccess] = useState(false);
   const [submitError, setSubmitError] = useState('');
   const [signatureDirty, setSignatureDirty] = useState(false);
+  // The canvas reads "has a signature" from this ref, not the state: when the state flipped on the first
+  // stroke it re-ran the resize effect, which cleared the canvas mid-stroke and then pasted back a snapshot
+  // of that first stroke over everything drawn after it, so the start of every signature was lost.
+  const signatureDirtyRef = useRef(false);
 
   const postPing = async (coords) => {
     try {
@@ -58,7 +62,7 @@ export default function Deliver() {
     const ratio = window.devicePixelRatio || 1;
     const width = wrapper.clientWidth;
     const height = 160;
-    const existing = signatureDirty ? canvas.toDataURL('image/png') : null;
+    const existing = signatureDirtyRef.current ? canvas.toDataURL('image/png') : null;
 
     canvas.width = width * ratio;
     canvas.height = height * ratio;
@@ -120,7 +124,7 @@ export default function Deliver() {
     const onResize = () => resizeSignatureCanvas();
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
-  }, [loading, error, success, signatureDirty]);
+  }, [loading, error, success]);
 
   // The phone's own fix is fresher than the server's last ping, so the rider sees themselves move now.
   const riderRoute = info?.route ? {
@@ -147,6 +151,10 @@ export default function Deliver() {
 
     const context = canvas.getContext('2d');
     drawingRef.current = true;
+    // Capture the pointer: when the first stroke removes the hints below the canvas, a page scrolled to the
+    // bottom gets shorter and the canvas slides under the pen. Without capture that fired pointerleave and
+    // ended the signature after its first segment (seen when the photo was added before signing).
+    canvas.setPointerCapture?.(event.pointerId);
     context.beginPath();
     context.moveTo(point.x, point.y);
     event.preventDefault();
@@ -161,7 +169,10 @@ export default function Deliver() {
     const context = canvas.getContext('2d');
     context.lineTo(point.x, point.y);
     context.stroke();
-    setSignatureDirty(true);
+    if (!signatureDirtyRef.current) {
+      signatureDirtyRef.current = true;
+      setSignatureDirty(true);
+    }
     event.preventDefault();
   };
 
@@ -170,6 +181,7 @@ export default function Deliver() {
   };
 
   const clearSignature = () => {
+    signatureDirtyRef.current = false;
     setSignatureDirty(false);
     resizeSignatureCanvas();
   };
@@ -443,15 +455,13 @@ export default function Deliver() {
                 onPointerDown={startSignature}
                 onPointerMove={drawSignature}
                 onPointerUp={endSignature}
-                onPointerLeave={endSignature}
+                onPointerCancel={endSignature}
               />
             </div>
-            {!signatureDirty && (
-              <div className="mt-2 flex items-center gap-1.5 text-xs text-gray-500">
-                <HiPencilAlt className="h-3.5 w-3.5" />
-                Sign with your finger or stylus.
-              </div>
-            )}
+            <div className={`mt-2 flex items-center gap-1.5 text-xs text-gray-500 ${signatureDirty ? 'invisible' : ''}`} aria-hidden={signatureDirty || undefined}>
+              <HiPencilAlt className="h-3.5 w-3.5" />
+              Sign with your finger or stylus.
+            </div>
           </div>
 
           <div>

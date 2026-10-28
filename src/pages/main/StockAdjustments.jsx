@@ -121,7 +121,7 @@ export default function StockAdjustments() {
     <div className="page-enter">
       <PageHeader
         title="Stock Adjustments"
-        subtitle="Review and approve inventory adjustment requests"
+        subtitle="Stock corrections sent for approval (damaged, missing or found boxes)."
         actions={[{ label: 'Request Adjustment', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: () => { setForm(EMPTY_FORM); setShowAddModal(true); } }]}
       />
 

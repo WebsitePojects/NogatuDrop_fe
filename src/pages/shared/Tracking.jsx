@@ -8,6 +8,7 @@ import { VEHICLES } from '@/components/delivery/deliveryIcons';
 import StatusBadge from '@/components/StatusBadge';
 import OrderStatusTimeline from '@/components/OrderStatusTimeline';
 import TrackingPaymentPanel from '@/components/TrackingPaymentPanel';
+import CourierTrackingCard from '@/components/CourierTrackingCard';
 import api from '@/services/api';
 import { TRACKING } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
@@ -163,13 +164,15 @@ export default function Tracking() {
                   label: 'Arrives',
                   value: trackingData.eta_window
                     ? `in ${trackingData.eta_window.min_minutes}–${trackingData.eta_window.max_minutes} min`
-                    : trackingData.eta ? formatDate(trackingData.eta) : 'Once the rider is on the way',
+                    : trackingData.eta ? formatDate(trackingData.eta)
+                      : trackingData.courier_tracking_number ? "See the courier's page" : 'Once the rider is on the way',
                   color: 'text-amber-700 bg-amber-50',
                 },
                 {
                   icon: HiLocationMarker,
                   label: 'Last Update',
-                  value: latestPing?.pinged_at ? formatDate(latestPing.pinged_at, true) : 'N/A',
+                  value: latestPing?.pinged_at ? formatDate(latestPing.pinged_at, true)
+                    : trackingData.courier_tracking_number ? "On the courier's page" : 'N/A',
                   color: 'text-emerald-500 bg-emerald-50',
                 },
               ].map(({ icon: Icon, label, value, color }) => (
@@ -185,6 +188,12 @@ export default function Tracking() {
               ))}
             </div>
 
+            <CourierTrackingCard
+              courier={trackingData.courier}
+              waybill={trackingData.courier_tracking_number}
+              url={trackingData.courier_tracking_url}
+            />
+
             {trackingData.payment_due && (
               <TrackingPaymentPanel
                 orderNumber={activeOrderNumber}
@@ -196,7 +205,9 @@ export default function Tracking() {
               />
             )}
 
-            {trackingData.status === 'delivering' && (sourcePoint || latestPingPoint) && (
+            {/* A courier parcel is followed on the courier's page (the card above); our map would only show
+                a rider who is not ours (management, 2026-10-27). */}
+            {trackingData.status === 'delivering' && !trackingData.courier_tracking_number && (sourcePoint || latestPingPoint) && (
               // Public page: the rider and the center only. The line to the buyer's door is never drawn
               // here, because anyone with the order number can open this page.
               <DeliveryMap

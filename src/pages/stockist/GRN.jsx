@@ -52,7 +52,7 @@ export default function StockistGRN() {
       const list = Array.isArray(data.data) ? data.data : (data.data?.items || []);
       setGrns(list.sort((a, b) => new Date(b.created_at) - new Date(a.created_at)));
     } catch {
-      showToast('Failed to load GRNs', 'error');
+      showToast('Could not load received deliveries', 'error');
     } finally {
       setLoading(false);
     }
@@ -84,7 +84,7 @@ export default function StockistGRN() {
       const { data } = await api.get(GRN.BY_ID(grn.id));
       setDetailData(data.data);
     } catch {
-      showToast('Failed to load GRN details', 'error');
+      showToast('Could not load this receipt', 'error');
     } finally {
       setDetailLoading(false);
     }
@@ -95,13 +95,13 @@ export default function StockistGRN() {
     setCompleting(true);
     try {
       await api.patch(GRN.COMPLETE(confirmComplete));
-      showToast('GRN completed. Stock has been updated.', 'success');
+      showToast('Receipt completed. Your stock is updated.', 'success');
       setConfirmComplete(null);
       setSelectedGRN(null);
       setDetailData(null);
       fetchGRNs();
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to complete GRN', 'error');
+      showToast(err?.response?.data?.message || 'Could not complete this receipt', 'error');
     } finally {
       setCompleting(false);
     }
@@ -134,12 +134,12 @@ export default function StockistGRN() {
           unit_cost: parseFloat(i.unit_cost) || 0,
         })),
       });
-      showToast('GRN created successfully', 'success');
+      showToast('Receipt saved', 'success');
       setCreateModal(false);
       setForm({ warehouse_id: '', supplier: '', delivery_reference: '', notes: '', items: [{ ...EMPTY_ITEM }] });
       fetchGRNs();
     } catch (err) {
-      showToast(err?.response?.data?.message || 'Failed to create GRN', 'error');
+      showToast(err?.response?.data?.message || 'Could not save the receipt', 'error');
     } finally {
       setSubmitting(false);
     }
@@ -162,7 +162,7 @@ export default function StockistGRN() {
       return (
         <div className="flex flex-col items-center py-12 text-muted">
           <FiCheckCircle size={36} className="mb-2 opacity-30" />
-          <p className="text-sm">No receipts here yet. Tap New GRN when a delivery arrives.</p>
+          <p className="text-sm">No receipts here yet. Tap New receipt when a delivery arrives.</p>
         </div>
       );
     }
@@ -182,7 +182,7 @@ export default function StockistGRN() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 dark:bg-[var(--dark-card)] border-b border-gray-100 dark:border-[var(--dark-border)]">
               <tr>
-                {['GRN #', 'Supplier', 'Warehouse', 'Received By', 'Status', 'Date', ''].map(h => (
+                {['Receipt #', 'Supplier', 'Warehouse', 'Received By', 'Status', 'Date', ''].map(h => (
                   <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-gray-600 dark:text-[var(--dark-muted)] uppercase tracking-wide">
                     {h}
                   </th>
@@ -229,12 +229,12 @@ export default function StockistGRN() {
         </div>
         <Button color="warning" onClick={() => setCreateModal(true)}>
           <HiPlus className="mr-2 w-4 h-4" />
-          New GRN
+          New receipt
         </Button>
       </div>
 
       <div className="bg-white dark:bg-[var(--dark-card)] rounded-2xl border border-gray-100 dark:border-[var(--dark-border)] shadow-sm overflow-hidden">
-        <Tabs aria-label="GRN tabs" variant="underline">
+        <Tabs aria-label="Receipt tabs" variant="underline">
           <TabItem title="All">{renderTable(grns)}</TabItem>
           <TabItem title="Draft">{renderTable(filterByStatus(['draft']))}</TabItem>
           <TabItem title="Completed">{renderTable(filterByStatus(['completed']))}</TabItem>
@@ -245,7 +245,7 @@ export default function StockistGRN() {
       {/* GRN Detail Modal */}
       <Modal show={!!selectedGRN} onClose={() => { setSelectedGRN(null); setDetailData(null); }} size="xl" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>
-          GRN Details
+          Receipt details
           {detail?.grn_number && (
             <span className="ml-2 font-mono text-sm font-normal text-muted">#{detail.grn_number}</span>
           )}
@@ -349,7 +349,7 @@ export default function StockistGRN() {
                 <div className="pt-2">
                   <Button color="success" onClick={() => setConfirmComplete(detail.id)}>
                     <FiCheckCircle className="mr-2" />
-                    Complete GRN
+                    Complete receipt
                   </Button>
                 </div>
               )}
@@ -361,8 +361,8 @@ export default function StockistGRN() {
       {/* Complete Confirm */}
       <ConfirmModal
         show={!!confirmComplete}
-        title="Complete GRN"
-        message="This will mark the GRN as completed and update inventory stock. Are you sure?"
+        title="Complete this receipt?"
+        message="The boxes you counted are added to your stock. You cannot change the receipt after this."
         confirmLabel="Complete"
         confirmColor="success"
         loading={completing}
@@ -372,7 +372,7 @@ export default function StockistGRN() {
 
       {/* Create GRN Modal */}
       <Modal show={createModal} onClose={() => setCreateModal(false)} size="2xl" backdropClasses="bg-black/50 backdrop-blur-sm">
-        <ModalHeader>Create New GRN</ModalHeader>
+        <ModalHeader>New receipt</ModalHeader>
         <ModalBody className="space-y-4 max-h-[70vh] overflow-y-auto">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
@@ -495,7 +495,7 @@ export default function StockistGRN() {
         </ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleCreate} disabled={submitting}>
-            Create GRN
+            Save receipt
           </Button>
           <Button color="gray" onClick={() => setCreateModal(false)}>Cancel</Button>
         </ModalFooter>
