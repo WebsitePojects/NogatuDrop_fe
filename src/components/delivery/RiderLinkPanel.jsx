@@ -10,6 +10,8 @@ import ConfirmModal from '@/components/ConfirmModal';
 import { VEHICLES, VEHICLE_ORDER, vehicleSvg } from '@/components/delivery/deliveryIcons';
 import { formatDateTime } from '@/utils/formatDate';
 
+// "express.grab.com" from a pasted share link, so staff see where buyers are sent without the long URL.
+const linkHost = (link) => { try { return new URL(link).hostname; } catch { return 'saved'; } };
 const isPaid = (order) => ['paid', 'verified'].includes(String(order?.payment_status || '').toLowerCase());
 const isClosed = (order) => ['delivered', 'cancelled', 'rejected'].includes(String(order?.status || '').toLowerCase());
 
@@ -100,9 +102,10 @@ function CourierDeliveredAction({ order, courierName, notify, onDelivered }) {
  * @param {object}   props.order      order detail (id, status, payment_status, is_public)
  * @param {boolean}  props.canManage  may create/share the Rider Link for this order
  * @param {Function} [props.notify]   (message, tone) => void, e.g. the page's toast
- * @param {Function} [props.onDelivered] reload the order after a courier parcel is marked delivered
+ * @param {Function} [props.onOrderChanged] reload the order after its status changes here (a courier saved, so it
+ *   is now on its way; or a courier parcel marked delivered)
  */
-export default function RiderLinkPanel({ order, canManage = false, notify = () => {}, onDelivered = () => {} }) {
+export default function RiderLinkPanel({ order, canManage = false, notify = () => {}, onOrderChanged = () => {} }) {
   const paid = isPaid(order);
   const closed = isClosed(order);
   const onTheRoad = ['delivering', 'delivered'].includes(String(order?.status || '').toLowerCase());
@@ -123,7 +126,7 @@ export default function RiderLinkPanel({ order, canManage = false, notify = () =
       .then(({ data }) => {
         if (active && data?.data?.magic_link) {
           setLink({ url: data.data.magic_link, expiresAt: data.data.expires_at });
-          setShipment({ courierId: data.data.courier_id, waybill: data.data.courier_tracking_number });
+          setShipment({ courierId: data.data.courier_id, waybill: data.data.courier_tracking_number, link: data.data.courier_tracking_link });
         }
       })
       .catch(() => { /* no link yet, or not allowed: the create button covers both */ });
@@ -167,7 +170,10 @@ export default function RiderLinkPanel({ order, canManage = false, notify = () =
   if (!order) return null;
   const showManage = canManage && paid && !closed;
   // A courier parcel is followed on the courier's own page: no Rider Link, no live map.
-  const courier = route?.courier || (shipment?.waybill ? { name: null, waybill: shipment.waybill } : null);
+  // The saved shipment is the fresh one (staff may have just switched J&T to Grab); the route only refreshes later.
+  const courier = shipment?.waybill || shipment?.link
+    ? { name: shipment.name || route?.courier?.name || null, waybill: shipment.waybill || null, link: shipment.link || null }
+    : route?.courier || null;
   const courierName = courier?.name || 'the courier';
   const delivering = String(order.status || '').toLowerCase() === 'delivering';
   if (!showManage && !onTheRoad) {
@@ -187,14 +193,18 @@ export default function RiderLinkPanel({ order, canManage = false, notify = () =
         </h3>
         {courier ? (
           <p className="text-sm text-gray-600 dark:text-[var(--dark-muted)]">
-            Waybill <span className="font-mono">{courier.waybill}</span>
+            {courier.waybill ? (
+              <>Waybill <span className="font-mono">{courier.waybill}</span></>
+            ) : (
+              <>Tracking link: <span className="font-mono">{linkHost(courier.link)}</span></>
+            )}
             {closed ? ' · Delivered' : ''}
           </p>
         ) : null}
       </div>
 
       {showManage && courier && delivering ? (
-        <CourierDeliveredAction order={order} courierName={courierName} notify={notify} onDelivered={onDelivered} />
+        <CourierDeliveredAction order={order} courierName={courierName} notify={notify} onDelivered={onOrderChanged} />
       ) : null}
 
       {showManage ? (
@@ -250,7 +260,9 @@ export default function RiderLinkPanel({ order, canManage = false, notify = () =
             notify={notify}
             onSaved={(data) => {
               setLink({ url: data.magic_link, expiresAt: data.expires_at });
-              setShipment({ courierId: data.courier_id, waybill: data.courier_tracking_number });
+              setShipment({ courierId: data.courier_id, name: data.courier_name, waybill: data.courier_tracking_number, link: data.courier_tracking_link });
+              // Saving a courier puts the order on its way; reload it so "Mark delivered" appears at once.
+              onOrderChanged();
             }}
           />
         </>

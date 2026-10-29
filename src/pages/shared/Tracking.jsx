@@ -87,7 +87,8 @@ export default function Tracking() {
   const sourcePoint = sourceWarehouse && Number.isFinite(Number(sourceWarehouse.lat)) && Number.isFinite(Number(sourceWarehouse.lng))
     ? { lat: Number(sourceWarehouse.lat), lng: Number(sourceWarehouse.lng) }
     : null;
-
+  // Shipped with a courier (a J&T waybill or a Grab/Lalamove link): followed on the courier's page, so no map here.
+  const courierParcel = Boolean(trackingData?.courier_tracking_number || trackingData?.courier_tracking_url);
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
@@ -165,14 +166,14 @@ export default function Tracking() {
                   value: trackingData.eta_window
                     ? `in ${trackingData.eta_window.min_minutes}–${trackingData.eta_window.max_minutes} min`
                     : trackingData.eta ? formatDate(trackingData.eta)
-                      : trackingData.courier_tracking_number ? "See the courier's page" : 'Once the rider is on the way',
+                      : courierParcel ? "See the courier's page" : 'Once the rider is on the way',
                   color: 'text-amber-700 bg-amber-50',
                 },
                 {
                   icon: HiLocationMarker,
                   label: 'Last Update',
                   value: latestPing?.pinged_at ? formatDate(latestPing.pinged_at, true)
-                    : trackingData.courier_tracking_number ? "On the courier's page" : 'N/A',
+                    : courierParcel ? "On the courier's page" : 'N/A',
                   color: 'text-emerald-500 bg-emerald-50',
                 },
               ].map(({ icon: Icon, label, value, color }) => (
@@ -207,7 +208,7 @@ export default function Tracking() {
 
             {/* A courier parcel is followed on the courier's page (the card above); our map would only show
                 a rider who is not ours (management, 2026-10-27). */}
-            {trackingData.status === 'delivering' && !trackingData.courier_tracking_number && (sourcePoint || latestPingPoint) && (
+            {trackingData.status === 'delivering' && !courierParcel && (sourcePoint || latestPingPoint) && (
               // Public page: the rider and the center only. The line to the buyer's door is never drawn
               // here, because anyone with the order number can open this page.
               <DeliveryMap

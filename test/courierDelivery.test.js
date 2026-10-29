@@ -8,7 +8,8 @@ const panel = readFileSync(new URL('../src/components/delivery/RiderLinkPanel.js
 const endpoints = readFileSync(new URL('../src/services/endpoints.js', import.meta.url), 'utf8');
 
 test('the buyer page shows no live map for a courier parcel', () => {
-  assert.match(tracking, /trackingData\.status === 'delivering' && !trackingData\.courier_tracking_number && \(sourcePoint \|\| latestPingPoint\)/);
+  assert.match(tracking, /const courierParcel = Boolean\(trackingData\?\.courier_tracking_number \|\| trackingData\?\.courier_tracking_url\)/);
+  assert.match(tracking, /trackingData\.status === 'delivering' && !courierParcel && \(sourcePoint \|\| latestPingPoint\)/);
 });
 
 test('a courier parcel replaces the Rider Link and map with "Mark delivered"', () => {
@@ -17,4 +18,12 @@ test('a courier parcel replaces the Rider Link and map with "Mark delivered"', (
   assert.match(panel, /showManage && courier && delivering \?/, 'the button only for staff, only while on the way');
   assert.match(panel, /const \{ submitting, run \} = useSubmitGuard\(\);[\s\S]*DELIVERY_TOKENS\.COURIER_DELIVERED/, 'guarded against double presses');
   assert.match(endpoints, /COURIER_DELIVERED: \(orderId\) => `\/delivery-tokens\/by-order\/\$\{orderId\}\/courier-delivered`/);
+});
+
+test('Grab / Lalamove: one field takes a waybill or a pasted https share link', () => {
+  const form = readFileSync(new URL('../src/components/delivery/CourierShipmentForm.jsx', import.meta.url), 'utf8');
+  assert.match(form, /\.\.\.\(asLink \? \{ courier_tracking_link: trimmed \} : \{ courier_tracking_number: trimmed \}\)/);
+  assert.match(form, /url\.protocol === 'https:' && !url\.username && !url\.password/, 'https only, no embedded login');
+  const card = readFileSync(new URL('../src/components/CourierTrackingCard.jsx', import.meta.url), 'utf8');
+  assert.match(card, /if \(!waybill && !url\) return null;/, 'a Grab link alone still shows the card');
 });

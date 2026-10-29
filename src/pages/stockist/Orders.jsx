@@ -825,7 +825,7 @@ export default function StockistOrders() {
                 order={detail}
                 canManage={canManageRiderLink}
                 notify={showToast}
-                onDelivered={() => { openDetail(detail); fetchOrders(); }}
+                onOrderChanged={() => { openDetail(detail); fetchOrders(); }}
               />
 
               {(deliveryProofLoading || deliveryProof || ['delivering', 'delivered'].includes(selectedStatusKey)) && (

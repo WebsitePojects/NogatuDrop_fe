@@ -608,7 +608,7 @@ export default function Orders() {
                 order={selectedOrder}
                 canManage={isSuperAdmin}
                 notify={showToast}
-                onDelivered={() => { openDetail(selectedOrder); fetchOrders(); }}
+                onOrderChanged={() => { openDetail(selectedOrder); fetchOrders(); }}
               />
 
               {/* Cancellation string */}
