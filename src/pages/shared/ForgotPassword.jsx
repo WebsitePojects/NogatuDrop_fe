@@ -42,6 +42,19 @@ export default function ForgotPassword() {
   const resetLockRef = useRef(false);
   const resendLockRef = useRef(false);
 
+  // A Super Admin's "Reset Password" already emailed a code: go straight to entering it, without asking for
+  // a new one (that would replace the code the user is holding).
+  const handleHaveCode = () => {
+    const trimmedEmail = email.trim();
+    if (!EMAIL_PATTERN.test(trimmedEmail)) {
+      setError('Enter the email on your account first.');
+      return;
+    }
+    setEmail(trimmedEmail);
+    setError('');
+    setStep(STEP.RESET);
+  };
+
   const handleRequestCode = async (e) => {
     e.preventDefault();
     if (requestLockRef.current) return;
@@ -234,6 +247,14 @@ export default function ForgotPassword() {
                 ) : (
                   'Send Reset Code'
                 )}
+              </button>
+              <button
+                type="button"
+                onClick={handleHaveCode}
+                disabled={requestLoading}
+                className="w-full text-center text-sm font-semibold text-amber-300 underline-offset-4 hover:underline disabled:opacity-60"
+              >
+                I already have a code
               </button>
             </form>
           )}

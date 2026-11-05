@@ -240,8 +240,8 @@ export default function Users() {
 
   const handleResetPassword = (u) => run(async () => {
     try {
-      await api.post(`/users/${u.id}/reset-password`);
-      showToast('Password reset email sent', 'success');
+      const { data } = await api.post(`/users/${u.id}/reset-password`);
+      showToast(data?.message || 'A reset code was emailed.', 'success');
     } catch (err) {
       showToast(err.response?.data?.message || 'Reset failed', 'error');
     }
