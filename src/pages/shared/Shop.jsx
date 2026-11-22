@@ -973,7 +973,7 @@ export default function Shop() {
 
                       <div className="border-t border-gray-100 pt-3 flex items-center justify-center gap-2 text-[10px] text-gray-500 font-medium">
                         <FiLock className="w-3.5 h-3.5 text-emerald-500" />
-                        <span>Secure Checkout • 256-Bit SSL Encryption</span>
+                        <span>Secure Checkout</span>
                       </div>
                     </div>
                   </div>
