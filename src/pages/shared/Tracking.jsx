@@ -12,6 +12,7 @@ import CourierTrackingCard from '@/components/CourierTrackingCard';
 import api from '@/services/api';
 import { TRACKING } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
+import { formatDeliveryWindow, IF_PAID_TODAY_NOTE } from '@/utils/deliveryEstimate';
 
 export default function Tracking() {
   const { orderNumber: urlOrderNumber } = useParams();
@@ -89,6 +90,10 @@ export default function Tracking() {
     : null;
   // Shipped with a courier (a J&T waybill or a Grab/Lalamove link): followed on the courier's page, so no map here.
   const courierParcel = Boolean(trackingData?.courier_tracking_number || trackingData?.courier_tracking_url);
+  // The window quoted at checkout from the buyer's shipping zone; shown until a live estimate replaces it.
+  const quotedWindow = trackingData?.delivery_estimate && !['delivered', 'cancelled', 'rejected'].includes(trackingData.status)
+    ? `Est. ${formatDeliveryWindow(trackingData.delivery_estimate.from, trackingData.delivery_estimate.to)}${trackingData.delivery_estimate.if_paid_today ? ` (${IF_PAID_TODAY_NOTE})` : ''}`
+    : '';
 
   return (
     <div className="min-h-screen bg-gray-50 px-4 py-10">
@@ -166,7 +171,7 @@ export default function Tracking() {
                   value: trackingData.eta_window
                     ? `in ${trackingData.eta_window.min_minutes}–${trackingData.eta_window.max_minutes} min`
                     : trackingData.eta ? formatDate(trackingData.eta)
-                      : courierParcel ? "See the courier's page" : 'Once the rider is on the way',
+                      : quotedWindow || (courierParcel ? "See the courier's page" : 'Once the rider is on the way'),
                   color: 'text-amber-700 bg-amber-50',
                 },
                 {

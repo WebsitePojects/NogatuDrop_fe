@@ -20,7 +20,7 @@ import {
   FiX,
 } from 'react-icons/fi';
 import { NOGATU_PRODUCT_CATALOG } from '@/utils/nogatuCatalog';
-import { getPublicOrderPricingTotals } from '@/utils/publicCheckoutPricing';
+import { PUBLIC_ORDER_MAX_ITEMS, ITEM_LIMIT_MESSAGE, cartItemCount } from '@/utils/publicOrderLimits';
 import { getPublicCatalogPrice } from '@/utils/publicCatalogPrice';
 import { getProductImageSrc } from '@/utils/productImages';
 import api from '@/services/api';
@@ -296,9 +296,9 @@ const LandingPage = () => {
   }, [cart, products]);
 
   const subtotal = useMemo(() => cartItems.reduce((sum, item) => sum + item.lineTotal, 0), [cartItems]);
-  const pricingTotals = useMemo(() => getPublicOrderPricingTotals(subtotal), [subtotal]);
-  const shipping = pricingTotals.shippingFee;
-  const total = pricingTotals.totalDue;
+  // Shipping depends on the buyer's address and cart weight; /shop quotes it once the address is in.
+  const itemCount = cartItemCount(cart);
+  const cartFull = itemCount >= PUBLIC_ORDER_MAX_ITEMS;
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -340,27 +340,32 @@ const LandingPage = () => {
     if (target) target.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Never more than PUBLIC_ORDER_MAX_ITEMS in the whole cart: extra units are simply not added.
   const addToCart = (product, quantity = 1) => {
     setCart((previous) => {
+      const room = PUBLIC_ORDER_MAX_ITEMS - cartItemCount(previous);
+      const added = Math.min(quantity, room);
+      if (added <= 0) return previous;
       const found = previous.find((item) => item.id === product.id);
       if (found) {
         return previous.map((item) =>
-          item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
+          item.id === product.id ? { ...item, quantity: item.quantity + added } : item
         );
       }
-      return [...previous, { id: product.id, quantity }];
+      return [...previous, { id: product.id, quantity: added }];
     });
     setCartOpen(true);
   };
 
   const updateQuantity = (productId, delta) => {
-    setCart((previous) =>
-      previous
+    setCart((previous) => {
+      if (delta > 0 && cartItemCount(previous) >= PUBLIC_ORDER_MAX_ITEMS) return previous;
+      return previous
         .map((item) =>
           item.id === productId ? { ...item, quantity: Math.max(0, item.quantity + delta) } : item
         )
-        .filter((item) => item.quantity > 0)
-    );
+        .filter((item) => item.quantity > 0);
+    });
   };
 
   const removeFromCart = (productId) => {
@@ -950,7 +955,7 @@ const LandingPage = () => {
       </footer>
 
       {cartOpen && (
-        <div className="fixed inset-0 z-[70]">
+        <div className="fixed inset-0 z-[210]">
           <button className="absolute inset-0 bg-black/60" aria-label="Close cart" onClick={() => setCartOpen(false)} />
           <aside className="cart-panel-enter absolute right-0 top-0 h-full w-[min(460px,100%)] border-l border-orange-100/18 bg-[#23150b] p-5 text-orange-50 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
@@ -994,7 +999,8 @@ const LandingPage = () => {
                           <span className="min-w-8 text-center text-sm">{item.quantity}</span>
                           <button
                             onClick={() => updateQuantity(item.id, 1)}
-                            className="px-2 py-1 text-orange-100/80 transition hover:text-orange-100"
+                            disabled={cartFull}
+                            className="px-2 py-1 text-orange-100/80 transition hover:text-orange-100 disabled:cursor-not-allowed disabled:opacity-40"
                             aria-label="Increase quantity"
                           >
                             <FiPlus size={14} />
@@ -1015,12 +1021,12 @@ const LandingPage = () => {
               </div>
               <div className="flex items-center justify-between text-orange-100/80">
                 <span>Shipping</span>
-                <span>{formatPeso(shipping)}</span>
+                <span>At checkout</span>
               </div>
-              <div className="mt-2 flex items-center justify-between border-t border-orange-100/18 pt-2 text-base font-bold text-orange-50">
-                <span>Total</span>
-                <span>{formatPeso(total)}</span>
-              </div>
+              <p className="text-xs text-orange-200/70">
+                Shipping depends on your address and the weight of your items. Up to {PUBLIC_ORDER_MAX_ITEMS} items per order ({itemCount} in your cart).
+              </p>
+              {cartFull && <p className="text-xs font-semibold text-orange-100" role="status">{ITEM_LIMIT_MESSAGE}</p>}
             </div>
 
             <button

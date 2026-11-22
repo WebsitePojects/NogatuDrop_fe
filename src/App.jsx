@@ -35,6 +35,7 @@ const MainReports = lazy(() => import('./pages/main/Reports.jsx'));
 const MainInfluencerReports = lazy(() => import('./pages/main/InfluencerReports.jsx'));
 const MainUsers = lazy(() => import('./pages/main/Users.jsx'));
 const MainBankAccounts = lazy(() => import('./pages/main/BankAccounts.jsx'));
+const MainShippingSettings = lazy(() => import('./pages/main/ShippingSettings.jsx'));
 const MainCouriers = lazy(() => import('./pages/main/Couriers.jsx'));
 const MainStockMovements = lazy(() => import('./pages/main/StockMovements.jsx'));
 const MainStockAdjustments = lazy(() => import('./pages/main/StockAdjustments.jsx'));
@@ -156,6 +157,7 @@ const AppRoutes = () => {
           <Route path="partners" element={<MainPartners />} />
           <Route path="bank-accounts" element={<MainBankAccounts />} />
           <Route path="couriers" element={<MainCouriers />} />
+          <Route path="shipping" element={<MainShippingSettings />} />
           <Route path="reports" element={<MainReports />} />
           <Route path="influencer-reports" element={<MainInfluencerReports />} />
           <Route path="users" element={<MainUsers />} />

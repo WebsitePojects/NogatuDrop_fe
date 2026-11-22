@@ -5,6 +5,7 @@ import {
 import { HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineTrash, HiOutlineUsers } from 'react-icons/hi';
 import api from '@/services/api';
 import { USERS, PARTNERS, WAREHOUSES } from '@/services/endpoints';
+import { PASSWORD_RULE_TEXT, passwordProblem } from '@/utils/passwordPolicy';
 import { formatDate } from '@/utils/formatDate';
 import PageHeader from '@/components/PageHeader';
 import StatusBadge from '@/components/StatusBadge';
@@ -129,7 +130,8 @@ function UserFormFields({ form, fld, formRoles, partners, warehouses, onWarehous
       )}
       <div className="col-span-2">
         <Label htmlFor="usr_password" className="mb-1">Password (leave blank to keep current)</Label>
-        <TextInput id="usr_password" type="password" value={form.password} onChange={fld('password')} placeholder="••••••••" autoComplete="new-password" />
+        <TextInput id="usr_password" type="password" value={form.password} onChange={fld('password')} placeholder="••••••••" autoComplete="new-password" aria-describedby="usr_password_hint" />
+        <p id="usr_password_hint" className="mt-1 text-xs text-gray-500 dark:text-[var(--dark-muted)]">{PASSWORD_RULE_TEXT}</p>
       </div>
     </div>
   );
@@ -190,6 +192,10 @@ export default function Users() {
   const openDetail = (u) => { setSelected(u); setShowDetailModal(true); };
 
   const validateForm = () => {
+    if (form.password && passwordProblem(form.password)) {
+      showToast(passwordProblem(form.password), 'warning');
+      return false;
+    }
     if (form.role_slug === 'staff' && !form.warehouse_id) {
       showToast('Staff users must be associated with a warehouse', 'warning');
       return false;

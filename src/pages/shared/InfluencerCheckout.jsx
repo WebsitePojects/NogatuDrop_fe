@@ -9,6 +9,8 @@ import { formatCurrency } from '@/utils/formatCurrency';
 import { getPublicCatalogPrice } from '@/utils/publicCatalogPrice';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
 import { getPublicOrderPricingTotals } from '@/utils/publicCheckoutPricing';
+import { formatDeliveryWindow, IF_PAID_TODAY_NOTE } from '@/utils/deliveryEstimate';
+import useShippingQuote from '@/hooks/useShippingQuote';
 import { NOGATU_PRODUCT_CATALOG } from '@/utils/nogatuCatalog';
 import { maxOrderableQuantity, clampQuantity } from '@/utils/publicOrderLimits';
 import {
@@ -112,11 +114,27 @@ function PaymentChoices({ options, selected, onSelect, disabled, loadError, onRe
   );
 }
 
-function SummaryLines({ totals }) {
+function shippingText(shipping, hasBarangay, fee) {
+  if (!hasBarangay) return 'Choose your barangay';
+  if (shipping.loading) return 'Calculating…';
+  if (shipping.error) return 'Not available';
+  return formatCurrency(fee);
+}
+
+/** Total once shipping is known; before that, the subtotal plus a note, never a made-up total. */
+const totalText = (totals) => (totals.totalDue == null
+  ? `${formatCurrency(totals.merchandiseSubtotal)} + shipping`
+  : formatCurrency(totals.totalDue));
+
+function SummaryLines({ totals, shipping, hasBarangay }) {
   return (
     <dl className="space-y-2 text-[length:var(--ck-text-small)]">
       <div className="flex justify-between"><dt className="ck-muted">Subtotal</dt><dd className="font-medium">{formatCurrency(totals.merchandiseSubtotal)}</dd></div>
-      <div className="flex justify-between"><dt className="ck-muted">Shipping</dt><dd className="font-medium">{formatCurrency(totals.shippingFee)}</dd></div>
+      <div className="flex justify-between"><dt className="ck-muted">Shipping{shipping.quote ? ` to ${shipping.quote.area_name}` : ''}</dt><dd className="font-medium">{shippingText(shipping, hasBarangay, totals.shippingFee)}</dd></div>
+      {shipping.quote && (
+        <div className="flex justify-between"><dt className="ck-muted">Estimated delivery ({IF_PAID_TODAY_NOTE})</dt><dd className="font-medium">{formatDeliveryWindow(shipping.quote.eta_from, shipping.quote.eta_to)}</dd></div>
+      )}
+      {shipping.error && <p className="ck-alert ck-alert-error" role="alert">{shipping.error}</p>}
     </dl>
   );
 }
@@ -152,7 +170,12 @@ export default function InfluencerCheckout({ influencer }) {
 
   const maxQty = maxOrderableQuantity(availableQty);
   const soldOut = availableQty !== null && maxQty === 0;
-  const totals = useMemo(() => getPublicOrderPricingTotals(unitPrice * quantity), [unitPrice, quantity]);
+  const quoteItems = useMemo(() => [{ product_id: product.id, quantity }], [product.id, quantity]);
+  const shipping = useShippingQuote(address.barangayCode, quoteItems, { centersOnly: true });
+  const totals = useMemo(
+    () => getPublicOrderPricingTotals(unitPrice * quantity, shipping.quote?.fee),
+    [unitPrice, quantity, shipping.quote]
+  );
   const searchQueries = useMemo(() => geocodeQueries(place), [place]);
 
   useEffect(() => {
@@ -225,6 +248,7 @@ export default function InfluencerCheckout({ influencer }) {
     if (missingAddress.length > 0) { fail('Please add your house no. and street, and check the postal code.', missingAddress[0] === 'line' ? 'ck-addr-line' : 'ck-addr-postal'); return; }
     if (!paymentProvider) { fail('Please choose how you will pay.'); return; }
     if (soldOut || quantity < 1) { fail('This product is out of stock right now.'); return; }
+    if (!shipping.quote) { fail(shipping.error || 'Please wait for the shipping fee for your address.'); return; }
 
     placing.run(async () => {
       const payload = {
@@ -263,7 +287,7 @@ export default function InfluencerCheckout({ influencer }) {
     return <InfluencerPaymentStep slugLabel={slugLabel} product={product} order={order} fallbackTotal={totals.totalDue} />;
   }
 
-  const placeDisabled = placing.submitting || soldOut || paymentProviders.length === 0;
+  const placeDisabled = placing.submitting || soldOut || paymentProviders.length === 0 || !shipping.quote;
 
   return (
     <div className="ck ck-has-bar">
@@ -298,7 +322,7 @@ export default function InfluencerCheckout({ influencer }) {
                 <div className="mt-5 flex flex-wrap items-center gap-3">
                   <QuantityStepper value={quantity} max={maxQty} onChange={setQty} disabled={soldOut} idPrefix="hero" />
                   <a href="#checkout" className="ck-btn ck-btn-primary flex-1 sm:flex-none" aria-disabled={soldOut}>
-                    Buy now<span className="hidden sm:inline"> · {formatCurrency(totals.totalDue)}</span> <FiArrowRight aria-hidden="true" />
+                    Buy now<span className="hidden sm:inline"> · {totalText(totals)}</span> <FiArrowRight aria-hidden="true" />
                   </a>
                 </div>
                 <ul className="mt-5 grid gap-2 border-t ck-hairline pt-4 text-[length:var(--ck-text-small)] sm:grid-cols-3">
@@ -394,14 +418,14 @@ export default function InfluencerCheckout({ influencer }) {
                   <span className="text-[length:var(--ck-text-small)] font-semibold">Quantity</span>
                   <QuantityStepper value={quantity} max={maxQty} onChange={setQty} disabled={soldOut || placing.submitting} idPrefix="summary" />
                 </div>
-                <div className="border-b ck-hairline py-4"><SummaryLines totals={totals} /></div>
+                <div className="border-b ck-hairline py-4"><SummaryLines totals={totals} shipping={shipping} hasBarangay={Boolean(address.barangayCode)} /></div>
                 <div className="flex items-baseline justify-between py-4">
                   <span className="font-semibold">Total</span>
-                  <span className="ck-price text-[length:var(--ck-text-price)]">{formatCurrency(totals.totalDue)}</span>
+                  <span className="ck-price text-[length:var(--ck-text-price)]">{totalText(totals)}</span>
                 </div>
                 {formError && <p className="ck-alert ck-alert-error mb-4 hidden lg:block" role="alert">{formError}</p>}
                 <button type="submit" className="ck-btn ck-btn-primary hidden w-full lg:inline-flex" disabled={placeDisabled}>
-                  {placing.submitting ? <><Spinner size="sm" light /> Placing order…</> : `Place order · ${formatCurrency(totals.totalDue)}`}
+                  {placing.submitting ? <><Spinner size="sm" light /> Placing order…</> : `Place order · ${totalText(totals)}`}
                 </button>
                 <p className="mt-3 flex items-center justify-center gap-1.5 text-[length:var(--ck-text-small)] ck-muted">
                   <FiLock aria-hidden="true" /> Your details are only used for this order.
@@ -412,7 +436,7 @@ export default function InfluencerCheckout({ influencer }) {
             <div className="ck-mobile-bar" role="region" aria-label="Order total">
               <div className="min-w-0">
                 <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.12em] ck-muted">Total · {quantity} {quantity === 1 ? 'box' : 'boxes'}</p>
-                <p className="ck-price text-xl leading-tight">{formatCurrency(totals.totalDue)}</p>
+                <p className="ck-price text-xl leading-tight">{totalText(totals)}</p>
               </div>
               <button type="submit" className="ck-btn ck-btn-primary shrink-0" disabled={placeDisabled}>
                 {placing.submitting ? <><Spinner size="sm" light /> Placing…</> : 'Place order'}

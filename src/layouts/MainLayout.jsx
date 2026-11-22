@@ -5,7 +5,7 @@ import {
   HiOutlineHome, HiOutlineShoppingCart, HiOutlineCube, HiOutlineCollection,
   HiOutlineAdjustments, HiOutlineOfficeBuilding, HiOutlineTag,
   HiOutlineUserGroup,
-  HiOutlineCurrencyDollar, HiOutlineTruck,
+  HiOutlineCurrencyDollar, HiOutlineTruck, HiOutlineScale,
   HiOutlineChartBar, HiOutlineUsers, HiOutlineBell, HiOutlineLogout,
   HiOutlineMenuAlt2, HiOutlineX, HiOutlineSun, HiOutlineMoon,
   HiChevronDown, HiOutlineDocumentReport,
@@ -85,6 +85,7 @@ const NAV_GROUPS = [
     items: [
       { path: '/main/delivery/live', label: 'Live Delivery Map', icon: HiOutlineTruck },
       { path: '/main/couriers', label: 'Couriers', icon: HiOutlineTruck },
+      { path: '/main/shipping', label: 'Shipping Fees', icon: HiOutlineScale },
     ],
   },
 ];

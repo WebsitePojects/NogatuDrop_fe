@@ -18,6 +18,7 @@ import AddressPicker from '@/components/AddressPicker';
 import { FIELD_CLASSES } from '@/components/formFieldClasses';
 import { ToastContainer, useToast } from '@/components/Toast';
 import useSubmitGuard from '@/hooks/useSubmitGuard';
+import { PASSWORD_RULE_TEXT, passwordProblem } from '@/utils/passwordPolicy';
 import { CENTER_LEVEL } from '@/utils/partnerLevel';
 import {
   EMPTY_PLACE, addressFromRecord, addressToPayload, addressPickerProblems, hasLegacyAddressOnly,
@@ -26,6 +27,7 @@ import {
 const EMPTY_FORM = {
   business_name: '', email: '', phone: '',
   stockist_level: 'city_stockist', parent_partner_id: '', discount_pct: '0',
+  password: '',
   place: EMPTY_PLACE,
 };
 
@@ -71,6 +73,12 @@ function PartnerFormFields({ form, setForm, parents, editing, legacyText, attemp
       {field('pt_discount', 'Discount %', (
         <input id="pt_discount" type="number" inputMode="decimal" min="0" max="100" step="0.1" className={FIELD_CLASSES.input} value={form.discount_pct} onChange={fld('discount_pct')} placeholder="0" disabled={disabled || editing} />
       ))}
+      {!editing && field('pt_password', 'Login Password', (
+        <>
+          <input id="pt_password" type="password" autoComplete="new-password" className={FIELD_CLASSES.input} value={form.password} onChange={fld('password')} maxLength={72} disabled={disabled} aria-invalid={attempted && passwordProblem(form.password) ? true : undefined} aria-describedby="pt_password_hint" />
+          <p id="pt_password_hint" className="mt-1 text-xs text-gray-500 dark:text-[var(--dark-muted)]">For the Stockist&apos;s login (the email above). {PASSWORD_RULE_TEXT}</p>
+        </>
+      ), { required: true, span: true })}
       {form.stockist_level === 'city_stockist' && field('pt_parent', 'Parent Provincial Stockist', (
         <select id="pt_parent" className={FIELD_CLASSES.input} value={form.parent_partner_id} onChange={fld('parent_partner_id')} disabled={disabled}>
           <option value="">Select parent...</option>
@@ -115,6 +123,7 @@ function PartnerFormModal({ partner, parents, onClose, onSaved }) {
     setAttempted(true);
     setError('');
     if (!form.business_name.trim() || !form.email.trim()) { setError('Business name and email are required.'); return; }
+    if (!editing && passwordProblem(form.password)) { setError(passwordProblem(form.password)); return; }
     if (addressPickerProblems(form.place, { withPin: WITH_PIN, keepLegacy: legacyOnly }).length > 0) {
       setError('Complete the address: choose the barangay and enter the street.');
       return;
@@ -131,8 +140,11 @@ function PartnerFormModal({ partner, parents, onClose, onSaved }) {
         await api.put(PARTNERS.UPDATE(partner.id), common);
         onSaved('Stockist updated');
       } else {
-        await api.post(PARTNERS.CREATE, { ...common, stockist_level: form.stockist_level, discount_pct: Number(form.discount_pct) || 0 });
-        onSaved('Stockist added');
+        const { data } = await api.post(PARTNERS.CREATE, {
+          ...common, stockist_level: form.stockist_level, discount_pct: Number(form.discount_pct) || 0, admin_password: form.password,
+        });
+        // The server's message says which province or city now sends its store orders here.
+        onSaved(data.message || 'Stockist added');
       }
     } catch (err) {
       setError(err.response?.data?.message || (editing ? 'Update failed' : 'Failed to add stockist'));

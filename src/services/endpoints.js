@@ -105,6 +105,18 @@ export const LOCATIONS = {
   BARANGAYS: '/locations/barangays',
 };
 
+// Store shipping: the public quote at checkout, and the rates/zones/weights Super Admin edits.
+export const SHIPPING = {
+  QUOTE: '/shipping/quote',
+  SETTINGS: '/shipping/settings',
+};
+
+// Nogatu Alliance member discount: sign in with nogatualliance.com credentials for a short-lived member pass.
+export const MEMBERS = {
+  DISCOUNT: '/members/discount',
+  VERIFY: '/members/verify',
+};
+
 export const CART = {
   LIST:     '/cart',
   ADD:      '/cart',

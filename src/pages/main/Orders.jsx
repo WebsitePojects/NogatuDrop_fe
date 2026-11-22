@@ -568,6 +568,11 @@ export default function Orders() {
                               ? `Uploaded ${formatDateTime(selectedOrder.payment_proof_uploaded_at)}`
                               : 'Attached document'}
                           </p>
+                          {selectedOrder.payment_received_by_stockist && (
+                            <p className="mt-1 text-xs font-semibold text-blue-800 dark:text-blue-300">
+                              Paid into {selectedOrder.partner_name || 'the Stockist'}&apos;s own account. The Stockist verifies it.
+                            </p>
+                          )}
                         </div>
                       </div>
                       <a href={selectedOrder.payment_proof_url} target="_blank" rel="noopener noreferrer"

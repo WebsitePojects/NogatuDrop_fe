@@ -20,7 +20,7 @@ const CATEGORIES = ['Coffee', 'Barley', 'Supplements', 'Beverages', 'Personal Ca
 
 const EMPTY_FORM = {
   name: '', sku: '', category: '', retail_price: '', partner_price: '',
-  unit: 'box', description: '', is_active: true,
+  unit: 'box', description: '', weight_grams: '', is_active: true,
 };
 
 // Hoisted outside Products so React never recreates this component on each render.
@@ -62,6 +62,11 @@ function ProductFormFields({ form, fld, imagePreview, fileInputRef, handleImageC
           <option value="pack">Pack</option>
           <option value="piece">Piece</option>
         </Select>
+      </div>
+      <div>
+        <Label htmlFor="pr_weight" className="mb-1">Weight per unit (grams)</Label>
+        <TextInput id="pr_weight" type="number" min="1" step="1" value={form.weight_grams} onChange={fld('weight_grams')} placeholder="e.g. 290" aria-describedby="pr_weight_hint" />
+        <p id="pr_weight_hint" className="mt-1 text-xs text-gray-500 dark:text-[var(--dark-muted)]">As packed. The store prices shipping from it; without it the product cannot be checked out.</p>
       </div>
       <div className="flex items-center gap-2 mt-4">
         <input type="checkbox" id="is_active" checked={!!form.is_active} onChange={fld('is_active')} className="w-4 h-4 text-amber-500" />
@@ -136,7 +141,7 @@ export default function Products() {
     setForm({
       name: p.name, sku: p.sku, category: p.category,
       retail_price: p.retail_price, partner_price: p.partner_price,
-      unit: p.unit, description: p.description || '',
+      unit: p.unit, description: p.description || '', weight_grams: p.weight_grams ?? '',
       // Coerce to boolean — the list query omits is_active so p.is_active may be undefined;
       // treat undefined/null as true (active) since the product appeared in the active list.
       is_active: p.is_active !== false && p.is_active !== 0,

@@ -5,7 +5,7 @@ import {
   HiShoppingCart, HiSearch, HiX, HiPlus, HiMinus,
   HiChevronRight, HiCheckCircle,
 } from 'react-icons/hi';
-import { FiPackage, FiUser, FiPhone, FiMail, FiCreditCard, FiLock, FiChevronLeft } from 'react-icons/fi';
+import { FiPackage, FiPhone, FiMail, FiCreditCard, FiLock, FiChevronLeft } from 'react-icons/fi';
 import { Spinner } from 'flowbite-react';
 import api from '@/services/api';
 import { ORDERS, PRODUCTS } from '@/services/endpoints';
@@ -13,7 +13,11 @@ import { createCheckoutIntent, createIntentHeaders, getCheckoutIntent } from '@/
 import { formatCurrency } from '@/utils/formatCurrency';
 import { getPublicCatalogPrice } from '@/utils/publicCatalogPrice';
 import { getProductImageSrc, attachProductImageFallback } from '@/utils/productImages';
-import { getPublicOrderPricingTotals } from '@/utils/publicCheckoutPricing';
+import { getPublicOrderPricingTotals, memberPriceSubtotal } from '@/utils/publicCheckoutPricing';
+import MemberDiscountSignIn from '@/components/checkout/MemberDiscountSignIn';
+import { PUBLIC_ORDER_MAX_ITEMS, ITEM_LIMIT_MESSAGE, cartItemCount, maxLineQuantity } from '@/utils/publicOrderLimits';
+import { formatDeliveryWindow, IF_PAID_TODAY_NOTE } from '@/utils/deliveryEstimate';
+import useShippingQuote from '@/hooks/useShippingQuote';
 import { extractUploadErrorMessage } from '@/utils/uploadError';
 import LocationPicker from '@/components/LocationPicker';
 import PhAddressFields from '@/components/PhAddressFields';
@@ -165,12 +169,15 @@ export default function Shop() {
   }); // browse | checkout | success
   const [orderNumber, setOrderNumber] = useState('');
   const [paymentContext, setPaymentContext] = useState(null);
+  const [deliveryEstimate, setDeliveryEstimate] = useState(null);
+  const [itemLimitNotice, setItemLimitNotice] = useState('');
+  // { pass, username, discountPct, expiresAt } after a nogatualliance.com sign-in; kept in memory only.
+  const [member, setMember] = useState(null);
   const [customer, setCustomer] = useState({ phone: '', email: '' });
   const [customerName, setCustomerName] = useState(EMPTY_NAME);
   const [deliveryAddress, setDeliveryAddress] = useState(EMPTY_ADDRESS);
   const [deliveryPlace, setDeliveryPlace] = useState(null);
   const deliverySearch = useMemo(() => geocodeQueries(deliveryPlace), [deliveryPlace]);
-  const [memberUsername, setMemberUsername] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [pinnedLocation, setPinnedLocation] = useState(null);
@@ -287,20 +294,31 @@ export default function Shop() {
     });
   }, [catalogProducts]);
 
-  const cartTotal = cart.reduce((s, i) => s + i.quantity * i.unit_price, 0);
-  const pricingTotals = getPublicOrderPricingTotals(cartTotal);
+  const regularSubtotal = cart.reduce((s, i) => s + i.quantity * i.unit_price, 0);
+  const cartTotal = member ? memberPriceSubtotal(cart, member.discountPct) : regularSubtotal;
+  // The fee and delivery dates come from the server for this address and cart weight (2026-11-10).
+  const shipping = useShippingQuote(deliveryAddress.barangayCode, cart);
+  const pricingTotals = getPublicOrderPricingTotals(cartTotal, shipping.quote?.fee);
   const shippingFee = pricingTotals.shippingFee;
   const totalDue = pricingTotals.totalDue;
-  const cartCount = cart.reduce((s, i) => s + i.quantity, 0);
+  const cartCount = cartItemCount(cart);
+  const cartFull = cartCount >= PUBLIC_ORDER_MAX_ITEMS;
+  let shippingLabel = formatCurrency(shippingFee);
+  if (!deliveryAddress.barangayCode) shippingLabel = 'Choose your barangay';
+  else if (shipping.loading) shippingLabel = 'Calculating…';
+  else if (shipping.error) shippingLabel = 'Not available';
 
   const isCartStockInvalid = cart.some(item => {
     const stock = stockMap[item.product_id];
     return stock !== undefined && (stock <= 0 || item.quantity > stock);
   });
+  const canPlaceOrder = Boolean(shipping.quote) && !isCartStockInvalid;
 
   const addToCart = (product) => {
     const stock = stockMap[product.id];
     if (stock !== undefined && stock <= 0) return;
+    if (cartFull) { setItemLimitNotice(ITEM_LIMIT_MESSAGE); return; }
+    setItemLimitNotice('');
     setCart(prev => {
       const ex = prev.find(i => i.product_id === product.id);
       if (ex) {
@@ -319,9 +337,12 @@ export default function Shop() {
   };
 
   const updateQty = (productId, qty) => {
-    const stock = stockMap[productId];
-    if (stock !== undefined && qty > stock) {
-      qty = stock;
+    const max = maxLineQuantity(cart, productId, stockMap[productId]);
+    if (qty > max) {
+      qty = max;
+      if (cartFull) setItemLimitNotice(ITEM_LIMIT_MESSAGE);
+    } else {
+      setItemLimitNotice('');
     }
     if (qty <= 0) setCart(prev => prev.filter(i => i.product_id !== productId));
     else setCart(prev => prev.map(i => i.product_id === productId ? { ...i, quantity: qty } : i));
@@ -343,6 +364,12 @@ export default function Shop() {
     if (badAddress.length > 0) { setFormError('Please add your house no. and street, and check the postal code.'); return; }
     if (cart.length === 0) { setFormError('Your cart is empty.'); return; }
     if (!paymentProvider) { setFormError('Please select an available payment provider.'); return; }
+    if (!shipping.quote) { setFormError(shipping.error || 'Please wait for the shipping fee for your address.'); return; }
+    if (member && member.expiresAt <= Date.now()) {
+      setMember(null);
+      setFormError('Your member sign-in expired. Sign in again for the member price, or place the order at the regular price.');
+      return;
+    }
     submittingRef.current = true;
     setSubmitting(true);
     try {
@@ -354,7 +381,7 @@ export default function Shop() {
         customer_lng: pinnedLocation?.lng ?? null,
         payment_method: 'bank_transfer',
         payment_provider: paymentProvider,
-        member_username: memberUsername.trim() || undefined,
+        member_pass: member?.pass || undefined,
         items: cart.map(i => ({ product_id: i.product_id, quantity: i.quantity })),
       };
       checkoutIntentRef.current = getCheckoutIntent(checkoutIntentRef.current, payload);
@@ -366,12 +393,16 @@ export default function Shop() {
       setOrderNumber(res.data.data?.order_number || 'N/A');
       proofIntentRef.current = createCheckoutIntent();
       setPaymentContext(res.data.data?.payment || null);
+      setDeliveryEstimate(res.data.data?.delivery_estimate || null);
       setProofFile(null);
       setProofMessage('');
       setProofError('');
       setStep('success');
     } catch (err) {
-      setFormError(err?.response?.data?.message || 'Failed to place order. Please try again.');
+      const message = err?.response?.data?.message || 'Failed to place order. Please try again.';
+      // The server refused the member pass (expired): drop it so the next try shows the regular price.
+      if (/member sign-in/i.test(message)) setMember(null);
+      setFormError(message);
     } finally {
       submittingRef.current = false;
       setSubmitting(false);
@@ -436,6 +467,13 @@ export default function Shop() {
                 <p className="text-xl font-extrabold text-amber-700">{formatCurrency(paymentTotal)}</p>
               </div>
             </div>
+
+            {deliveryEstimate && (
+              <p className="text-sm text-amber-900">
+                Estimated delivery ({IF_PAID_TODAY_NOTE}): <span className="font-semibold">{formatDeliveryWindow(deliveryEstimate.eta_from, deliveryEstimate.eta_to)}</span>
+                <span className="block text-xs text-amber-800">We count the days again from the day your payment is confirmed.</span>
+              </p>
+            )}
 
             {bankAccount && (
               <div className="rounded-xl bg-white border border-amber-100 p-4 text-left space-y-2">
@@ -641,7 +679,7 @@ export default function Shop() {
                             <span className="text-sm font-bold text-gray-800">{qty}</span>
                             <button
                               type="button"
-                              disabled={stockMap[product.id] !== undefined && qty >= stockMap[product.id]}
+                              disabled={qty >= maxLineQuantity(cart, product.id, stockMap[product.id])}
                               onClick={() => updateQty(product.id, qty + 1)}
                               className="w-7 h-7 rounded-lg bg-white flex items-center justify-center font-bold text-gray-600 shadow-sm hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed"
                             >
@@ -651,11 +689,12 @@ export default function Shop() {
                         ) : (
                           <button
                             type="button"
-                            disabled={stockMap[product.id] !== undefined && stockMap[product.id] <= 0}
+                            disabled={cartFull || (stockMap[product.id] !== undefined && stockMap[product.id] <= 0)}
+                            title={cartFull ? ITEM_LIMIT_MESSAGE : undefined}
                             onClick={() => addToCart(product)}
                             className="w-full py-2 bg-amber-700 hover:bg-amber-800 disabled:bg-gray-200 disabled:text-gray-600 disabled:cursor-not-allowed active:scale-95 text-white font-semibold rounded-xl text-sm transition-all shadow-sm shadow-amber-500/10 disabled:shadow-none"
                           >
-                            {stockMap[product.id] !== undefined && stockMap[product.id] <= 0 ? 'Out of Stock' : 'Add to Cart'}
+                            {stockMap[product.id] !== undefined && stockMap[product.id] <= 0 ? 'Out of Stock' : cartFull ? `Cart full (${PUBLIC_ORDER_MAX_ITEMS} items)` : 'Add to Cart'}
                           </button>
                         )}
                       </div>
@@ -778,24 +817,7 @@ export default function Shop() {
                       </div>
                     </div>
 
-                    <div>
-                      <label htmlFor="memberUsername" className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
-                        Nogatu Member Username (Optional — 30% member discount)
-                      </label>
-                      <div className="relative">
-                        <FiUser className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-                        <input
-                          id="memberUsername"
-                          type="text"
-                          disabled={submitting}
-                          value={memberUsername}
-                          onChange={e => setMemberUsername(e.target.value)}
-                          placeholder="Your Nogatu Alliance username"
-                          className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-500"
-                        />
-                      </div>
-                      <p className="mt-1 text-[11px] text-gray-500">Verified at checkout. The discount applies only to active members.</p>
-                    </div>
+                    <MemberDiscountSignIn member={member} onChange={setMember} disabled={submitting} />
 
                     <PhAddressFields
                       value={deliveryAddress}
@@ -831,7 +853,7 @@ export default function Shop() {
                     <div className="hidden lg:block pt-4">
                       <button
                         type="submit"
-                        disabled={submitting || isCartStockInvalid}
+                        disabled={submitting || !canPlaceOrder}
                         className="w-full flex items-center justify-center gap-2 py-3 bg-amber-700 hover:bg-amber-800 active:scale-95 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-amber-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {submitting ? (
@@ -840,7 +862,7 @@ export default function Shop() {
                           </>
                         ) : (
                           <>
-                            Place Order - {formatCurrency(totalDue)}
+                            {totalDue == null ? 'Place Order' : `Place Order - ${formatCurrency(totalDue)}`}
                           </>
                         )}
                       </button>
@@ -899,18 +921,33 @@ export default function Shop() {
                     <div className="border-t border-gray-100 pt-3 space-y-2 text-xs">
                       <div className="flex justify-between text-gray-500">
                         <span>Subtotal</span>
-                        <span className="font-semibold text-gray-800">{formatCurrency(cartTotal)}</span>
+                        <span className="font-semibold text-gray-800">{formatCurrency(regularSubtotal)}</span>
                       </div>
+                      {member && (
+                        <div className="flex justify-between text-emerald-700">
+                          <span>Member price ({member.discountPct}% off)</span>
+                          <span className="font-semibold">−{formatCurrency(regularSubtotal - cartTotal)}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between text-gray-500 items-center">
-                        <span>Shipping</span>
-                        <span className="font-semibold text-gray-800">{formatCurrency(shippingFee)}</span>
+                        <span>Shipping{shipping.quote ? ` to ${shipping.quote.area_name}` : ''}</span>
+                        <span className="font-semibold text-gray-800">{shippingLabel}</span>
                       </div>
+                      {shipping.quote && (
+                        <div className="flex justify-between text-gray-500 items-center">
+                          <span>Estimated delivery ({IF_PAID_TODAY_NOTE})</span>
+                          <span className="font-semibold text-gray-800">{formatDeliveryWindow(shipping.quote.eta_from, shipping.quote.eta_to)}</span>
+                        </div>
+                      )}
+                      {shipping.error && (
+                        <p className="rounded-lg bg-red-50 px-3 py-2 text-[11px] font-medium text-red-700">{shipping.error}</p>
+                      )}
                       <div className="flex justify-between text-base font-bold text-gray-900 border-t border-dashed border-gray-100 pt-3 mt-2">
                         <div>
                           <span>Total Due</span>
                           <p className="text-[11px] font-medium text-gray-500">All charges shown above</p>
                         </div>
-                        <span className="text-amber-700 font-extrabold">{formatCurrency(totalDue)}</span>
+                        <span className="text-amber-700 font-extrabold">{totalDue == null ? '—' : formatCurrency(totalDue)}</span>
                       </div>
                     </div>
 
@@ -919,7 +956,7 @@ export default function Shop() {
                         <button
                           type="button"
                           onClick={handlePlaceOrder}
-                          disabled={submitting || isCartStockInvalid}
+                          disabled={submitting || !canPlaceOrder}
                           className="w-full flex items-center justify-center gap-2 py-3 bg-amber-700 hover:bg-amber-800 active:scale-95 text-white font-bold rounded-xl text-sm transition-all shadow-md shadow-amber-500/10 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           {submitting ? (
@@ -928,7 +965,7 @@ export default function Shop() {
                             </>
                           ) : (
                             <>
-                              Place Order - {formatCurrency(totalDue)}
+                              {totalDue == null ? 'Place Order' : `Place Order - ${formatCurrency(totalDue)}`}
                             </>
                           )}
                         </button>
@@ -962,7 +999,7 @@ export default function Shop() {
 
       {/* Cart Drawer */}
       {cartOpen && (
-        <div className="fixed inset-0 z-50 overflow-hidden" style={{ colorScheme: 'light' }}>
+        <div className="fixed inset-0 z-[210] overflow-hidden" style={{ colorScheme: 'light' }}>
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/50 backdrop-blur-xs transition-opacity duration-300"
@@ -1063,7 +1100,7 @@ export default function Shop() {
                               </span>
                               <button
                                 type="button"
-                                disabled={stock !== undefined && item.quantity >= stock}
+                                disabled={item.quantity >= maxLineQuantity(cart, item.product_id, stock)}
                                 onClick={() => updateQty(item.product_id, item.quantity + 1)}
                                 className="w-5 h-5 rounded-md hover:bg-gray-100 flex items-center justify-center font-bold text-gray-500 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                               >
@@ -1095,17 +1132,15 @@ export default function Shop() {
                   </div>
                   <div className="flex justify-between text-sm">
                     <span className="text-gray-500 font-medium">Shipping</span>
-                    <span className="font-semibold text-gray-900">{formatCurrency(shippingFee)}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <div>
-                      <span className="font-semibold text-gray-900">Total Due</span>
-                    </div>
-                    <span className="font-extrabold text-amber-700">{formatCurrency(totalDue)}</span>
+                    <span className="font-semibold text-gray-900">At checkout</span>
                   </div>
                   <div className="text-[10px] text-gray-500 leading-normal">
-                    Shipping is confirmed at checkout, once we have your address.
+                    Shipping depends on your address and the weight of your items; checkout shows it before you pay.
+                    Up to {PUBLIC_ORDER_MAX_ITEMS} items per order ({cartCount} in your cart).
                   </div>
+                  {itemLimitNotice && (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-medium text-amber-800" role="status">{itemLimitNotice}</div>
+                  )}
                   <button
                     type="button"
                     disabled={isCartStockInvalid}

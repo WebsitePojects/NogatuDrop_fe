@@ -43,7 +43,9 @@ function BankAccountFormFields({ form, fld, warehouses }) {
         <Label htmlFor="ba_warehouse" className="mb-1">Assigned Warehouse (optional)</Label>
         <Select id="ba_warehouse" value={form.warehouse_id} onChange={fld('warehouse_id')}>
           <option value="">Default (all warehouses)</option>
-          {warehouses.map((w) => <option key={w.id} value={w.id}>{w.name}</option>)}
+          {warehouses.map((w) => (
+            <option key={w.id} value={w.id}>{w.owner_stockist_name ? `${w.name} — ${w.owner_stockist_name}` : w.name}</option>
+          ))}
         </Select>
       </div>
       <div>
@@ -170,8 +172,9 @@ export default function BankAccounts() {
       <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-[var(--dark-card2)] border border-amber-200 dark:border-[var(--dark-border)] rounded-xl mb-5">
         <HiInformationCircle className="w-5 h-5 text-amber-700 dark:text-amber-500 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-amber-800 dark:text-amber-300">
-          Bank accounts are used to route payment instructions to the correct account when a stockist order is approved.
-          Each warehouse can have its own bank account. If no warehouse is assigned, the account acts as the company default.
+          Each warehouse can have its own bank account. Store orders a Stockist ships (buyers in its territory) are paid into
+          the account of that Stockist&apos;s warehouse; if it has none for the method the buyer picks, the company default is used.
+          An account with no warehouse is the company default.
         </p>
       </div>
 

@@ -543,8 +543,9 @@ export default function StockistOrders() {
     && !isPaymentVerified
     && isChildManagedOrder
     && detail?.payment_proof_url
-    // Store-order money goes to Nogatu, so only Super Admin confirms it (management, 2026-10-08).
-    && !Number(detail?.is_public)
+    // Store orders: only when the buyer paid into this Stockist's own account (server rule, 2026-11-23);
+    // money paid to Nogatu is confirmed by Super Admin.
+    && (!Number(detail?.is_public) || Boolean(detail?.can_verify_payment))
   );
   const canManageRiderLink = Boolean(isChildManagedOrder && can(user?.role_slug, PERMISSIONS.DELIVERY_TOKENS_CREATE));
   const canCancelOwnPendingOrder = Boolean(detail?.status === 'pending' && isOwnOrder);
@@ -814,7 +815,7 @@ export default function StockistOrders() {
                 <div className="rounded-xl border border-amber-100 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-100">
                   {!detail.payment_proof_url
                     ? 'Waiting for the payment receipt. The order cancels itself if nothing is paid by the deadline.'
-                    : canVerifyPayment && !Number(detail.is_public)
+                    : canVerifyChildPayment
                       ? 'The receipt is in. Check it against your account, verify payment, then create the Rider Link below.'
                       : 'The receipt is in. Nogatu is checking the payment; the Rider Link appears here once it is confirmed.'}
                 </div>

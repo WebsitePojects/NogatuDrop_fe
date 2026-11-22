@@ -10,6 +10,7 @@ import StatusBadge from '@/components/StatusBadge';
 import { ToastContainer, useToast } from '@/components/Toast';
 import ResponsiveList from '@/components/ResponsiveList';
 import api from '@/services/api';
+import { PASSWORD_RULE_TEXT, passwordProblem } from '@/utils/passwordPolicy';
 import { USERS } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
 import { useAuth } from '@/context/AuthContext';
@@ -84,8 +85,8 @@ export default function StockistUsers() {
       showToast('Name and email are required', 'warning');
       return;
     }
-    if (modal === 'add' && !form.password) {
-      showToast('Password is required', 'warning');
+    if ((modal === 'add' || form.password) && passwordProblem(form.password)) {
+      showToast(passwordProblem(form.password), 'warning');
       return;
     }
     if (submitting) return;
@@ -309,7 +310,9 @@ export default function StockistUsers() {
                 onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                 placeholder="Minimum 8 characters"
                 minLength={8}
+                autoComplete="new-password"
               />
+              <p className="mt-1 text-xs text-gray-500 dark:text-[var(--dark-muted)]">{PASSWORD_RULE_TEXT}</p>
             </div>
           )}
         </ModalBody>

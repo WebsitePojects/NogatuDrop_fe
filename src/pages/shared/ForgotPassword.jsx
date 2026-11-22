@@ -4,6 +4,7 @@ import { Spinner } from 'flowbite-react';
 import { HiOutlineEye, HiOutlineEyeOff, HiCheckCircle } from 'react-icons/hi';
 import { FiArrowLeft } from 'react-icons/fi';
 import api from '@/services/api';
+import { PASSWORD_RULE_TEXT, passwordProblem } from '@/utils/passwordPolicy';
 import { AUTH } from '@/services/endpoints';
 
 const POSTER = '/assets/nogatuPoster_login.png';
@@ -106,8 +107,8 @@ export default function ForgotPassword() {
       setError('Enter the 6-digit code we sent you.');
       return;
     }
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters.');
+    if (passwordProblem(newPassword)) {
+      setError(passwordProblem(newPassword));
       return;
     }
     if (newPassword !== confirmPassword) {
@@ -291,7 +292,8 @@ export default function ForgotPassword() {
                     type={showPw ? 'text' : 'password'}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="At least 8 characters"
+                    placeholder="8+ characters, letter, number, symbol"
+                    title={PASSWORD_RULE_TEXT}
                     required
                     minLength={8}
                     autoComplete="new-password"

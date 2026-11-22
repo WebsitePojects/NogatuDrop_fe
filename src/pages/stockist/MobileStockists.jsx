@@ -11,6 +11,7 @@ import { FIELD_CLASSES } from '@/components/formFieldClasses';
 import { ToastContainer, useToast } from '@/components/Toast';
 import useSubmitGuard from '@/hooks/useSubmitGuard';
 import api from '@/services/api';
+import { PASSWORD_RULE_TEXT, passwordProblem } from '@/utils/passwordPolicy';
 import { MOBILE_STOCKISTS } from '@/services/endpoints';
 import { formatDate } from '@/utils/formatDate';
 import {
@@ -45,7 +46,7 @@ function MobileStockistFormModal({ item, onClose, onSaved }) {
     setAttempted(true);
     setError('');
     if (!form.name.trim() || !form.email.trim()) { setError('Name and email are required.'); return; }
-    if (!editing && form.password.length < 8) { setError('Password must be at least 8 characters.'); return; }
+    if (!editing && passwordProblem(form.password)) { setError(passwordProblem(form.password)); return; }
     if (problems.includes('pin')) { setError('Move the map pin inside the Philippines before saving.'); return; }
     if (problems.length > 0) { setError('Complete the address: choose the barangay and enter the street.'); return; }
     const common = {
@@ -99,7 +100,12 @@ function MobileStockistFormModal({ item, onClose, onSaved }) {
                 <option value="suspended">Suspended</option>
               </select>
             </div>
-          ) : text('ms_password', 'Password', 'password', { type: 'password', required: true, autoComplete: 'new-password' })}
+          ) : (
+            <div>
+              {text('ms_password', 'Password', 'password', { type: 'password', required: true, autoComplete: 'new-password' })}
+              <p className="mt-1 text-xs text-gray-500 dark:text-[var(--dark-muted)]">{PASSWORD_RULE_TEXT}</p>
+            </div>
+          )}
           <div className="sm:col-span-2">
             <AddressPicker
               value={form.place}
