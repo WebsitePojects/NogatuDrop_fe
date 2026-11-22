@@ -1042,7 +1042,7 @@ const LandingPage = () => {
             </button>
             <p className="mt-2 flex items-center justify-center gap-1 text-xs text-orange-200/70">
               <FiLock size={12} />
-              Secure encrypted checkout session
+              Secure checkout
             </p>
           </aside>
         </div>
