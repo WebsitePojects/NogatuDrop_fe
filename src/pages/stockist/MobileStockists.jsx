@@ -8,6 +8,7 @@ import ResponsiveList from '@/components/ResponsiveList';
 import AddressPicker from '@/components/AddressPicker';
 import RequiredMark from '@/components/RequiredMark';
 import { FIELD_CLASSES } from '@/components/formFieldClasses';
+import PasswordInput from '@/components/PasswordInput';
 import { ToastContainer, useToast } from '@/components/Toast';
 import useSubmitGuard from '@/hooks/useSubmitGuard';
 import api from '@/services/api';
@@ -17,6 +18,11 @@ import { formatDate } from '@/utils/formatDate';
 import {
   EMPTY_PLACE, addressFromRecord, addressToPayload, addressPickerProblems, hasLegacyAddressOnly,
 } from '@/utils/addressValue';
+
+// Module scope (not inside a render) so typing never remounts the field. Passwords get the show/hide eye.
+function FieldInput({ type, ...props }) {
+  return type === 'password' ? <PasswordInput {...props} /> : <input type={type} {...props} />;
+}
 
 const EMPTY_FORM = {
   name: '', email: '', phone: '', status: 'active', password: '', place: EMPTY_PLACE,
@@ -70,7 +76,7 @@ function MobileStockistFormModal({ item, onClose, onSaved }) {
   const text = (id, label, key, { type = 'text', required = false, disabled = false, ...rest } = {}) => (
     <div>
       <label htmlFor={id} className={FIELD_CLASSES.label}>{label}{required && <RequiredMark />}</label>
-      <input
+      <FieldInput
         id={id}
         type={type}
         className={FIELD_CLASSES.input}

@@ -16,6 +16,7 @@ import RequiredMark from '@/components/RequiredMark';
 import ResponsiveList from '@/components/ResponsiveList';
 import AddressPicker from '@/components/AddressPicker';
 import { FIELD_CLASSES } from '@/components/formFieldClasses';
+import PasswordInput from '@/components/PasswordInput';
 import { ToastContainer, useToast } from '@/components/Toast';
 import useSubmitGuard from '@/hooks/useSubmitGuard';
 import { PASSWORD_RULE_TEXT, passwordProblem } from '@/utils/passwordPolicy';
@@ -75,7 +76,7 @@ function PartnerFormFields({ form, setForm, parents, editing, legacyText, attemp
       ))}
       {!editing && field('pt_password', 'Login Password', (
         <>
-          <input id="pt_password" type="password" autoComplete="new-password" className={FIELD_CLASSES.input} value={form.password} onChange={fld('password')} maxLength={72} disabled={disabled} aria-invalid={attempted && passwordProblem(form.password) ? true : undefined} aria-describedby="pt_password_hint" />
+          <PasswordInput id="pt_password" autoComplete="new-password" className={FIELD_CLASSES.input} value={form.password} onChange={fld('password')} maxLength={72} disabled={disabled} aria-invalid={attempted && passwordProblem(form.password) ? true : undefined} aria-describedby="pt_password_hint" />
           <p id="pt_password_hint" className="mt-1 text-xs text-gray-500 dark:text-[var(--dark-muted)]">For the Stockist&apos;s login (the email above). {PASSWORD_RULE_TEXT}</p>
         </>
       ), { required: true, span: true })}

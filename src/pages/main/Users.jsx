@@ -3,6 +3,8 @@ import { useState, useEffect, useCallback } from 'react';
 import {
   Button, Table, TableHead, TableHeadCell, TableBody, TableRow, TableCell, Card, TextInput, Select, Label, Pagination } from 'flowbite-react';
 import { HiOutlinePlus, HiOutlineSearch, HiOutlinePencil, HiOutlineTrash, HiOutlineUsers } from 'react-icons/hi';
+import PasswordInput from '@/components/PasswordInput';
+import { FIELD_CLASSES } from '@/components/formFieldClasses';
 import api from '@/services/api';
 import { USERS, PARTNERS, WAREHOUSES } from '@/services/endpoints';
 import { PASSWORD_RULE_TEXT, passwordProblem } from '@/utils/passwordPolicy';
@@ -130,7 +132,7 @@ function UserFormFields({ form, fld, formRoles, partners, warehouses, onWarehous
       )}
       <div className="col-span-2">
         <Label htmlFor="usr_password" className="mb-1">Password (leave blank to keep current)</Label>
-        <TextInput id="usr_password" type="password" value={form.password} onChange={fld('password')} placeholder="••••••••" autoComplete="new-password" aria-describedby="usr_password_hint" />
+        <PasswordInput id="usr_password" value={form.password} onChange={fld('password')} placeholder="••••••••" autoComplete="new-password" aria-describedby="usr_password_hint" className={FIELD_CLASSES.input} />
         <p id="usr_password_hint" className="mt-1 text-xs text-gray-500 dark:text-[var(--dark-muted)]">{PASSWORD_RULE_TEXT}</p>
       </div>
     </div>

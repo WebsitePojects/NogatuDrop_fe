@@ -5,6 +5,8 @@ import {
 } from 'flowbite-react';
 import { HiPlus, HiPencil, HiSearch } from 'react-icons/hi';
 import { FiUser } from 'react-icons/fi';
+import PasswordInput from '@/components/PasswordInput';
+import { FIELD_CLASSES } from '@/components/formFieldClasses';
 import ConfirmModal from '@/components/ConfirmModal';
 import StatusBadge from '@/components/StatusBadge';
 import { ToastContainer, useToast } from '@/components/Toast';
@@ -303,9 +305,10 @@ export default function StockistUsers() {
           )}
           {modal === 'add' && (
             <div>
-              <Label className="mb-1.5">Password *</Label>
-              <TextInput
-                type="password"
+              <Label htmlFor="stk_user_password" className="mb-1.5">Password *</Label>
+              <PasswordInput
+                id="stk_user_password"
+                className={FIELD_CLASSES.input}
                 value={form.password}
                 onChange={(e) => setForm((f) => ({ ...f, password: e.target.value }))}
                 placeholder="Minimum 8 characters"

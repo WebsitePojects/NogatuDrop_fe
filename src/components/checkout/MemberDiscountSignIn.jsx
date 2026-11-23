@@ -3,6 +3,7 @@ import { FiUser, FiLock, FiCheckCircle } from 'react-icons/fi';
 import api from '@/services/api';
 import { MEMBERS } from '@/services/endpoints';
 import useSubmitGuard from '@/hooks/useSubmitGuard';
+import PasswordInput from '@/components/PasswordInput';
 
 const inputClass = 'w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-amber-500 focus:ring-4 focus:ring-amber-500/10 text-gray-900 placeholder-gray-500';
 
@@ -85,9 +86,9 @@ export default function MemberDiscountSignIn({ member, onChange, disabled = fals
       </div>
       <div className="relative">
         <FiLock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
-        <input id="memberPassword" type="password" autoComplete="off" aria-label="Nogatu Alliance password" placeholder="Nogatu Alliance password"
+        <PasswordInput id="memberPassword" autoComplete="off" aria-label="Nogatu Alliance password" placeholder="Nogatu Alliance password"
           maxLength={200} disabled={disabled || verifying.submitting} value={password} onChange={(e) => setPassword(e.target.value)}
-          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); verify(); } }} className={inputClass} />
+          onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); verify(); } }} className={inputClass.replace(' pr-4', '')} />
       </div>
       {error && <p className="text-xs font-medium text-red-700" role="alert">{error}</p>}
       <div className="flex items-center gap-3">

@@ -142,7 +142,8 @@ export default function Login() {
                   type="button"
                   onClick={() => setShowPw(!showPw)}
                   className="absolute right-0 top-1/2 -translate-y-1/2 p-2 text-[#d4bca4] hover:text-white transition-colors focus:outline-none rounded-md"
-                  tabIndex={-1}
+                  aria-label={showPw ? 'Hide password' : 'Show password'}
+                  aria-pressed={showPw}
                 >
                   {showPw ? <HiOutlineEyeOff className="h-5 w-5" /> : <HiOutlineEye className="h-5 w-5" />}
                 </button>
