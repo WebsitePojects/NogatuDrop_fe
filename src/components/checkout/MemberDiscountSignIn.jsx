@@ -85,7 +85,7 @@ export default function MemberDiscountSignIn({ member, onChange, disabled = fals
           maxLength={100} disabled={disabled || verifying.submitting} value={username} onChange={(e) => setUsername(e.target.value)} className={inputClass} />
       </div>
       <div className="relative">
-        <FiLock className="absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-500 w-4 h-4" />
+        <FiLock className="pointer-events-none absolute left-3.5 top-1/2 z-10 -translate-y-1/2 text-gray-500 w-4 h-4" aria-hidden="true" />
         <PasswordInput id="memberPassword" autoComplete="off" aria-label="Nogatu Alliance password" placeholder="Nogatu Alliance password"
           maxLength={200} disabled={disabled || verifying.submitting} value={password} onChange={(e) => setPassword(e.target.value)}
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); verify(); } }} className={inputClass.replace(' pr-4', '')} />
