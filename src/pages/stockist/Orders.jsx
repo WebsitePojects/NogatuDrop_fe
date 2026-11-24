@@ -27,6 +27,7 @@ import { useAuth } from '@/context/AuthContext';
 import { PERMISSIONS, can } from '@/utils/permissions';
 import { isCenterStaff } from '@/utils/partnerLevel';
 import OrderPricingBreakdown from '@/components/OrderPricingBreakdown';
+import MemberPriceNotice from '@/components/MemberPriceNotice';
 import OrderFeeAndReceipts from '@/components/OrderFeeAndReceipts';
 import { extractUploadErrorMessage } from '@/utils/uploadError';
 import useSubmitGuard from '@/hooks/useSubmitGuard';
@@ -743,6 +744,8 @@ export default function StockistOrders() {
                   </tbody>
                 </table>
               </div>
+
+              <MemberPriceNotice order={detail} />
 
               <OrderPricingBreakdown
                 breakdown={detail.pricing_breakdown}

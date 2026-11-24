@@ -6,6 +6,7 @@ import {
   HiOutlineViewGrid,
   HiOutlineClipboardList,
   HiOutlineUsers,
+  HiOutlineCreditCard,
   HiOutlineCube,
   HiOutlineChartBar,
   HiOutlineBell,
@@ -87,6 +88,10 @@ function buildNavGroups(role, centerStaff) {
       label: 'My Team',
       items: [
         ...(!centerStaff && isManager ? [{ path: '/stockist/users', label: 'Users', icon: HiOutlineCog }] : []),
+        // Provincial / City Stockist owners manage where buyers pay them (Sir Dino, 2026-11-24); staff do not.
+        ...(!centerStaff && (isProvincial || normalizedRole === 'city_stockist')
+          ? [{ path: '/stockist/payment-accounts', label: 'Payment Accounts', icon: HiOutlineCreditCard }]
+          : []),
         // Same permission as the route guard in App.jsx so a visible link never 403s.
         ...(!centerStaff && can(normalizedRole, PERMISSIONS.MOBILE_STOCKISTS_MANAGE)
           ? [{ path: '/stockist/mobile-stockists', label: 'Mobile Stockists', icon: HiOutlineUsers }]

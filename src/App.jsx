@@ -211,6 +211,7 @@ const AppRoutes = () => {
             }
           />
           <Route path="grn" element={<StockistGRN />} />
+          <Route path="payment-accounts" element={<MainBankAccounts />} />
           <Route
             path="mobile-stockists"
             element={

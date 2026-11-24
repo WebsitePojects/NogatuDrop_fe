@@ -23,6 +23,7 @@ import RiderLinkPanel from '@/components/delivery/RiderLinkPanel';
 import ResponsiveList from '@/components/ResponsiveList';
 import { ToastContainer, useToast } from '@/components/Toast';
 import OrderPricingBreakdown from '@/components/OrderPricingBreakdown';
+import MemberPriceNotice from '@/components/MemberPriceNotice';
 import OrderFeeAndReceipts from '@/components/OrderFeeAndReceipts';
 
 const STATUSES = ['all', 'pending', 'approved', 'delivering', 'delivered', 'cancelled', 'archived'];
@@ -545,6 +546,8 @@ export default function Orders() {
                   </table>
                 </div>
               </div>
+
+              <MemberPriceNotice order={selectedOrder} />
 
               <OrderPricingBreakdown
                 breakdown={selectedOrder.pricing_breakdown}

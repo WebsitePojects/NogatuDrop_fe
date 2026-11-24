@@ -11,6 +11,7 @@ import ConfirmModal from '@/components/ConfirmModal';
 import RequiredMark from '@/components/RequiredMark';
 import { ToastContainer, useToast } from '@/components/Toast';
 import ResponsiveList from '@/components/ResponsiveList';
+import { useAuth } from '@/context/AuthContext';
 
 const EMPTY_FORM = {
   bank_name: '', account_name: '', account_number: '', warehouse_id: '',
@@ -18,7 +19,7 @@ const EMPTY_FORM = {
 };
 
 // Hoisted to module scope — stable identity prevents input focus loss on each keystroke.
-function BankAccountFormFields({ form, fld, warehouses }) {
+function BankAccountFormFields({ form, fld, warehouses, ownWarehousesOnly }) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <div>
@@ -40,9 +41,9 @@ function BankAccountFormFields({ form, fld, warehouses }) {
         <TextInput id="ba_account_number" value={form.account_number} onChange={fld('account_number')} placeholder="1234 5678 9012" required />
       </div>
       <div>
-        <Label htmlFor="ba_warehouse" className="mb-1">Assigned Warehouse (optional)</Label>
+        <Label htmlFor="ba_warehouse" className="mb-1">{ownWarehousesOnly ? <>Warehouse<RequiredMark /></> : 'Assigned Warehouse (optional)'}</Label>
         <Select id="ba_warehouse" value={form.warehouse_id} onChange={fld('warehouse_id')}>
-          <option value="">Default (all warehouses)</option>
+          <option value="" disabled={ownWarehousesOnly}>{ownWarehousesOnly ? 'Choose your warehouse' : 'Default (all warehouses)'}</option>
           {warehouses.map((w) => (
             <option key={w.id} value={w.id}>{w.owner_stockist_name ? `${w.name} — ${w.owner_stockist_name}` : w.name}</option>
           ))}
@@ -68,6 +69,9 @@ function BankAccountFormFields({ form, fld, warehouses }) {
 
 export default function BankAccounts() {
   const { toasts, showToast, dismiss } = useToast();
+  const { user } = useAuth();
+  // A Stockist sees and edits only its own warehouses' accounts (the server enforces the same scope).
+  const ownWarehousesOnly = user?.role_slug !== 'super_admin';
   const [accounts, setAccounts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [warehouses, setWarehouses] = useState([]);
@@ -95,9 +99,12 @@ export default function BankAccounts() {
 
   useEffect(() => {
     api.get(WAREHOUSES.LIST, { params: { limit: 100 } })
-      .then((r) => setWarehouses(r.data.data || []))
+      .then((r) => {
+        const list = (r.data.data || []).filter((w) => w.record_kind !== 'mobile_stockist' && w.id);
+        setWarehouses(ownWarehousesOnly ? list.filter((w) => Number(w.partner_id) === Number(user?.partner_id)) : list);
+      })
       .catch(() => {});
-  }, []);
+  }, [ownWarehousesOnly, user?.partner_id]);
 
   const openAdd = () => { setForm(EMPTY_FORM); setShowAddModal(true); };
   const openEdit = (a) => {
@@ -163,8 +170,10 @@ export default function BankAccounts() {
   return (
     <div className="page-enter">
       <PageHeader
-        title="Bank Accounts"
-        subtitle="The accounts buyers and Stockists pay into, per center."
+        title={ownWarehousesOnly ? 'My Payment Accounts' : 'Bank Accounts'}
+        subtitle={ownWarehousesOnly
+          ? 'The bank or GCash accounts buyers in your area pay into. Nogatu is notified of every change.'
+          : 'The accounts buyers and Stockists pay into, per warehouse.'}
         actions={[{ label: 'Add Account', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: openAdd }]}
       />
 
@@ -172,9 +181,14 @@ export default function BankAccounts() {
       <div className="flex items-start gap-3 p-4 bg-amber-50 dark:bg-[var(--dark-card2)] border border-amber-200 dark:border-[var(--dark-border)] rounded-xl mb-5">
         <HiInformationCircle className="w-5 h-5 text-amber-700 dark:text-amber-500 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-amber-800 dark:text-amber-300">
+          {ownWarehousesOnly ? (
+            <>Buyers in your area pay into the account of your warehouse for the method they choose (bank or GCash).
+              If you have no account for that method, they pay Nogatu instead. You verify the payments made to your account.</>
+          ) : <>
           Each warehouse can have its own bank account. Store orders a Stockist ships (buyers in its territory) are paid into
           the account of that Stockist&apos;s warehouse; if it has none for the method the buyer picks, the company default is used.
           An account with no warehouse is the company default.
+          </>}
         </p>
       </div>
 
@@ -270,7 +284,7 @@ export default function BankAccounts() {
       {/* Add Modal */}
       <Modal show={showAddModal} onClose={() => setShowAddModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Add Bank Account</ModalHeader>
-        <ModalBody><BankAccountFormFields form={form} fld={fld} warehouses={warehouses} /></ModalBody>
+        <ModalBody><BankAccountFormFields form={form} fld={fld} warehouses={warehouses} ownWarehousesOnly={ownWarehousesOnly} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleAdd} disabled={submitting}>Add Account</Button>
           <Button color="gray" onClick={() => setShowAddModal(false)}>Cancel</Button>
@@ -280,7 +294,7 @@ export default function BankAccounts() {
       {/* Edit Modal */}
       <Modal show={showEditModal} onClose={() => setShowEditModal(false)} size="lg" backdropClasses="bg-black/50 backdrop-blur-sm">
         <ModalHeader>Edit Bank Account</ModalHeader>
-        <ModalBody><BankAccountFormFields form={form} fld={fld} warehouses={warehouses} /></ModalBody>
+        <ModalBody><BankAccountFormFields form={form} fld={fld} warehouses={warehouses} ownWarehousesOnly={ownWarehousesOnly} /></ModalBody>
         <ModalFooter>
           <Button color="warning" onClick={handleEdit} disabled={submitting}>Save Changes</Button>
           <Button color="gray" onClick={() => setShowEditModal(false)}>Cancel</Button>

@@ -295,7 +295,14 @@ export default function Shop() {
   }, [catalogProducts]);
 
   const regularSubtotal = cart.reduce((s, i) => s + i.quantity * i.unit_price, 0);
-  const cartTotal = member ? memberPriceSubtotal(cart, member.discountPct) : regularSubtotal;
+  // Packages (member_price_eligible = 0) never get the member price; the server applies the same rule.
+  const memberIneligibleIds = useMemo(
+    () => new Set(catalogProducts.filter((p) => Number(p.member_price_eligible) === 0).map((p) => Number(p.id))),
+    [catalogProducts]
+  );
+  const cartTotal = member
+    ? memberPriceSubtotal(cart, member.discountPct, (line) => !memberIneligibleIds.has(Number(line.product_id)))
+    : regularSubtotal;
   // The fee and delivery dates come from the server for this address and cart weight (2026-11-10).
   const shipping = useShippingQuote(deliveryAddress.barangayCode, cart);
   const pricingTotals = getPublicOrderPricingTotals(cartTotal, shipping.quote?.fee);

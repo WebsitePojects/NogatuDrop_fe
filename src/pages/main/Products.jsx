@@ -20,7 +20,7 @@ const CATEGORIES = ['Coffee', 'Barley', 'Supplements', 'Beverages', 'Personal Ca
 
 const EMPTY_FORM = {
   name: '', sku: '', category: '', retail_price: '', partner_price: '',
-  unit: 'box', description: '', weight_grams: '', is_active: true,
+  unit: 'box', description: '', weight_grams: '', member_price_eligible: true, is_active: true,
 };
 
 // Hoisted outside Products so React never recreates this component on each render.
@@ -71,6 +71,13 @@ function ProductFormFields({ form, fld, imagePreview, fileInputRef, handleImageC
       <div className="flex items-center gap-2 mt-4">
         <input type="checkbox" id="is_active" checked={!!form.is_active} onChange={fld('is_active')} className="w-4 h-4 text-amber-500" />
         <Label htmlFor="is_active">Active / Listed</Label>
+      </div>
+      <div className="col-span-2 flex items-start gap-2">
+        <input type="checkbox" id="pr_member_price" checked={!!form.member_price_eligible} onChange={fld('member_price_eligible')} className="mt-0.5 w-4 h-4 text-amber-500" />
+        <div>
+          <Label htmlFor="pr_member_price">Nogatu Alliance member price applies</Label>
+          <p className="text-xs text-gray-500 dark:text-[var(--dark-muted)]">Untick for packages: they never get the member discount.</p>
+        </div>
       </div>
       <div className="col-span-2">
         <Label htmlFor="pr_description" className="mb-1">Description</Label>
@@ -145,6 +152,7 @@ export default function Products() {
       // Coerce to boolean — the list query omits is_active so p.is_active may be undefined;
       // treat undefined/null as true (active) since the product appeared in the active list.
       is_active: p.is_active !== false && p.is_active !== 0,
+      member_price_eligible: Number(p.member_price_eligible ?? 1) === 1,
     });
     setImageFile(null);
     setImagePreview(p.image_url || null);

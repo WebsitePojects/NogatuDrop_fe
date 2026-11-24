@@ -131,7 +131,7 @@ export default function StockistDashboard() {
       <div className="page-header-shell mb-6 grid gap-5 rounded-[1.8rem] border border-white/60 px-5 py-5 lg:grid-cols-[1fr_0.9fr]">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[#237023] dark:text-green-400">
-            {centerStaff ? 'Fulfillment Center' : 'Stockist Portal'}
+            {centerStaff ? 'Hub' : 'Stockist Portal'}
           </p>
           <h1 className="mt-3 text-2xl font-bold text-gray-900 dark:text-[var(--dark-text)]">
             {greeting()}, {user?.name?.split(' ')[0] || 'Stockist'}

@@ -26,10 +26,13 @@ export function getPublicOrderPricingTotals(merchandiseSubtotal, shippingFee = n
 /**
  * Products subtotal at the member price, rounded per unit exactly as the server does
  * (orderController.createPublicOrder): unit_price x (1 - pct/100), to the centavo, times quantity.
+ * `isEligible(line)` says whether that product gets the member price (packages do not); others keep their price.
  */
-export function memberPriceSubtotal(cart, discountPct) {
-  return roundCurrency((cart || []).reduce(
-    (sum, line) => sum + Number(line.quantity) * roundCurrency(Number(line.unit_price) * (1 - Number(discountPct) / 100)),
-    0,
-  ));
+export function memberPriceSubtotal(cart, discountPct, isEligible = () => true) {
+  return roundCurrency((cart || []).reduce((sum, line) => {
+    const unit = isEligible(line)
+      ? roundCurrency(Number(line.unit_price) * (1 - Number(discountPct) / 100))
+      : Number(line.unit_price);
+    return sum + Number(line.quantity) * unit;
+  }, 0));
 }

@@ -35,7 +35,7 @@ const EMPTY_FORM = {
 const LEVEL_LABELS = {
   provincial_stockist: 'Provincial',
   city_stockist: 'City',
-  [CENTER_LEVEL]: 'Fulfillment Center',
+  [CENTER_LEVEL]: 'Hub',
 };
 const levelLabel = (level) => LEVEL_LABELS[level] || level?.replace(/_/g, ' ') || '—';
 
@@ -183,21 +183,21 @@ const rowFor = (partner, { onEdit, canAct }) => ({
   action: canAct ? { label: 'Edit', onClick: () => onEdit(partner) } : null,
 });
 
-// Centers are company-run, so they have no discount, parent, or editable level.
+// Hubs (Caloocan, Tycoon) are company-run, so they have no discount, parent, or editable level.
 // They are shown read-only and apart from the Stockist table.
-function FulfillmentCentersCard({ centers, onSelect }) {
+function HubsCard({ centers, onSelect }) {
   return (
     <Card className="mb-4">
       <div className="mb-3">
-        <h2 className="text-base font-semibold text-strong">Fulfillment Centers</h2>
-        <p className="text-sm text-muted">Company-run centers that fulfill public and Stockist orders.</p>
+        <h2 className="text-base font-semibold text-strong">Hubs</h2>
+        <p className="text-sm text-muted">Caloocan and Tycoon: company hubs that process store and Stockist orders. They restock from the Goldenstar warehouse.</p>
       </div>
       <ResponsiveList items={centers} getKey={(c) => c.id} onOpen={onSelect} row={(c) => rowFor(c, { canAct: false })}>
         <div className="overflow-x-auto">
           <Table>
             <TableHead>
               <TableRow>
-                <TableHeadCell>Center</TableHeadCell>
+                <TableHeadCell>Hub</TableHeadCell>
                 <TableHeadCell>Address</TableHeadCell>
                 <TableHeadCell>Phone</TableHeadCell>
                 <TableHeadCell>Status</TableHeadCell>
@@ -238,7 +238,8 @@ export default function Partners() {
   const [discountVal, setDiscountVal] = useState('');
   const { submitting, run } = useSubmitGuard();
 
-  const centers = partners.filter(isCenter);
+  // The list API leaves hubs out unless asked for them, so they are fetched once on their own.
+  const [hubs, setHubs] = useState([]);
   const stockists = partners.filter((p) => !isCenter(p));
 
   const fetchPartners = useCallback(async () => {
@@ -261,6 +262,9 @@ export default function Partners() {
   useEffect(() => {
     api.get(PARTNERS.LIST, { params: { limit: 100, stockist_level: 'provincial_stockist' } })
       .then((r) => setParents(r.data.data || []))
+      .catch(() => {});
+    api.get(PARTNERS.LIST, { params: { limit: 20, stockist_level: CENTER_LEVEL } })
+      .then((r) => setHubs(r.data.data || []))
       .catch(() => {});
   }, []);
 
@@ -292,7 +296,7 @@ export default function Partners() {
   const levelBadge = (level) => {
     if (level === 'provincial_stockist') return <span className="badge-approved">Provincial</span>;
     if (level === 'city_stockist') return <span className="badge-delivering">City</span>;
-    if (level === CENTER_LEVEL) return <span className="badge-active">Fulfillment Center</span>;
+    if (level === CENTER_LEVEL) return <span className="badge-active">Hub</span>;
     return <span className="badge-inactive">{level?.replace(/_/g, ' ')}</span>;
   };
 
@@ -304,7 +308,7 @@ export default function Partners() {
         actions={[{ label: 'Add Stockist', icon: <HiOutlinePlus className="w-4 h-4" />, onClick: openAdd }]}
       />
 
-      {!loading && centers.length > 0 && <FulfillmentCentersCard centers={centers} onSelect={openDetail} />}
+      {hubs.length > 0 && <HubsCard centers={hubs} onSelect={openDetail} />}
 
       <Card>
         <div className="flex gap-3 mb-4">
