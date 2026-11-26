@@ -745,7 +745,12 @@ export default function StockistOrders() {
                 </table>
               </div>
 
-              <MemberPriceNotice order={detail} />
+              <MemberPriceNotice
+                order={detail}
+                canRemove={canReviewPendingChildOrder && canApprove}
+                onRemoved={(message) => { showToast(message, 'success'); openDetail(detail); fetchOrders(); }}
+                onError={(message) => showToast(message, 'error')}
+              />
 
               <OrderPricingBreakdown
                 breakdown={detail.pricing_breakdown}

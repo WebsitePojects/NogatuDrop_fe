@@ -26,7 +26,7 @@ import {
   nameProblems, addressProblems, toOrderCustomerFields, geocodeQueries,
   isValidEmail,
 } from '@/utils/publicCustomer';
-import { normalizePaymentProviders } from './paymentProviders.js';
+import useQuotedPaymentProviders from '@/hooks/useQuotedPaymentProviders';
 
 const BRAND_LOGO = '/assets/dropshipping_nogatu_logo.png';
 
@@ -91,17 +91,12 @@ const normalizeIncomingPublicCart = (items, catalog) => {
   return Array.from(merged.values());
 };
 
-function PaymentProviderPicker({ options, selected, onSelect, disabled, loadError, onRetry }) {
-  if (loadError) {
-    return (
-      <div className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-700" role="alert">
-        <p>{loadError}</p>
-        <button type="button" onClick={onRetry} className="mt-2 font-semibold underline">Try again</button>
-      </div>
-    );
+function PaymentProviderPicker({ options, selected, onSelect, disabled, waiting }) {
+  if (waiting) {
+    return <p className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">Enter your delivery address to see how you can pay.</p>;
   }
   if (options.length === 0) {
-    return <p className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">Payment accounts are not available right now. Please check back shortly.</p>;
+    return <p className="rounded-xl border border-gray-200 bg-gray-50 p-3 text-sm text-gray-700">Payment accounts are not available for this address right now. Please check back shortly.</p>;
   }
   return (
     <fieldset disabled={disabled}>
@@ -185,9 +180,6 @@ export default function Shop() {
   const [proofUploading, setProofUploading] = useState(false);
   const [proofMessage, setProofMessage] = useState('');
   const [proofError, setProofError] = useState('');
-  const [paymentProviders, setPaymentProviders] = useState([]);
-  const [paymentProvider, setPaymentProvider] = useState('');
-  const [paymentOptionsError, setPaymentOptionsError] = useState('');
   const checkoutIntentRef = useRef(createCheckoutIntent());
   const proofIntentRef = useRef(createCheckoutIntent());
   const submittingRef = useRef(false);
@@ -260,24 +252,6 @@ export default function Shop() {
     loadMasterStocks();
   }, []);
 
-  const loadPaymentOptions = useCallback(() => {
-    setPaymentOptionsError('');
-    return api.get(ORDERS.PUBLIC_PAYMENT_OPTIONS)
-      .then(({ data }) => {
-        const providers = normalizePaymentProviders(data.data?.providers);
-        setPaymentProviders(providers);
-        setPaymentProvider((current) => (
-          providers.some((option) => option.provider === current) ? current : providers[0]?.provider || ''
-        ));
-      })
-      .catch((err) => {
-        setPaymentProviders([]);
-        setPaymentOptionsError(err?.response?.data?.message || 'We could not load payment options. Please try again.');
-      });
-  }, []);
-
-  useEffect(() => { loadPaymentOptions(); }, [loadPaymentOptions]);
-
   useEffect(() => {
     const t = setTimeout(() => fetchProducts(), 400);
     return () => clearTimeout(t);
@@ -305,6 +279,9 @@ export default function Shop() {
     : regularSubtotal;
   // The fee and delivery dates come from the server for this address and cart weight (2026-11-10).
   const shipping = useShippingQuote(deliveryAddress.barangayCode, cart);
+  // Only the shipping Stockist's (or hub's) own payment accounts, from the same quote.
+  const payment = useQuotedPaymentProviders(shipping.quote);
+  const paymentProvider = payment.selected;
   const pricingTotals = getPublicOrderPricingTotals(cartTotal, shipping.quote?.fee);
   const shippingFee = pricingTotals.shippingFee;
   const totalDue = pricingTotals.totalDue;
@@ -840,12 +817,11 @@ export default function Shop() {
                     <div className="pt-2">
                       <div className="mb-4">
                         <PaymentProviderPicker
-                          options={paymentProviders}
+                          options={payment.options}
                           selected={paymentProvider}
-                          onSelect={setPaymentProvider}
+                          onSelect={payment.setSelected}
                           disabled={submitting}
-                          loadError={paymentOptionsError}
-                          onRetry={loadPaymentOptions}
+                          waiting={!shipping.quote}
                         />
                       </div>
                       <PaymentSteps />

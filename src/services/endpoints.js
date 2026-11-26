@@ -21,6 +21,7 @@ export const PARTNERS = {
   BY_ID:           (id) => `/partners/${id}`,
   UPDATE:          (id) => `/partners/${id}`,
   UPDATE_DISCOUNT: (id) => `/partners/${id}/discount`,
+  DELETE:          (id) => `/partners/${id}`,
 };
 
 export const PRODUCTS = {
@@ -89,6 +90,7 @@ export const ORDERS = {
   BY_ID:         (id) => `/orders/${id}`,
   APPROVE:       (id) => `/orders/${id}/approve`,
   REJECT:        (id) => `/orders/${id}/reject`,
+  REMOVE_MEMBER_PRICE: (id) => `/orders/${id}/remove-member-price`,
   CANCEL:        (id) => `/orders/${id}/cancel`,
   PAYMENT_PROOF: (id) => `/orders/${id}/payment-proof`,
   VERIFY_PAYMENT:(id) => `/orders/${id}/verify-payment`,

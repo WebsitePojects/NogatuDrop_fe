@@ -547,7 +547,12 @@ export default function Orders() {
                 </div>
               </div>
 
-              <MemberPriceNotice order={selectedOrder} />
+              <MemberPriceNotice
+                order={selectedOrder}
+                canRemove={isSuperAdmin}
+                onRemoved={(message) => { showToast(message, 'success'); openDetail(selectedOrder); fetchOrders(); }}
+                onError={(message) => showToast(message, 'error')}
+              />
 
               <OrderPricingBreakdown
                 breakdown={selectedOrder.pricing_breakdown}

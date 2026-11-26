@@ -19,6 +19,7 @@ import { FIELD_CLASSES } from '@/components/formFieldClasses';
 import PasswordInput from '@/components/PasswordInput';
 import { ToastContainer, useToast } from '@/components/Toast';
 import useSubmitGuard from '@/hooks/useSubmitGuard';
+import ConfirmDialog from '@/components/ConfirmDialog';
 import { PASSWORD_RULE_TEXT, passwordProblem } from '@/utils/passwordPolicy';
 import { CENTER_LEVEL } from '@/utils/partnerLevel';
 import {
@@ -234,6 +235,7 @@ export default function Partners() {
   const [formTarget, setFormTarget] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showDiscountModal, setShowDiscountModal] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   const [selected, setSelected] = useState(null);
   const [discountVal, setDiscountVal] = useState('');
   const { submitting, run } = useSubmitGuard();
@@ -290,6 +292,20 @@ export default function Partners() {
       fetchPartners();
     } catch (err) {
       showToast(err.response?.data?.message || 'Failed to update discount', 'error');
+    }
+  });
+
+  // The server refuses (409) while the Stockist has open orders, stock, unfinished transfers or City Stockists,
+  // and says which; that message is shown as is.
+  const handleDelete = () => run(async () => {
+    try {
+      const { data } = await api.delete(PARTNERS.DELETE(selected.id));
+      setConfirmDelete(false);
+      showToast(data.message || 'Stockist deleted', 'success');
+      fetchPartners();
+    } catch (err) {
+      setConfirmDelete(false);
+      showToast(err.response?.data?.message || 'Could not delete the Stockist', 'error');
     }
   });
 
@@ -436,11 +452,22 @@ export default function Partners() {
             <>
               <Button color="warning" size="sm" onClick={() => { setShowDetailModal(false); openEdit(selected); }}>Edit</Button>
               <Button color="light" size="sm" onClick={() => { setShowDetailModal(false); openDiscount(selected); }}>Adjust Discount</Button>
+              <Button color="failure" outline size="sm" disabled={submitting} onClick={() => { setShowDetailModal(false); setConfirmDelete(true); }}>Delete Stockist</Button>
             </>
           )}
           <Button color="gray" size="sm" onClick={() => setShowDetailModal(false)}>Close</Button>
         </ModalFooter>
       </Modal>
+
+      <ConfirmDialog
+        isOpen={confirmDelete}
+        onClose={() => { if (!submitting) setConfirmDelete(false); }}
+        onConfirm={handleDelete}
+        loading={submitting}
+        title={`Delete ${selected?.business_name || 'this Stockist'}?`}
+        message="Its logins, Mobile Stockists, warehouses and payment accounts are removed, and its area becomes free for another Stockist. This is only allowed when it has no open orders, no stock left and no City Stockists under it."
+        confirmText="Delete Stockist"
+      />
 
       {/* Discount Modal */}
       <Modal show={showDiscountModal} onClose={() => setShowDiscountModal(false)} size="sm" backdropClasses="bg-black/50 backdrop-blur-sm">

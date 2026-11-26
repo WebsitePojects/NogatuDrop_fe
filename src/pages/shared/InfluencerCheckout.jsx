@@ -1,5 +1,5 @@
 import PaymentSteps from '@/components/checkout/PaymentSteps';
-import { useEffect, useMemo, useRef, useState, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Spinner } from 'flowbite-react';
 import { FiMinus, FiPlus, FiLock, FiTruck, FiShield, FiArrowRight } from 'react-icons/fi';
 import api from '@/services/api';
@@ -21,7 +21,7 @@ import {
 import useSubmitGuard from '@/hooks/useSubmitGuard';
 import LocationPicker from '@/components/LocationPicker';
 import PhAddressFields from '@/components/PhAddressFields';
-import { normalizePaymentProviders } from './paymentProviders.js';
+import useQuotedPaymentProviders from '@/hooks/useQuotedPaymentProviders';
 import { CheckoutHeader, CheckoutFooter } from './InfluencerCheckoutChrome';
 import InfluencerPaymentStep from './InfluencerPaymentStep';
 import './influencerCheckout.css';
@@ -81,16 +81,12 @@ function QuantityStepper({ value, max, onChange, disabled, idPrefix }) {
   );
 }
 
-function PaymentChoices({ options, selected, onSelect, disabled, loadError, onRetry }) {
-  if (loadError) {
-    return (
-      <div className="ck-alert ck-alert-error" role="alert">
-        {loadError} <button type="button" onClick={onRetry} className="ml-1 font-semibold underline">Try again</button>
-      </div>
-    );
+function PaymentChoices({ options, selected, onSelect, disabled, waiting }) {
+  if (waiting) {
+    return <p className="ck-muted">Enter your delivery address to see how you can pay.</p>;
   }
   if (options.length === 0) {
-    return <p className="ck-muted">Payment accounts are not available right now. Please check back shortly.</p>;
+    return <p className="ck-muted">Payment accounts are not available for this address right now. Please check back shortly.</p>;
   }
   return (
     <fieldset disabled={disabled} className="grid gap-2.5 sm:grid-cols-3">
@@ -159,9 +155,6 @@ export default function InfluencerCheckout({ influencer }) {
   const [place, setPlace] = useState(null);
   const [touched, setTouched] = useState(false);
   const [pinnedLocation, setPinnedLocation] = useState(null);
-  const [paymentProviders, setPaymentProviders] = useState([]);
-  const [paymentProvider, setPaymentProvider] = useState('');
-  const [paymentOptionsError, setPaymentOptionsError] = useState('');
   const [formError, setFormError] = useState('');
   const [order, setOrder] = useState(null);
 
@@ -172,6 +165,9 @@ export default function InfluencerCheckout({ influencer }) {
   const soldOut = availableQty !== null && maxQty === 0;
   const quoteItems = useMemo(() => [{ product_id: product.id, quantity }], [product.id, quantity]);
   const shipping = useShippingQuote(address.barangayCode, quoteItems, { centersOnly: true });
+  // Only the shipping hub's own payment accounts, from the same quote.
+  const payment = useQuotedPaymentProviders(shipping.quote);
+  const paymentProvider = payment.selected;
   const totals = useMemo(
     () => getPublicOrderPricingTotals(unitPrice * quantity, shipping.quote?.fee),
     [unitPrice, quantity, shipping.quote]
@@ -193,22 +189,6 @@ export default function InfluencerCheckout({ influencer }) {
   useEffect(() => {
     if (availableQty !== null) setQuantity((q) => clampQuantity(q, maxOrderableQuantity(availableQty)));
   }, [availableQty]);
-
-  const loadPaymentOptions = useCallback(() => {
-    setPaymentOptionsError('');
-    return api.get(ORDERS.PUBLIC_PAYMENT_OPTIONS)
-      .then(({ data }) => {
-        const providers = normalizePaymentProviders(data.data?.providers);
-        setPaymentProviders(providers);
-        setPaymentProvider((current) => (providers.some((o) => o.provider === current) ? current : providers[0]?.provider || ''));
-      })
-      .catch((err) => {
-        setPaymentProviders([]);
-        setPaymentOptionsError(err?.response?.data?.message || 'We could not load payment options.');
-      });
-  }, []);
-
-  useEffect(() => { loadPaymentOptions(); }, [loadPaymentOptions]);
 
   const setQty = (value) => setQuantity(clampQuantity(value, maxQty));
   const setNamePart = (key) => (e) => setName((n) => ({ ...n, [key]: e.target.value }));
@@ -287,7 +267,7 @@ export default function InfluencerCheckout({ influencer }) {
     return <InfluencerPaymentStep slugLabel={slugLabel} product={product} order={order} fallbackTotal={totals.totalDue} />;
   }
 
-  const placeDisabled = placing.submitting || soldOut || paymentProviders.length === 0 || !shipping.quote;
+  const placeDisabled = placing.submitting || soldOut || payment.options.length === 0 || !shipping.quote;
 
   return (
     <div className="ck ck-has-bar">
@@ -389,12 +369,11 @@ export default function InfluencerCheckout({ influencer }) {
                 <StepHeading number={3} id="ck-step-payment" title="Payment" detail="Bank transfer or e-wallet. The account appears right after you place the order." />
                 <div className="mt-5">
                   <PaymentChoices
-                    options={paymentProviders}
+                    options={payment.options}
                     selected={paymentProvider}
-                    onSelect={setPaymentProvider}
+                    onSelect={payment.setSelected}
                     disabled={placing.submitting}
-                    loadError={paymentOptionsError}
-                    onRetry={loadPaymentOptions}
+                    waiting={!shipping.quote}
                   />
                   <div className="mt-3"><PaymentSteps /></div>
                 </div>
